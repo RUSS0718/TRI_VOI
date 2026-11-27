@@ -105,9 +105,17 @@ def _eval_model_full_suite(
                 c_ask=ca,
             )
 
-    # Also evaluate Cap=1/3 severe congestion vs Calibrated-Cascade / Joint-Greedy
+    # Also evaluate Cap=1/3 severe congestion vs Calibrated-Cascade / Joint-Greedy (+Naor & w/o Ext)
     sev = eval_methods_multi_seed(
-        ["Naive-Cascade", "Joint-Greedy", "Calibrated-Cascade", "Tri-VoI-L2D"],
+        [
+            "Naive-Cascade",
+            "Joint-Greedy",
+            "Joint-Greedy+Naor",
+            "Calibrated-Cascade",
+            "Calibrated-Cascade+Naor",
+            "w/o Queue-Externality",
+            "Tri-VoI-L2D",
+        ],
         test_probed,
         calib,
         n_seeds=5,
@@ -136,8 +144,8 @@ def _plot_fig5_multimodel(model_summaries: List[Dict[str, Any]], dry_run: bool) 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.2, 4.1))
 
     for ax, ckey, title in [
-        (ax1, "c_1.5", "(a) 5-Model Full N=360 Generalization (c_ask=1.5)"),
-        (ax2, "c_2.5", "(b) 5-Model Full N=360 Under Moderate Burden (c_ask=2.5)"),
+        (ax1, "c_1.5", "(a) 5 Models (4 Families) N=360 (c_ask=1.5)"),
+        (ax2, "c_2.5", "(b) 5 Models (4 Families) N=360 (c_ask=2.5)"),
     ]:
         for idx, (meth, col) in enumerate([
             ("Naive-Cascade", "#e7298a"),
@@ -355,9 +363,9 @@ def _write_master_report(
 
     if "all_models_n360" in state:
         lines += [
-            "## Stage 1 & 2: Full-Scale 5-Family Cross-Model Evaluation (`N=360`, 6 Independent Episodes)",
+            "## Stage 1 & 2: Full-Scale Cross-Model Evaluation (5 Models Across 4 Families, `N=360`, 6 Independent Episodes)",
             "",
-            "| Backbone | N | Missing F1 | Ent Collapse% | Direct-ACT (1.5) | Naive-Casc (1.5) | Joint-Greedy (1.5) | Calib-Casc (1.5) | **Tri-VoI (1.5)** | Calib-Casc (2.5) | **Tri-VoI (2.5)** | Severe Cap=1/3: Tri vs Calib-Casc |",
+            "| Backbone | N | Missing F1 | Ent Coll% | Direct (1.5) | Naive (1.5) | J-Greedy (1.5) | CalibCasc (1.5) | **Tri-VoI (1.5)** | CalibCasc (2.5) | **Tri-VoI (2.5)** | Severe Cap=1/3: Tri / Calib+Naor / w/oExt / Naive |",
             "| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :---: |",
         ]
         for ms in state["all_models_n360"]:
@@ -368,7 +376,8 @@ def _write_master_report(
             lines.append(
                 f"| {ms['model_id']} | {ms['n_test']} | {dg['missing_f1']} | {dg['entropy_collapse_pct']} | "
                 f"{r15['Direct-ACT']:.3f} | {r15['Naive-Cascade']:.3f} | {r15['Joint-Greedy']:.3f} | {r15['Calibrated-Cascade']:.3f} | **{r15['Tri-VoI-L2D']:.3f}** | "
-                f"{r25['Calibrated-Cascade']:.3f} | **{r25['Tri-VoI-L2D']:.3f}** | {sev['Tri-VoI-L2D']:.3f} vs {sev['Calibrated-Cascade']:.3f} |"
+                f"{r25['Calibrated-Cascade']:.3f} | **{r25['Tri-VoI-L2D']:.3f}** | "
+                f"{sev['Tri-VoI-L2D']:.3f} / {sev['Calibrated-Cascade+Naor']:.3f} / {sev['w/o Queue-Externality']:.3f} / {sev['Naive-Cascade']:.3f} |"
             )
         lines.append("")
 
@@ -408,12 +417,19 @@ def _write_master_report(
 
     if "stage5" in state:
         s5 = state["stage5"]
-        n_win_cas = sum(1 for c in s5["phase_map_56pt"] if c["margin_vs_cascade"] >= 0)
-        n_win_grd = sum(1 for c in s5["phase_map_56pt"] if c["margin_vs_greedy"] >= 0)
+        cells = s5["phase_map_56pt"]
+        n_strict_best = sum(1 for c in cells if c["winner"] == "Tri-VoI-L2D")
+        n_win_cas = sum(1 for c in cells if c["margin_vs_cascade"] >= 0)
+        n_win_cas_naor = sum(1 for c in cells if c.get("margin_vs_cascade_naor", 0) >= 0)
+        n_win_grd = sum(1 for c in cells if c["margin_vs_greedy"] >= 0)
+        n_win_grd_naor = sum(1 for c in cells if c.get("margin_vs_greedy_naor", 0) >= 0)
+        n_win_wo_ext = sum(1 for c in cells if c.get("margin_vs_wo_ext", 0) >= 0)
         lines += [
-            "## Stage 5: Deep Structural, Cross-Validation, LODO Transfer, Bursty/3-Expert, Pareto & Error Taxonomy",
+            "## Stage 5: Deep Structural, Cross-Validation, LODO Transfer, Bursty/3-Expert, Subset & Specialist Stress",
             "",
-            f"- **56-Point 2D Operating Phase Map (`7 loads × 8 c_ask`)**: `Tri-VoI-L2D` outperforms or ties `Calibrated-Cascade` on **{n_win_cas}/56** cells and outperforms or ties `Joint-Greedy` on **{n_win_grd}/56** cells.",
+            f"- **56-Point 2D Operating Phase Map (`7 loads × 8 c_ask`, 8 methods)**: `Tri-VoI-L2D` is strict overall winner on **{n_strict_best}/56** cells; "
+            f"outperforms/ties `Calibrated-Cascade` (**{n_win_cas}/56**), `Calibrated-Cascade+Naor` (**{n_win_cas_naor}/56**), "
+            f"`Joint-Greedy` (**{n_win_grd}/56**), `Joint-Greedy+Naor` (**{n_win_grd_naor}/56**), and `w/o Queue-Externality` (**{n_win_wo_ext}/56**).",
             "",
             "### 5-Fold Stratified Cross-Validation Across Available Models (420 items each)",
             "| Backbone | Naive-Cascade | Joint-Greedy | Calibrated-Cascade | **Tri-VoI-L2D** |",
@@ -434,10 +450,50 @@ def _write_master_report(
             "| Method | Bursty Util (Acc% / Wait) | 3-Expert Shift Util (Acc% / Wait) |",
             "| :--- | :---: | :---: |",
         ]
-        for m in ["Direct-ACT", "Congested-L2D-Only", "Naive-Cascade", "Joint-Greedy", "Calibrated-Cascade", "Tri-VoI-L2D"]:
+        for m in [
+            "Direct-ACT",
+            "Congested-L2D-Only",
+            "Naive-Cascade",
+            "Joint-Greedy",
+            "Joint-Greedy+Naor",
+            "Calibrated-Cascade",
+            "Calibrated-Cascade+Naor",
+            "Tri-VoI-L2D",
+        ]:
             b = s5["bursty_traffic_pool"][m]
             s = s5["shift3_hetero_pool"][m]
             lines.append(f"| {m} | {b['mean_utility']:.3f} ({b['acc_pct']}% / W={b['mean_wait']}) | {s['mean_utility']:.3f} ({s['acc_pct']}% / W={s['mean_wait']}) |")
+
+        if "decision_relevant_subset" in s5:
+            dr = s5["decision_relevant_subset"]
+            lines += [
+                "",
+                f"### Stage 5e: Decision-Relevant Subset (`cal={dr['n_cal_filtered']}/{dr['n_cal_orig']}`, `test={dr['n_test_filtered']}/{dr['n_test_orig']}`, Invariant Q2 Excluded)",
+                "| Regime | Naive-Casc | Joint-Greedy | Joint-Greedy+Naor | Calib-Casc | Calib-Casc+Naor | w/o Externality | **Tri-VoI-L2D** |",
+                "| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+            ]
+            for r_lbl, rm in dr["regimes"].items():
+                lines.append(
+                    f"| {r_lbl} | {rm['Naive-Cascade']['mean_utility']:.3f} | {rm['Joint-Greedy']['mean_utility']:.3f} | "
+                    f"{rm['Joint-Greedy+Naor']['mean_utility']:.3f} | {rm['Calibrated-Cascade']['mean_utility']:.3f} | "
+                    f"{rm['Calibrated-Cascade+Naor']['mean_utility']:.3f} | {rm['w/o Queue-Externality']['mean_utility']:.3f} | "
+                    f"**{rm['Tri-VoI-L2D']['mean_utility']:.3f}** |"
+                )
+
+        if "realistic_specialist_stress" in s5:
+            lines += [
+                "",
+                "### Stage 5f: Realistic Specialist Stress (Delayed Feedback & Unclarified-Ticket Rework)",
+                "| Stress Condition | Congested-L2D | Joint-Greedy | Joint-Greedy+Naor | Calib-Casc | Calib-Casc+Naor | w/o Externality | **Tri-VoI-L2D** |",
+                "| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+            ]
+            for s_lbl, sm in s5["realistic_specialist_stress"].items():
+                lines.append(
+                    f"| {s_lbl} | {sm['Congested-L2D-Only']['mean_utility']:.3f} | {sm['Joint-Greedy']['mean_utility']:.3f} | "
+                    f"{sm['Joint-Greedy+Naor']['mean_utility']:.3f} | {sm['Calibrated-Cascade']['mean_utility']:.3f} | "
+                    f"{sm['Calibrated-Cascade+Naor']['mean_utility']:.3f} | {sm['w/o Queue-Externality']['mean_utility']:.3f} | "
+                    f"**{sm['Tri-VoI-L2D']['mean_utility']:.3f}** |"
+                )
 
         lines += [
             "",
@@ -453,10 +509,10 @@ def _write_master_report(
 
     if "all_models_n360" in state:
         tex = [
-            "% Overnight 5-Model N=360 Cross-Model IEEE Table",
+            "% Overnight 5-Model (4 Families) N=360 Cross-Model IEEE Table",
             "\\begin{table*}[t]",
             "\\centering",
-            "\\caption{Cross-model generalization across 5 distinct LLM families ($N=360$ test tickets $\\times$ 5 seeds each).}",
+            "\\caption{Cross-model generalization across 5 models from 4 LLM families ($N=360$ test tickets $\\times$ 5 seeds each).}",
             "\\begin{tabular}{lccccccc}",
             "\\hline",
             "Backbone & Missing-F1 & Coll(\\%) & Naive(1.5) & Greedy(1.5) & CalibCasc(1.5) & TriVoI(1.5) & TriVoI(2.5) \\\\",
@@ -534,10 +590,10 @@ def main():
             _write_master_report(state, tracker, args.dry_run, "AFTER_STAGE_1")
 
         # -----------------------------------------------------------------
-        # STAGE 2: 5th distinct model family (inclusionAI/Ling-flash-2.0)
+        # STAGE 2: 5th model (4th distinct family: tencent/Hy4-preview)
         # -----------------------------------------------------------------
         if 2 in stages:
-            print(f"\n=== STAGE 2: 5th Distinct Family ({FIFTH_FAMILY_MODEL}, Full 60 cal + 360 test) ===", flush=True)
+            print(f"\n=== STAGE 2: 5th Model / 4th Family ({FIFTH_FAMILY_MODEL}, Full 60 cal + 360 test) ===", flush=True)
             lc = probe_dataset_budgeted(cal_items, FIFTH_FAMILY_MODEL, tracker, dry_run=args.dry_run, workers=args.workers, pace_sec=args.pace_sec, label="cal60")
             lt = probe_dataset_budgeted(test_items, FIFTH_FAMILY_MODEL, tracker, dry_run=args.dry_run, workers=args.workers, pace_sec=args.pace_sec, label="test360")
             model_pools[FIFTH_FAMILY_MODEL] = {"cal": lc, "test": lt}

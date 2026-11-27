@@ -36,12 +36,14 @@ ALL_MODELS = [
 
 MAIN_METHODS = [
     "Direct-ACT",
-    "Entropy-Clarify (ADEPT)",
-    "Consensus-Defer (DREAM)",
+    "Entropy-ASK (Proxy)",
+    "Consensus-DEFER (Proxy)",
     "Congested-L2D-Only",
     "Naive-Cascade",
     "Joint-Greedy",
+    "Joint-Greedy+Naor",
     "Calibrated-Cascade",
+    "Calibrated-Cascade+Naor",
     "Tri-VoI-L2D",
     "Oracle",
 ]
@@ -183,7 +185,9 @@ def stream_ordering_stability_check(
         "Congested-L2D-Only",
         "Naive-Cascade",
         "Joint-Greedy",
+        "Joint-Greedy+Naor",
         "Calibrated-Cascade",
+        "Calibrated-Cascade+Naor",
     ]
     counts: Dict[str, Dict[str, int]] = {b: {"wins": 0, "losses": 0, "ties": 0} for b in baselines}
     deltas: Dict[str, List[float]] = {b: [] for b in baselines}
@@ -455,7 +459,7 @@ def generate_figures(all_out: Dict[str, Any]) -> List[str]:
     ax.set_xticklabels(models, fontsize=9)
     ax.set_ylim(0, 108)
     ax.set_ylabel("Percentage (%)")
-    ax.set_title("Finding 2: High-Consensus Entropy Collapse Across 4 LLM Families")
+    ax.set_title("Finding 2: High-Consensus Entropy Collapse Across 4 LLM Backbones")
     ax.legend(fontsize=8, loc="upper right")
     ax.grid(axis="y", alpha=0.25)
     plt.tight_layout()
@@ -534,18 +538,20 @@ def generate_figures(all_out: Dict[str, Any]) -> List[str]:
 
     # Panel (c): c_ask sensitivity sweep at Cap=2 (N=360)
     c_vals = [r["c_ask"] for r in cask_rows]
-    for meth, col, mk in [
-        ("Tri-VoI-L2D", "#1b9e77", "o"),
-        ("Calibrated-Cascade", "#386cb0", "^"),
-        ("Joint-Greedy", "#d95f02", "s"),
-        ("Naive-Cascade", "#e7298a", "d"),
+    for meth, col, mk, ls in [
+        ("Tri-VoI-L2D", "#1b9e77", "o", "-"),
+        ("Calibrated-Cascade+Naor", "#005a32", "^", "--"),
+        ("Calibrated-Cascade", "#386cb0", "^", "-"),
+        ("Joint-Greedy+Naor", "#b34700", "s", "--"),
+        ("Joint-Greedy", "#d95f02", "s", "-"),
+        ("Naive-Cascade", "#e7298a", "d", "-"),
     ]:
         ys = [r["methods"][meth]["mean_utility"] for r in cask_rows]
-        ax3.plot(c_vals, ys, marker=mk, linewidth=2.0, color=col, label=meth)
+        ax3.plot(c_vals, ys, marker=mk, linestyle=ls, linewidth=1.8, color=col, label=meth)
     ax3.set_xlabel("User Clarification Burden c_ask")
     ax3.set_ylabel("Mean Net Utility / Ticket")
     ax3.set_title("(c) Cost Sensitivity c_ask (N=360, Cap=2)")
-    ax3.legend(fontsize=7.5, loc="lower left")
+    ax3.legend(fontsize=6.6, loc="lower left")
     ax3.grid(alpha=0.25)
 
     plt.tight_layout()
@@ -753,61 +759,66 @@ def write_outputs(all_out: Dict[str, Any], dry_run: bool) -> None:
         "",
         "## Exp 2a: Queue-Relief VoI & Naor Externality Load Sweep (`N=360`, `c_ask=1.5`)",
         "",
-        "| Regime | Tri-VoI Qbar | Tri Q4 ASK% | Dec-Nom Q4 ASK% | Tri Util / Wait | w/o Ext Util / Wait | Calib-Casc Util / Wait | Joint-Greedy Util / Wait | Naive Util / Wait |",
-        "| :--- | ---: | ---: | ---: | :---: | :---: | :---: | :---: | :---: |",
+        "| Regime | Tri Qbar | Tri Q4 ASK% | Dec-Nom Q4 ASK% | Tri Util / Wait | w/o Ext Util / Wait | Calib-Casc+Naor Util / Wait | Calib-Casc Util / Wait | Joint-Greedy+Naor Util / Wait | Joint-Greedy Util / Wait |",
+        "| :--- | ---: | ---: | ---: | :---: | :---: | :---: | :---: | :---: | :---: |",
     ]
     for s in all_out["exp2_congestion_sweep"]:
         lines.append(
             f"| {s['regime_label']} | {s['tri_mean_queue_len']:.2f} | {s['tri_q4_ask_pct']} | {s['decoupled_nominal_q4_ask_pct']} | "
             f"**{s['tri_mean_util']:.3f} / {s['tri_mean_wait']:.2f}** | "
             f"{s['wo_ext_mean_util']:.3f} / {s['wo_ext_mean_wait']:.2f} | "
+            f"{s['cascade_naor_mean_util']:.3f} / {s['cascade_naor_mean_wait']:.2f} | "
             f"{s['cascade_mean_util']:.3f} / {s['cascade_mean_wait']:.2f} | "
-            f"{s['greedy_mean_util']:.3f} / {s['greedy_mean_wait']:.2f} | "
-            f"{s['naive_mean_util']:.3f} / {s['naive_mean_wait']:.2f} |"
+            f"{s['greedy_naor_mean_util']:.3f} / {s['greedy_naor_mean_wait']:.2f} | "
+            f"{s['greedy_mean_util']:.3f} / {s['greedy_mean_wait']:.2f} |"
         )
 
     fs = all_out["exp2_fixed_state_theory"]
     lines += [
         "",
-        f"## Exp 2a-Theory: 2D Fixed-State Queue Sweep (Q∈{{0..6}}, fixed p_e={fs['p_e_fixed']}, γ={fs['gamma_queue']}) & Negative Control (`N_Q4={fs['n_q4_items']}`)",
+        f"## Exp 2a-Theory: Three-Regime Fixed-State Queue Sweep (Q∈{{0..10}}, fixed p_e={fs['p_e_fixed']}, γ={fs['gamma_queue']}) & Negative Control (`N_Q4={fs['n_q4_items']}`)",
         "",
-        "| p_resolve | Theoretical Slope (p_res·γ) | Empirical Slope (Coupled) | Decoupled-Nominal Slope | Q=0 EVOI | Q=6 EVOI | Q4 ASK% (Q=0 -> Q=6) |",
-        "| ---: | ---: | ---: | ---: | ---: | ---: | :---: |",
+        "| p_resolve | Theoretical Defer Slope (p_res·γ) | Analytical Defer Slope | Decoupled-Nominal Slope | Q=0 EVOI | Q=6 EVOI | Q=10 EVOI | Q4 ASK% (Q=0 -> Q=10) |",
+        "| ---: | ---: | ---: | ---: | ---: | ---: | ---: | :---: |",
     ]
     for kp, cv in fs["analytical_curves"].items():
         q4c = fs["q4_ask_pct_by_p_resolve"][kp]
         lines.append(
-            f"| {kp} | {cv['theoretical_slope']:.4f} | {cv['empirical_slope']:.4f} | {cv['decoupled_slope']:.4f} | "
-            f"{cv['evoi_coupled'][0]:+.3f} | {cv['evoi_coupled'][-1]:+.3f} | {q4c[0]:.1f}% -> {q4c[-1]:.1f}% |"
+            f"| {kp} | {cv['theoretical_slope']:.4f} | {cv['analytical_defer_slope']:.4f} | {cv['decoupled_slope']:.4f} | "
+            f"{cv['evoi_coupled'][0]:+.3f} | {cv['evoi_coupled'][6]:+.3f} | {cv['evoi_coupled'][-1]:+.3f} | {q4c[0]:.1f}% -> {q4c[-1]:.1f}% |"
         )
 
     lines += [
         "",
-        "### Exp 2a-2D Phase Transition Across Specialist Reliability `p_e ∈ {0.75, 0.85, 0.92}`",
+        "### Exp 2a-2D Three-Regime Phase Transition & Monte Carlo Realized-Utility Rollout (`p_e ∈ {0.75, 0.85, 0.92}`, `N_MC=200`)",
         "",
-        "| p_e | Calibrated EVOI (Q=0 -> Q=6) | Tri-VoI Calibrated Q4 ASK% (Q=0 -> Q=6) | Decoupled-Nominal Q4 ASK% |",
-        "| ---: | :---: | :---: | :---: |",
+        "| p_e | Q1* (ACT/DEFER) | Q2* (OVR/DEFER) | Theor Defer Slope | MC Realized Slope ± SE | Analytical EVOI (Q=0 -> Q=6 -> Q=10) | MC Realized EVOI (Q=0 -> Q=6 -> Q=10) | Tri-VoI Q4 ASK% (Q=0 -> Q=10) |",
+        "| ---: | ---: | ---: | ---: | :---: | :---: | :---: | :---: |",
     ]
     for kpe, pv in fs["phase_2d_by_pe"].items():
         lines.append(
-            f"| {kpe} | {pv['evoi_by_q'][0]:+.3f} -> {pv['evoi_by_q'][-1]:+.3f} | "
-            f"{pv['q4_ask_pct_calibrated'][0]:.1f}% -> {pv['q4_ask_pct_calibrated'][-1]:.1f}% (seq: {pv['q4_ask_pct_calibrated']}) | "
-            f"{pv['q4_ask_pct_decoupled_nominal'][0]:.1f}% (flat) |"
+            f"| {kpe} | {pv['q1_act_defer_boundary']:.2f} | {pv['q2_ovr_defer_boundary']:.2f} | "
+            f"{pv['theoretical_defer_slope']:.4f} | {pv['realized_defer_slope']:.4f}±{pv['realized_defer_slope_se']:.4f} | "
+            f"{pv['evoi_by_q'][0]:+.3f} -> {pv['evoi_by_q'][6]:+.3f} -> {pv['evoi_by_q'][-1]:+.3f} | "
+            f"{pv['realized_evoi_mean'][0]:+.3f} -> {pv['realized_evoi_mean'][6]:+.3f} -> {pv['realized_evoi_mean'][-1]:+.3f} | "
+            f"{pv['q4_ask_pct_calibrated'][0]:.1f}% -> {pv['q4_ask_pct_calibrated'][-1]:.1f}% |"
         )
 
     lines += [
         "",
         "## Exp 2a-Cost: User Clarification Burden Sweep (`c_ask ∈ {0.5, 1.5, 2.5, 3.0, 5.0}`, `N=360`, Cap=2)",
         "",
-        "| c_ask | Naive-Cascade Util (ASK%) | Joint-Greedy Util (ASK%) | Calibrated-Cascade Util (ASK%) | Tri-VoI-L2D Util (ASK%) |",
-        "| ---: | :---: | :---: | :---: | :---: |",
+        "| c_ask | Naive-Cascade | Joint-Greedy | Joint-Greedy+Naor | Calib-Cascade | Calib-Cascade+Naor | Tri-VoI-L2D |",
+        "| ---: | :---: | :---: | :---: | :---: | :---: | :---: |",
     ]
     for cr in all_out["exp2_cask_sweep"]:
         ms = cr["methods"]
         lines.append(
             f"| {cr['c_ask']:.1f} | {ms['Naive-Cascade']['mean_utility']:.3f} ({ms['Naive-Cascade']['ask_rate_pct']}%) | "
             f"{ms['Joint-Greedy']['mean_utility']:.3f} ({ms['Joint-Greedy']['ask_rate_pct']}%) | "
+            f"{ms['Joint-Greedy+Naor']['mean_utility']:.3f} ({ms['Joint-Greedy+Naor']['ask_rate_pct']}%) | "
             f"{ms['Calibrated-Cascade']['mean_utility']:.3f} ({ms['Calibrated-Cascade']['ask_rate_pct']}%) | "
+            f"{ms['Calibrated-Cascade+Naor']['mean_utility']:.3f} ({ms['Calibrated-Cascade+Naor']['ask_rate_pct']}%) | "
             f"**{ms['Tri-VoI-L2D']['mean_utility']:.3f} ({ms['Tri-VoI-L2D']['ask_rate_pct']}%)** |"
         )
 
@@ -815,27 +826,28 @@ def write_outputs(all_out: Dict[str, Any], dry_run: bool) -> None:
         "",
         "## Exp 2b/c: CSCW Drift, Heterogeneous Pool & Asymmetric Risk (`N=360`, Mean Utility)",
         "",
-        "| Scenario | Direct-ACT | Congested-L2D-Only | Naive-Cascade | Joint-Greedy | Calibrated-Cascade | Tri-VoI-L2D |",
-        "| :--- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| Scenario | Direct-ACT | Congested-L2D-Only | Naive-Cascade | Joint-Greedy | Joint-Greedy+Naor | Calibrated-Cascade | Calib-Casc+Naor | Tri-VoI-L2D |",
+        "| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for sc_name, vals in all_out["exp2_stress_summary"].items():
         lines.append(
             f"| {sc_name} | {vals['Direct-ACT']} | {vals['Congested-L2D-Only']} | {vals['Naive-Cascade']} | "
-            f"{vals['Joint-Greedy']} | {vals['Calibrated-Cascade']} | **{vals['Tri-VoI-L2D']}** |"
+            f"{vals['Joint-Greedy']} | {vals['Joint-Greedy+Naor']} | {vals['Calibrated-Cascade']} | {vals['Calibrated-Cascade+Naor']} | **{vals['Tri-VoI-L2D']}** |"
         )
 
     lines += [
         "",
         "## Exp 3: Cross-Model Generalization (Mean Utility / Acc %, `c_ask=1.5`)",
         "",
-        "| Backbone | Test N | Direct-ACT | Congested-L2D | Naive-Cascade | Joint-Greedy | Calibrated-Cascade | Tri-VoI-L2D |",
-        "| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| Backbone | Test N | Direct-ACT | Congested-L2D | Naive-Cascade | Joint-Greedy | Joint-Greedy+Naor | Calibrated-Cascade | Calib-Casc+Naor | Tri-VoI-L2D |",
+        "| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for c in all_out["exp3_cross_model"]:
         lines.append(
             f"| {c['model_id']} | {c['n_test']} | {c['direct_mean_util']} ({c['direct_acc']}%) | "
             f"{c['l2d_mean_util']} ({c['l2d_acc']}%) | {c['naive_mean_util']} ({c['naive_acc']}%) | "
-            f"{c['greedy_mean_util']} ({c['greedy_acc']}%) | {c['cascade_mean_util']} ({c['cascade_acc']}%) | "
+            f"{c['greedy_mean_util']} ({c['greedy_acc']}%) | {c['greedy_naor_mean_util']} ({c['greedy_naor_acc']}%) | "
+            f"{c['cascade_mean_util']} ({c['cascade_acc']}%) | {c['cascade_naor_mean_util']} ({c['cascade_naor_acc']}%) | "
             f"**{c['tri_mean_util']} ({c['tri_acc']}%)** |"
         )
 
@@ -958,7 +970,9 @@ def main():
     sweep_methods = [
         "Naive-Cascade",
         "Joint-Greedy",
+        "Joint-Greedy+Naor",
         "Calibrated-Cascade",
+        "Calibrated-Cascade+Naor",
         "Decoupled-Nominal-EVOI",
         "w/o Coupled-EVOI (Static-Opt)",
         "w/o Queue-Externality",
@@ -992,20 +1006,33 @@ def main():
                 "cascade_mean_util": rmap["Calibrated-Cascade"]["mean_utility"],
                 "cascade_mean_wait": rmap["Calibrated-Cascade"]["mean_wait"],
                 "cascade_q4_ask_pct": rmap["Calibrated-Cascade"]["q4_ask_rate_pct"],
+                "cascade_naor_mean_util": rmap["Calibrated-Cascade+Naor"]["mean_utility"],
+                "cascade_naor_mean_wait": rmap["Calibrated-Cascade+Naor"]["mean_wait"],
+                "cascade_naor_q4_ask_pct": rmap["Calibrated-Cascade+Naor"]["q4_ask_rate_pct"],
                 "greedy_mean_util": rmap["Joint-Greedy"]["mean_utility"],
                 "greedy_mean_wait": rmap["Joint-Greedy"]["mean_wait"],
                 "greedy_q4_ask_pct": rmap["Joint-Greedy"]["q4_ask_rate_pct"],
+                "greedy_naor_mean_util": rmap["Joint-Greedy+Naor"]["mean_utility"],
+                "greedy_naor_mean_wait": rmap["Joint-Greedy+Naor"]["mean_wait"],
+                "greedy_naor_q4_ask_pct": rmap["Joint-Greedy+Naor"]["q4_ask_rate_pct"],
                 "naive_mean_util": rmap["Naive-Cascade"]["mean_utility"],
                 "naive_mean_wait": rmap["Naive-Cascade"]["mean_wait"],
                 "naive_mean_queue_len": rmap["Naive-Cascade"]["mean_queue_len"],
             }
         )
 
-    # Exp 2a-Theory: 2D Fixed-State Q x p_e x p_resolve sweep on N=360 (90 Q4 items)
+    # Exp 2a-Theory: Three-regime Fixed-State Q x p_e x p_resolve sweep on N=360 (90 Q4 items)
     exp2_fixed_state_theory = run_fixed_state_evoi_sweep(test_prim, prim_calib)
 
     # Exp 2a-Cost: c_ask sensitivity sweep at Cap=2 on N=360
-    cask_methods = ["Naive-Cascade", "Joint-Greedy", "Calibrated-Cascade", "Tri-VoI-L2D"]
+    cask_methods = [
+        "Naive-Cascade",
+        "Joint-Greedy",
+        "Joint-Greedy+Naor",
+        "Calibrated-Cascade",
+        "Calibrated-Cascade+Naor",
+        "Tri-VoI-L2D",
+    ]
     exp2_cask_sweep = []
     for ca in [0.5, 1.5, 2.5, 3.0, 5.0]:
         cr = eval_methods_multi_seed(
@@ -1044,7 +1071,9 @@ def main():
         "Congested-L2D-Only",
         "Naive-Cascade",
         "Joint-Greedy",
+        "Joint-Greedy+Naor",
         "Calibrated-Cascade",
+        "Calibrated-Cascade+Naor",
         "Tri-VoI-L2D",
     ]
     exp2_stress = {}
@@ -1065,12 +1094,14 @@ def main():
     exp3_cross = []
     cross_methods = [
         "Direct-ACT",
-        "Entropy-Clarify (ADEPT)",
-        "Consensus-Defer (DREAM)",
+        "Entropy-ASK (Proxy)",
+        "Consensus-DEFER (Proxy)",
         "Congested-L2D-Only",
         "Naive-Cascade",
         "Joint-Greedy",
+        "Joint-Greedy+Naor",
         "Calibrated-Cascade",
+        "Calibrated-Cascade+Naor",
         "Tri-VoI-L2D",
     ]
     for m in ALL_MODELS:
@@ -1092,18 +1123,22 @@ def main():
                 "n_test": len(md["test"]),
                 "direct_mean_util": rm["Direct-ACT"]["mean_utility"],
                 "direct_acc": rm["Direct-ACT"]["acc_pct"],
-                "entropy_mean_util": rm["Entropy-Clarify (ADEPT)"]["mean_utility"],
-                "entropy_acc": rm["Entropy-Clarify (ADEPT)"]["acc_pct"],
-                "consensus_mean_util": rm["Consensus-Defer (DREAM)"]["mean_utility"],
-                "consensus_acc": rm["Consensus-Defer (DREAM)"]["acc_pct"],
+                "entropy_mean_util": rm["Entropy-ASK (Proxy)"]["mean_utility"],
+                "entropy_acc": rm["Entropy-ASK (Proxy)"]["acc_pct"],
+                "consensus_mean_util": rm["Consensus-DEFER (Proxy)"]["mean_utility"],
+                "consensus_acc": rm["Consensus-DEFER (Proxy)"]["acc_pct"],
                 "l2d_mean_util": rm["Congested-L2D-Only"]["mean_utility"],
                 "l2d_acc": rm["Congested-L2D-Only"]["acc_pct"],
                 "naive_mean_util": rm["Naive-Cascade"]["mean_utility"],
                 "naive_acc": rm["Naive-Cascade"]["acc_pct"],
                 "greedy_mean_util": rm["Joint-Greedy"]["mean_utility"],
                 "greedy_acc": rm["Joint-Greedy"]["acc_pct"],
+                "greedy_naor_mean_util": rm["Joint-Greedy+Naor"]["mean_utility"],
+                "greedy_naor_acc": rm["Joint-Greedy+Naor"]["acc_pct"],
                 "cascade_mean_util": rm["Calibrated-Cascade"]["mean_utility"],
                 "cascade_acc": rm["Calibrated-Cascade"]["acc_pct"],
+                "cascade_naor_mean_util": rm["Calibrated-Cascade+Naor"]["mean_utility"],
+                "cascade_naor_acc": rm["Calibrated-Cascade+Naor"]["acc_pct"],
                 "tri_mean_util": rm["Tri-VoI-L2D"]["mean_utility"],
                 "tri_acc": rm["Tri-VoI-L2D"]["acc_pct"],
             }

@@ -31,7 +31,14 @@ DOMAIN_RUBRIC = """Cooperative Decision-Making Policy Rubric (Choose exactly ONE
 """
 
 
-def _build_ticket(idx: int, quadrant: str, rng: random.Random) -> Dict[str, Any]:
+def _build_ticket(
+    idx: int,
+    quadrant: str,
+    rng: random.Random,
+    *,
+    strict_voi: bool = False,
+    implicit_override: bool = False,
+) -> Dict[str, Any]:
     domain = DOMAINS[idx % len(DOMAINS)]
     qid = f"T_{idx:03d}_{quadrant}"
 
@@ -59,7 +66,8 @@ def _build_ticket(idx: int, quadrant: str, rng: random.Random) -> Dict[str, Any]
 
         missing_concept = "Chest Pain Status"
         missing_val = f"Chest Pain = {chest}"
-        missing_keywords = ["chest", "pain", "cardiac", "symptom", "missing", "unspecified", "provide"]
+        missing_keywords = ["chest", "pain", "cardiac", "symptom"]
+        missing_changes_gold = is_underspec
 
         # Natural prose WITHOUT spoiler tags
         patient_tag = f"Patient #{4100 + idx}"
@@ -76,13 +84,22 @@ def _build_ticket(idx: int, quadrant: str, rng: random.Random) -> Dict[str, Any]
             )
 
         if is_uncond_ovr:
-            prose += " Flagged under confidential Specialist Oncology Protocol Onco-B7 (overrides standard triage)."
+            if implicit_override:
+                prose += " Patient chart carries active Specialist Track Onco-B7 routing tag."
+            else:
+                prose += " Flagged under confidential Specialist Oncology Protocol Onco-B7 (overrides standard triage)."
             gold = "B" if base_ans != "B" else "A"
         elif is_cond_ovr:
-            prose += (
-                " Note: Confidential Cardiac-Watch CW-7 specialist protocol is active and overrides standard triage "
-                "ONLY if Chest Pain = Yes; if Chest Pain = No, follow standard triage."
-            )
+            if implicit_override:
+                prose += (
+                    " Note: Cardiac-Watch CW-7 clinical pathway applies when Chest Pain = Yes; "
+                    "otherwise follow standard triage."
+                )
+            else:
+                prose += (
+                    " Note: Confidential Cardiac-Watch CW-7 specialist protocol is active and overrides standard triage "
+                    "ONLY if Chest Pain = Yes; if Chest Pain = No, follow standard triage."
+                )
             if chest == "Yes":
                 base_ans_default = "B" if (age >= 65 or temp >= 38.5) else "A"
                 gold = [c for c in ("A", "B", "C") if c not in (base_ans, base_ans_default)][0]
@@ -94,6 +111,8 @@ def _build_ticket(idx: int, quadrant: str, rng: random.Random) -> Dict[str, Any]
     elif domain == "FinCompliance":
         tier = rng.choice(["Standard", "High-Risk"])
         amt = rng.choice([2400, 4200, 7800, 14500])
+        if strict_voi and quadrant == "Q2_underspec_easy":
+            tier = "Standard"
         if quadrant == "Q4_resolvable":
             region = "Domestic"
             tier = "Standard"
@@ -109,7 +128,8 @@ def _build_ticket(idx: int, quadrant: str, rng: random.Random) -> Dict[str, Any]
 
         missing_concept = "Transfer Jurisdiction"
         missing_val = f"Transfer Jurisdiction = {region}"
-        missing_keywords = ["jurisdiction", "domestic", "cross-border", "region", "country", "missing", "provide"]
+        missing_keywords = ["jurisdiction", "domestic", "cross-border", "region", "country"]
+        missing_changes_gold = True if is_cond_ovr else (is_underspec and tier == "Standard")
 
         tx_tag = f"TX-{8200 + idx}"
         if is_underspec:
@@ -124,13 +144,22 @@ def _build_ticket(idx: int, quadrant: str, rng: random.Random) -> Dict[str, Any]
             )
 
         if is_uncond_ovr:
-            prose += " Account carries confidential Sanctions Matrix M-14 override flag requiring internal review."
+            if implicit_override:
+                prose += " Account carries internal Compliance Matrix M-14 flag."
+            else:
+                prose += " Account carries confidential Sanctions Matrix M-14 override flag requiring internal review."
             gold = "C" if base_ans != "C" else "B"
         elif is_cond_ovr:
-            prose += (
-                " Note: Confidential Treasury Bulletin CB-19 is in effect and supersedes standard limits "
-                "ONLY for Cross-Border wires; Domestic wires follow standard public rules."
-            )
+            if implicit_override:
+                prose += (
+                    " Note: Treasury Bulletin CB-19 routing applies for Cross-Border wires; "
+                    "Domestic wires follow standard rules."
+                )
+            else:
+                prose += (
+                    " Note: Confidential Treasury Bulletin CB-19 is in effect and supersedes standard limits "
+                    "ONLY for Cross-Border wires; Domestic wires follow standard public rules."
+                )
             if region == "Cross-Border":
                 if tier == "Standard":
                     base_ans_default = "A" if amt <= 10000 else "B"
@@ -144,6 +173,8 @@ def _build_ticket(idx: int, quadrant: str, rng: random.Random) -> Dict[str, Any]
 
     elif domain == "ITIncident":
         sev = rng.choice(["Single User", "Partial Outage", "Full Outage"])
+        if strict_voi and quadrant == "Q2_underspec_easy":
+            sev = "Single User"
         if quadrant == "Q4_resolvable":
             scope = "Internal Tool"
             sev = rng.choice(["Single User", "Partial Outage"])
@@ -161,7 +192,8 @@ def _build_ticket(idx: int, quadrant: str, rng: random.Random) -> Dict[str, Any]
 
         missing_concept = "Service Scope"
         missing_val = f"Service Scope = {scope}"
-        missing_keywords = ["scope", "internal", "customer", "facing", "service", "missing", "provide"]
+        missing_keywords = ["scope", "internal", "customer", "facing", "service"]
+        missing_changes_gold = True if is_cond_ovr else (is_underspec and sev == "Single User")
 
         inc_tag = f"INC-{3100 + idx}"
         if is_underspec:
@@ -176,13 +208,22 @@ def _build_ticket(idx: int, quadrant: str, rng: random.Random) -> Dict[str, Any]
             )
 
         if is_uncond_ovr:
-            prose += " Linked to confidential Escalation Clause VIP-9 (undocumented custom routing applies)."
+            if implicit_override:
+                prose += " Linked to SRE Escalation Clause VIP-9 custom routing."
+            else:
+                prose += " Linked to confidential Escalation Clause VIP-9 (undocumented custom routing applies)."
             gold = "C" if base_ans != "C" else "B"
         elif is_cond_ovr:
-            prose += (
-                " Note: Confidential SRE Runbook LPM-4 override applies ONLY if the affected module is "
-                "Customer-Facing; Internal Tool alerts follow standard queue rules."
-            )
+            if implicit_override:
+                prose += (
+                    " Note: SRE Runbook LPM-4 routing applies when the affected module is "
+                    "Customer-Facing; Internal Tool alerts follow standard queues."
+                )
+            else:
+                prose += (
+                    " Note: Confidential SRE Runbook LPM-4 override applies ONLY if the affected module is "
+                    "Customer-Facing; Internal Tool alerts follow standard queue rules."
+                )
             if scope == "Customer-Facing":
                 base_ans_default = "A" if sev == "Single User" else ("C" if sev == "Full Outage" else "B")
                 gold = [c for c in ("A", "B", "C") if c not in (base_ans, base_ans_default)][0]
@@ -209,7 +250,8 @@ def _build_ticket(idx: int, quadrant: str, rng: random.Random) -> Dict[str, Any]
 
         missing_concept = "Hazardous Material Status"
         missing_val = f"Hazmat = {hazmat}"
-        missing_keywords = ["hazmat", "hazardous", "material", "dangerous", "cargo", "missing", "provide"]
+        missing_keywords = ["hazmat", "hazardous", "material", "dangerous", "cargo"]
+        missing_changes_gold = is_underspec
 
         ship_tag = f"SHP-{6500 + idx}"
         if is_underspec:
@@ -223,13 +265,22 @@ def _build_ticket(idx: int, quadrant: str, rng: random.Random) -> Dict[str, Any]
             )
 
         if is_uncond_ovr:
-            prose += " Marked with confidential Customs Waiver PX-8 (internal specialist routing supersedes SLA)."
+            if implicit_override:
+                prose += " Marked with Customs Waiver PX-8 specialist dispatch handling."
+            else:
+                prose += " Marked with confidential Customs Waiver PX-8 (internal specialist routing supersedes SLA)."
             gold = "B" if base_ans != "B" else "A"
         elif is_cond_ovr:
-            prose += (
-                " Note: Confidential Carrier Notice PA-12 overrides standard SLA ONLY if Hazmat = Yes; "
-                "non-hazardous batches follow standard SLA."
-            )
+            if implicit_override:
+                prose += (
+                    " Note: Carrier Notice PA-12 handling applies when Hazmat = Yes; "
+                    "non-hazardous batches follow standard SLA."
+                )
+            else:
+                prose += (
+                    " Note: Confidential Carrier Notice PA-12 overrides standard SLA ONLY if Hazmat = Yes; "
+                    "non-hazardous batches follow standard SLA."
+                )
             if hazmat == "Yes":
                 base_ans_default = "B" if tier == "Express Tier" else "A"
                 gold = [c for c in ("A", "B", "C") if c not in (base_ans, base_ans_default)][0]
@@ -246,6 +297,7 @@ def _build_ticket(idx: int, quadrant: str, rng: random.Random) -> Dict[str, Any]
         "is_underspec": is_underspec,
         "is_uncond_ovr": is_uncond_ovr,
         "is_cond_ovr": is_cond_ovr,
+        "missing_changes_gold": missing_changes_gold,
         "true_needs_expert": (quadrant in ("Q3_clear_hard", "Q4_escalate")),
         "missing_concept": missing_concept if is_underspec else None,
         "missing_val": missing_val if is_underspec else None,
@@ -257,9 +309,11 @@ def _build_ticket(idx: int, quadrant: str, rng: random.Random) -> Dict[str, Any]
 
 def user_oracle(item: Dict[str, Any], question: str) -> Tuple[str, bool]:
     """Return (reply_text, revealed_new_info). User knows omitted intake field, never internal overrides."""
+    if not (question or "").strip():
+        return "No clarifying question was asked.", False
     if not item["is_underspec"] or not item["missing_val"]:
         return "All available requester intake details were already included; I have no knowledge of internal policy overrides.", False
-    q_low = (question or "").lower()
+    q_low = question.lower()
     if any(kw in q_low for kw in item["missing_keywords"]):
         return f"Clarification provided: {item['missing_val']}.", True
     return "Could you clarify which specific intake detail is missing? (e.g., chest pain, jurisdiction, service scope, or hazmat status)", False
@@ -269,6 +323,9 @@ def build_cscw_benchmark(
     n_cal_per_quad: int = 15,
     n_test_per_quad: int = 45,
     seed: int = 2027,
+    *,
+    strict_voi: bool = False,
+    implicit_override: bool = False,
 ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     """Build stratified Held-Out Calibration (60) and Test (180) sets (50/50 split inside Q4)."""
     rng = random.Random(seed)
@@ -280,7 +337,15 @@ def build_cscw_benchmark(
         nonlocal idx
         buf = []
         for _ in range(n_cal + n_test):
-            buf.append(_build_ticket(idx, quad, rng))
+            buf.append(
+                _build_ticket(
+                    idx,
+                    quad,
+                    rng,
+                    strict_voi=strict_voi,
+                    implicit_override=implicit_override,
+                )
+            )
             idx += 1
         rng.shuffle(buf)
         cal_items.extend(buf[:n_cal])
@@ -299,6 +364,23 @@ def build_cscw_benchmark(
     rng.shuffle(cal_items)
     rng.shuffle(test_items)
     return cal_items, test_items
+
+
+def build_cscw_benchmark_v2(
+    n_cal_per_quad: int = 15,
+    n_test_per_quad: int = 45,
+    seed: int = 2027,
+    strict_voi: bool = True,
+    implicit_override: bool = True,
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """Build v2 benchmark ensuring 100% decision-relevant Q2 fields and implicit override cues."""
+    return build_cscw_benchmark(
+        n_cal_per_quad=n_cal_per_quad,
+        n_test_per_quad=n_test_per_quad,
+        seed=seed,
+        strict_voi=strict_voi,
+        implicit_override=implicit_override,
+    )
 
 
 def build_cscw_expansion_batch(

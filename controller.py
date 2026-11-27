@@ -1,5 +1,6 @@
 import json
 import math
+import random
 import re
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -102,46 +103,51 @@ def probe_item(item: Dict[str, Any], model_id: str, dry_run: bool) -> Dict[str, 
     obs_conf_ovr = bool(diag_obj.get("override_confirmed", False))
     clarify_q = str(diag_obj.get("clarifying_question", "")).strip()
 
-    oracle_reply, oracle_revealed = user_oracle(
-        item, clarify_q or f"Could you specify the missing {item['missing_concept'] or 'intake detail'}?"
-    )
+    if clarify_q:
+        oracle_reply, oracle_revealed = user_oracle(item, clarify_q)
 
-    post_prompt = (
-        f"{DOMAIN_RUBRIC}\nTicket:\n{item['prose']}{dry_meta}\n"
-        f"[Requester Follow-up]: {oracle_reply}\n\n"
-        "Re-evaluate after the requester's reply:\n"
-        "- answer: best choice A, B, or C.\n"
-        "- missing_user_info: true if a required intake field is still missing.\n"
-        "- override_confirmed: true if a confidential specialist protocol/override applies to the confirmed ticket.\n"
-        "Respond in JSON ONLY: "
-        "{\"answer\": \"A\"|\"B\"|\"C\", \"missing_user_info\": true|false, \"override_confirmed\": true|false}."
-    )
-    r_post = call_llm(
-        [{"role": "user", "content": post_prompt}],
-        model_id=model_id,
-        temperature=0.0,
-        max_tokens=1024,
-        tag="post_ask_combined",
-        seed_idx=0,
-        dry_run=dry_run,
-    )
-    post_obj = parse_json_obj(r_post["content"])
-    post_ans = extract_answer(r_post["content"])
-    post_ovr_conf = bool(post_obj.get("override_confirmed", obs_conf_ovr))
-    tokens += r_post["prompt_tokens"] + r_post["completion_tokens"]
+        post_prompt = (
+            f"{DOMAIN_RUBRIC}\nTicket:\n{item['prose']}{dry_meta}\n"
+            f"[Requester Follow-up]: {oracle_reply}\n\n"
+            "Re-evaluate after the requester's reply:\n"
+            "- answer: best choice A, B, or C.\n"
+            "- missing_user_info: true if a required intake field is still missing.\n"
+            "- override_confirmed: true if a confidential specialist protocol/override applies to the confirmed ticket.\n"
+            "Respond in JSON ONLY: "
+            "{\"answer\": \"A\"|\"B\"|\"C\", \"missing_user_info\": true|false, \"override_confirmed\": true|false}."
+        )
+        r_post = call_llm(
+            [{"role": "user", "content": post_prompt}],
+            model_id=model_id,
+            temperature=0.0,
+            max_tokens=1024,
+            tag="post_ask_combined",
+            seed_idx=0,
+            dry_run=dry_run,
+        )
+        post_obj = parse_json_obj(r_post["content"])
+        post_ans = extract_answer(r_post["content"])
+        post_ovr_conf = bool(post_obj.get("override_confirmed", obs_conf_ovr))
+        tokens += r_post["prompt_tokens"] + r_post["completion_tokens"]
 
-    # Second stochastic post-ASK sample for Naive-Cascade agreement check
-    r_post_s1 = call_llm(
-        [{"role": "user", "content": f"{DOMAIN_RUBRIC}\nTicket:\n{item['prose']}{dry_meta}\n[Requester Follow-up]: {oracle_reply}\nRespond in JSON ONLY: {{\"answer\": \"A\"|\"B\"|\"C\"}}."}],
-        model_id=model_id,
-        temperature=0.7,
-        max_tokens=1024,
-        tag="post_ask_s1",
-        seed_idx=1,
-        dry_run=dry_run,
-    )
-    post_s1 = extract_answer(r_post_s1["content"])
-    tokens += r_post_s1["prompt_tokens"] + r_post_s1["completion_tokens"]
+        # Second stochastic post-ASK sample for Naive-Cascade agreement check
+        r_post_s1 = call_llm(
+            [{"role": "user", "content": f"{DOMAIN_RUBRIC}\nTicket:\n{item['prose']}{dry_meta}\n[Requester Follow-up]: {oracle_reply}\nRespond in JSON ONLY: {{\"answer\": \"A\"|\"B\"|\"C\"}}."}],
+            model_id=model_id,
+            temperature=0.7,
+            max_tokens=1024,
+            tag="post_ask_s1",
+            seed_idx=1,
+            dry_run=dry_run,
+        )
+        post_s1 = extract_answer(r_post_s1["content"])
+        tokens += r_post_s1["prompt_tokens"] + r_post_s1["completion_tokens"]
+    else:
+        oracle_reply = "No clarifying question was asked."
+        oracle_revealed = False
+        post_ans = greedy_ans
+        post_s1 = samples[0]
+        post_ovr_conf = obs_conf_ovr
 
     return {
         "item": item,
@@ -208,7 +214,7 @@ class HeldOutCalibrator:
                 post_ovr[1] += 1
                 if r["post_ans"] == gold:
                     post_ovr[0] += 1
-            elif (not m_flag) or r["oracle_revealed"]:
+            elif m_flag and r["oracle_revealed"]:
                 post_clear[1] += 1
                 if r["post_ans"] == gold:
                     post_clear[0] += 1
@@ -337,9 +343,10 @@ def simulate_stream(
     gamma_queue: float = 0.85,
     c_ask: float = 1.5,
     c_defer_base: float = 2.0,
+    delayed_feedback: bool = False,
+    unclarified_spec_penalty: bool = False,
 ) -> Dict[str, Any]:
     """Simulate sequential human-AI cooperative stream with queuing & drift."""
-    import random
     rng = random.Random(5000 + seed)
     n = len(test_probed)
 
@@ -364,7 +371,9 @@ def simulate_stream(
     eff_gamma = 0.0 if method == "w/o Congestion-Term" else gamma_queue
     use_ext_flag = method not in (
         "Direct-ACT",
+        "Entropy-ASK (Proxy)",
         "Entropy-Clarify (ADEPT)",
+        "Consensus-DEFER (Proxy)",
         "Consensus-Defer (DREAM)",
         "Congested-L2D-Only",
         "Naive-Cascade",
@@ -390,12 +399,23 @@ def simulate_stream(
     phase2_utils = []
     rolling_acc = []
     queue_trace = []
+    pending_fb: List[Tuple[int, str, bool]] = []
 
     for t, rec in enumerate(test_probed):
         it = rec["item"]
         quad = it["quadrant"]
         r_ok = 10.0
         r_err = -20.0 if (asymmetric_risk and it["domain"] in ("ClinicalTriage", "FinCompliance")) else -10.0
+
+        # Flush delayed specialist feedback ready by step t
+        if delayed_feedback and pending_fb:
+            still_pending = []
+            for ready_t, spec_m, fb_ok in pending_fb:
+                if ready_t <= t:
+                    trackers[spec_m].update(fb_ok)
+                else:
+                    still_pending.append((ready_t, spec_m, fb_ok))
+            pending_fb = still_pending
 
         # Queue drainage
         if t % drain_interval == 0:
@@ -426,7 +446,7 @@ def simulate_stream(
                 q_m = queues[m]
                 mu_m = caps[m] / float(drain_interval)
                 rho_m = min(lam_ema[m] / max(1e-6, mu_m), 1.5)
-                if use_externality and eff_gamma > 0.0 and (q_m > 0 or rho_m >= 0.6):
+                if use_externality and eff_gamma > 0.0 and (q_m >= caps[m] or rho_m >= 0.6):
                     cong_cost = eff_gamma * (q_m + rho_m * (q_m + 1.0))
                 else:
                     cong_cost = eff_gamma * q_m
@@ -449,11 +469,11 @@ def simulate_stream(
 
         if method == "Direct-ACT":
             pass
-        elif method == "Entropy-Clarify (ADEPT)":
+        elif method in ("Entropy-ASK (Proxy)", "Entropy-Clarify (ADEPT)"):
             if ent > 0.45:
                 did_ask = True
                 final_ans = rec["post_ans"]
-        elif method == "Consensus-Defer (DREAM)":
+        elif method in ("Consensus-DEFER (Proxy)", "Consensus-Defer (DREAM)"):
             if not unanimous:
                 did_defer = True
                 chosen_spec, _ = best_specialist_util()
@@ -474,12 +494,12 @@ def simulate_stream(
             elif obs_c or not unanimous:
                 did_defer = True
                 chosen_spec, _ = best_specialist_util()
-        elif method == "Calibrated-Cascade":
+        elif method in ("Calibrated-Cascade", "Calibrated-Cascade+Naor"):
             p_act = calibrator.get_p_act(obs_m, obs_p, unanimous) if calibrator else (rec["maj_count"] / 3.0)
             p_clear = calibrator.p_post_clear if calibrator else 0.88
             p_ovr = calibrator.p_post_ovr if calibrator else 0.40
             u_act = p_act * r_ok + (1.0 - p_act) * r_err
-            m_best, u_def = best_specialist_util()
+            m_best, u_def = best_specialist_util(use_externality=use_ext_flag)
             if obs_m:
                 did_ask = True
                 post_p = p_ovr if rec["post_ovr_conf"] else p_clear
@@ -492,7 +512,7 @@ def simulate_stream(
             elif u_def > u_act:
                 did_defer = True
                 chosen_spec = m_best
-        elif method == "Joint-Greedy":
+        elif method in ("Joint-Greedy", "Joint-Greedy+Naor"):
             p_act = calibrator.get_p_act(obs_m, obs_p, unanimous) if calibrator else (rec["maj_count"] / 3.0)
             p_res, p_ovra, p_no = calibrator.get_post_ask_probs(obs_m, obs_p) if calibrator else (
                 (0.45, 0.45, 0.10) if (obs_m and obs_p) else ((0.85, 0.05, 0.10) if obs_m else (0.0, 0.0, 1.0))
@@ -502,7 +522,7 @@ def simulate_stream(
             u_act = p_act * r_ok + (1.0 - p_act) * r_err
             u_clear = p_clear * r_ok + (1.0 - p_clear) * r_err
             u_ovr = p_ovr * r_ok + (1.0 - p_ovr) * r_err
-            m_best, u_def = best_specialist_util()
+            m_best, u_def = best_specialist_util(use_externality=use_ext_flag)
             u_ask_myopic = p_res * u_clear + p_ovra * u_ovr + p_no * u_act - c_ask
             if obs_m and u_ask_myopic > max(u_act, u_def):
                 did_ask = True
@@ -600,8 +620,23 @@ def simulate_stream(
             wait_sum += queues[chosen_spec]
             step_u -= costs[chosen_spec] + gamma_queue * queues[chosen_spec]
             queues[chosen_spec] += 1
-            is_ok = rng.random() < true_acc[chosen_spec]
-            trackers[chosen_spec].update(is_ok)
+            eff_acc = true_acc[chosen_spec]
+            if (
+                unclarified_spec_penalty
+                and it["is_underspec"]
+                and it.get("missing_changes_gold", True)
+                and not (did_ask and rec["oracle_revealed"])
+            ):
+                # Specialist lacks requester's private field -> round-trip rework cost + degraded accuracy
+                step_u -= c_ask
+                eff_acc = min(eff_acc, 0.55)
+            is_ok = rng.random() < eff_acc
+            if delayed_feedback:
+                mu_m = caps[chosen_spec] / float(drain_interval)
+                ready_step = t + max(1, math.ceil(queues[chosen_spec] / max(1e-6, mu_m)))
+                pending_fb.append((ready_step, chosen_spec, is_ok))
+            else:
+                trackers[chosen_spec].update(is_ok)
         else:
             is_ok = (final_ans == it["gold"])
 
@@ -673,10 +708,11 @@ def run_fixed_state_evoi_sweep(
     gamma_queue: float = 0.85,
     c_ask: float = 1.5,
     c_def: float = 2.0,
+    n_mc_seeds: int = 200,
 ) -> Dict[str, Any]:
-    """Fixed-state sweep over injected queue length Q in {0..6} and p_resolve in {0.0, 0.25, 0.50, 0.75, 1.0}."""
+    """Three-regime fixed-state sweep over Q in {0..10} with analytical boundaries & Monte Carlo realized rollout."""
     r_ok, r_err = 10.0, -10.0
-    q_grid = [0, 1, 2, 3, 4, 5, 6]
+    q_grid = list(range(0, 11))
     p_res_grid = [0.0, 0.25, 0.50, 0.75, 1.0]
 
     p_act_q4 = calibrator.get_p_act(True, True, True)
@@ -686,6 +722,7 @@ def run_fixed_state_evoi_sweep(
     u_def_nom = 0.80 * r_ok + 0.20 * r_err - c_def - gamma_queue * 1.0
 
     q4_items = [r for r in test_probed if r["item"]["quadrant"] in ("Q4_resolvable", "Q4_escalate")]
+    q4_askable = [r for r in q4_items if r["obs_missing"]]
     p_res_cal = calibrator.get_p_resolve(True, True)
 
     analytical_curves: Dict[str, Any] = {}
@@ -713,7 +750,6 @@ def run_fixed_state_evoi_sweep(
             u_ask_nom = p_res * max(u_clear, u_def_nom) + p_ovra * max(u_ovr, u_def_nom) - c_ask
             evoi_decoupled.append(round(float(u_ask_nom - max(u_act_q4, u_def_nom)), 4))
 
-            # Evaluate actual Q4 test tickets under fixed (Q, p_res override)
             asked = 0
             for rec in q4_items:
                 if not rec["obs_missing"]:
@@ -726,29 +762,48 @@ def run_fixed_state_evoi_sweep(
                     asked += 1
             ask_rates_p.append(round(100.0 * asked / max(1, len(q4_items)), 1))
 
-        if len(defer_dom_q) >= 2:
-            emp_slope = float(np.polyfit(defer_dom_q, defer_dom_evoi, 1)[0])
-        else:
-            emp_slope = 0.0
+        ana_slope = float(np.polyfit(defer_dom_q, defer_dom_evoi, 1)[0]) if len(defer_dom_q) >= 2 else 0.0
         dec_slope = float(np.polyfit(q_grid, evoi_decoupled, 1)[0])
         analytical_curves[f"{p_res:.2f}"] = {
             "p_resolve": p_res,
             "theoretical_slope": round(p_res * gamma_queue, 4),
-            "empirical_slope": round(emp_slope, 4),
+            "analytical_defer_slope": round(ana_slope, 4),
             "decoupled_slope": round(dec_slope, 4),
             "evoi_coupled": evoi_coupled,
             "evoi_decoupled": evoi_decoupled,
         }
         q4_ask_curves[f"{p_res:.2f}"] = ask_rates_p
 
-    # 2D Phase Verification across Q in {0..6} x p_e in {0.75, 0.85, 0.92}
+    # 2D Three-Regime Phase Verification + Genuine Monte Carlo Realized-Utility Rollout
+    rng_mc = random.Random(2026)
     phase_2d_by_pe: Dict[str, Any] = {}
     for pe_val in [0.75, 0.85, 0.92]:
+        u_def_0 = pe_val * r_ok + (1.0 - pe_val) * r_err - c_def
+        q1_bound = (u_def_0 - u_act_q4) / gamma_queue
+        q2_bound = (u_def_0 - u_ovr) / gamma_queue
+
         evoi_pe = []
         cal_q4_ask_pe = []
         nom_q4_ask_pe = []
+        realized_evoi_mean = []
+        realized_evoi_se = []
+        real_defer_q = []
+        real_defer_seed_means = []
+
+        # Precompute item-level calibrated quantities for Q4 askable items
+        item_ctx = []
+        for rec in q4_askable:
+            unanimous = (rec["maj_count"] == 3)
+            p_a = calibrator.get_p_act(rec["obs_missing"], rec["obs_pot_ovr"], unanimous)
+            u_a = p_a * r_ok + (1.0 - p_a) * r_err
+            post_p = calibrator.p_post_ovr if rec["post_ovr_conf"] else calibrator.p_post_clear
+            u_act_post = post_p * r_ok + (1.0 - post_p) * r_err
+            u_greedy_real = r_ok if rec["greedy_ans"] == rec["item"]["gold"] else r_err
+            u_post_real = r_ok if rec["post_ans"] == rec["item"]["gold"] else r_err
+            item_ctx.append((u_a, u_act_post, u_greedy_real, u_post_real))
+
         for q in q_grid:
-            u_def_pe = pe_val * r_ok + (1.0 - pe_val) * r_err - c_def - gamma_queue * q
+            u_def_pe = u_def_0 - gamma_queue * q
             u_ask_pe = (
                 p_res_cal * max(u_clear, u_def_pe)
                 + (1.0 - p_res_cal) * max(u_ovr, u_def_pe)
@@ -771,9 +826,47 @@ def run_fixed_state_evoi_sweep(
                     asked_nom += 1
             cal_q4_ask_pe.append(round(100.0 * asked_cal / max(1, len(q4_items)), 1))
             nom_q4_ask_pe.append(round(100.0 * asked_nom / max(1, len(q4_items)), 1))
+
+            # Genuine Monte Carlo realized-utility rollout over Q4 askable tickets
+            seed_diffs = []
+            for _ in range(n_mc_seeds):
+                diff_sum = 0.0
+                for u_a, u_act_post, u_greedy_real, u_post_real in item_ctx:
+                    spec_ok = rng_mc.random() < pe_val
+                    u_def_real = (r_ok if spec_ok else r_err) - c_def - gamma_queue * q
+                    u_base_real = u_def_real if u_def_pe > u_a else u_greedy_real
+                    u_stage2_real = u_def_real if u_def_pe > u_act_post else u_post_real
+                    u_ask_real = u_stage2_real - c_ask
+                    diff_sum += (u_ask_real - u_base_real)
+                seed_diffs.append(diff_sum / max(1, len(item_ctx)))
+            mc_arr = np.asarray(seed_diffs, dtype=float)
+            realized_evoi_mean.append(round(float(np.mean(mc_arr)), 4))
+            realized_evoi_se.append(round(float(np.std(mc_arr, ddof=1) / math.sqrt(n_mc_seeds)), 4))
+            if q <= math.floor(q1_bound):
+                real_defer_q.append(float(q))
+                real_defer_seed_means.append(mc_arr)
+
+        if len(real_defer_q) >= 2:
+            seed_slopes = [
+                float(np.polyfit(real_defer_q, [arr[s] for arr in real_defer_seed_means], 1)[0])
+                for s in range(n_mc_seeds)
+            ]
+            real_slope = round(float(np.mean(seed_slopes)), 4)
+            real_slope_se = round(float(np.std(seed_slopes, ddof=1) / math.sqrt(n_mc_seeds)), 4)
+        else:
+            real_slope = 0.0
+            real_slope_se = 0.0
+
         phase_2d_by_pe[f"{pe_val:.2f}"] = {
             "p_e": pe_val,
+            "q1_act_defer_boundary": round(float(q1_bound), 3),
+            "q2_ovr_defer_boundary": round(float(q2_bound), 3),
+            "theoretical_defer_slope": round(p_res_cal * gamma_queue, 4),
+            "realized_defer_slope": real_slope,
+            "realized_defer_slope_se": real_slope_se,
             "evoi_by_q": evoi_pe,
+            "realized_evoi_mean": realized_evoi_mean,
+            "realized_evoi_se": realized_evoi_se,
             "q4_ask_pct_calibrated": cal_q4_ask_pe,
             "q4_ask_pct_decoupled_nominal": nom_q4_ask_pe,
         }
@@ -788,6 +881,7 @@ def run_fixed_state_evoi_sweep(
         "p_e_fixed": p_e_fixed,
         "calibrated_p_resolve_q4": round(p_res_cal, 4),
         "n_q4_items": len(q4_items),
+        "n_q4_askable": len(q4_askable),
         "analytical_curves": analytical_curves,
         "q4_ask_pct_by_p_resolve": q4_ask_curves,
         "q4_ask_pct_calibrated": cal_q4_ask,

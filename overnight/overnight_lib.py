@@ -245,57 +245,65 @@ def probe_item_budgeted(
     clarify_q = str(diag_obj.get("clarifying_question", "")).strip()
 
     sim_fn = user_sim_fn or user_oracle
-    oracle_reply, oracle_revealed = sim_fn(
-        item, clarify_q or f"Could you specify the missing {item['missing_concept'] or 'intake detail'}?"
-    )
+    if clarify_q:
+        oracle_reply, oracle_revealed = sim_fn(item, clarify_q)
 
-    post_prompt = (
-        f"{DOMAIN_RUBRIC}\nTicket:\n{item['prose']}{dry_meta}\n"
-        f"[Requester Follow-up]: {oracle_reply}\n\n"
-        "Re-evaluate after the requester's reply:\n"
-        "- answer: best choice A, B, or C.\n"
-        "- missing_user_info: true if a required intake field is still missing.\n"
-        "- override_confirmed: true if a confidential specialist protocol/override applies to the confirmed ticket.\n"
-        "Respond in JSON ONLY: "
-        "{\"answer\": \"A\"|\"B\"|\"C\", \"missing_user_info\": true|false, \"override_confirmed\": true|false}."
-    )
-    r_post = paced_call_llm(
-        [{"role": "user", "content": post_prompt}],
-        model_id=model_id,
-        temperature=0.0,
-        max_tokens=1024,
-        tag="post_ask_combined",
-        seed_idx=0,
-        dry_run=dry_run,
-        tracker=tracker,
-        pace_sec=pace_sec,
-    )
-    post_obj = parse_json_obj(r_post["content"])
-    post_ans = extract_answer(r_post["content"])
-    post_ovr_conf = bool(post_obj.get("override_confirmed", obs_conf_ovr))
-    tokens += r_post["prompt_tokens"] + r_post["completion_tokens"]
-    lat_post = float(r_post.get("latency", 0.0))
-    lat_total += lat_post
+        post_prompt = (
+            f"{DOMAIN_RUBRIC}\nTicket:\n{item['prose']}{dry_meta}\n"
+            f"[Requester Follow-up]: {oracle_reply}\n\n"
+            "Re-evaluate after the requester's reply:\n"
+            "- answer: best choice A, B, or C.\n"
+            "- missing_user_info: true if a required intake field is still missing.\n"
+            "- override_confirmed: true if a confidential specialist protocol/override applies to the confirmed ticket.\n"
+            "Respond in JSON ONLY: "
+            "{\"answer\": \"A\"|\"B\"|\"C\", \"missing_user_info\": true|false, \"override_confirmed\": true|false}."
+        )
+        r_post = paced_call_llm(
+            [{"role": "user", "content": post_prompt}],
+            model_id=model_id,
+            temperature=0.0,
+            max_tokens=1024,
+            tag="post_ask_combined",
+            seed_idx=0,
+            dry_run=dry_run,
+            tracker=tracker,
+            pace_sec=pace_sec,
+        )
+        post_obj = parse_json_obj(r_post["content"])
+        post_ans = extract_answer(r_post["content"])
+        post_ovr_conf = bool(post_obj.get("override_confirmed", obs_conf_ovr))
+        tok_post = r_post["prompt_tokens"] + r_post["completion_tokens"]
+        tokens += tok_post
+        lat_post = float(r_post.get("latency", 0.0))
+        lat_total += lat_post
 
-    r_post_s1 = paced_call_llm(
-        [
-            {
-                "role": "user",
-                "content": f"{DOMAIN_RUBRIC}\nTicket:\n{item['prose']}{dry_meta}\n[Requester Follow-up]: {oracle_reply}\nRespond in JSON ONLY: {{\"answer\": \"A\"|\"B\"|\"C\"}}.",
-            }
-        ],
-        model_id=model_id,
-        temperature=0.7,
-        max_tokens=1024,
-        tag="post_ask_s1",
-        seed_idx=1,
-        dry_run=dry_run,
-        tracker=tracker,
-        pace_sec=pace_sec,
-    )
-    post_s1 = extract_answer(r_post_s1["content"])
-    tokens += r_post_s1["prompt_tokens"] + r_post_s1["completion_tokens"]
-    lat_total += float(r_post_s1.get("latency", 0.0))
+        r_post_s1 = paced_call_llm(
+            [
+                {
+                    "role": "user",
+                    "content": f"{DOMAIN_RUBRIC}\nTicket:\n{item['prose']}{dry_meta}\n[Requester Follow-up]: {oracle_reply}\nRespond in JSON ONLY: {{\"answer\": \"A\"|\"B\"|\"C\"}}.",
+                }
+            ],
+            model_id=model_id,
+            temperature=0.7,
+            max_tokens=1024,
+            tag="post_ask_s1",
+            seed_idx=1,
+            dry_run=dry_run,
+            tracker=tracker,
+            pace_sec=pace_sec,
+        )
+        post_s1 = extract_answer(r_post_s1["content"])
+        tokens += r_post_s1["prompt_tokens"] + r_post_s1["completion_tokens"]
+        lat_total += float(r_post_s1.get("latency", 0.0))
+    else:
+        oracle_reply = "No clarifying question was asked."
+        oracle_revealed = False
+        post_ans = greedy_ans
+        post_s1 = samples[0]
+        post_ovr_conf = obs_conf_ovr
+        tok_post = 0
+        lat_post = 0.0
 
     return {
         "item": item,
@@ -316,7 +324,7 @@ def probe_item_budgeted(
         "tokens": tokens,
         "tokens_greedy": r_greedy["prompt_tokens"] + r_greedy["completion_tokens"],
         "tokens_diag": r_diag["prompt_tokens"] + r_diag["completion_tokens"],
-        "tokens_post": r_post["prompt_tokens"] + r_post["completion_tokens"],
+        "tokens_post": tok_post,
         "latency_total": round(lat_total, 3),
         "latency_greedy": round(lat_greedy, 3),
         "latency_diag": round(lat_diag, 3),
@@ -461,6 +469,7 @@ def rewrite_ticket_noisy(
     rewriter_model: str = "Qwen/Qwen3.5-35B-A3B",
     dry_run: bool = False,
     pace_sec: float = 0.25,
+    implicit_override: bool = False,
 ) -> Dict[str, Any]:
     """Rewrite a ticket into realistic 2-3 paragraph workplace prose with harmless distractors & zero spoiler leakage."""
     out = dict(item)
@@ -480,12 +489,17 @@ def rewrite_ticket_noisy(
         if item["is_underspec"]
         else "Preserve every factual attribute (age, temperature, chest pain, risk tier, jurisdiction, amount, scope, severity, shipping tier, hazmat status) accurately."
     )
+    ovr_rule = (
+        "Paraphrase any internal protocol, bulletin, runbook, or waiver notice naturally into workplace context WITHOUT using the words 'confidential' or 'override'."
+        if implicit_override
+        else "Preserve any confidential specialist protocol/bulletin/runbook/waiver notice verbatim if present."
+    )
     prompt = (
         f"Rewrite the following {item['domain']} cooperative triage ticket into a realistic 2-to-3 paragraph workplace record "
         "(e.g., nurse handoff note, compliance email, Slack ops thread, or hub dispatch memo) by weaving in realistic harmless background noise "
         "(timestamps, colleague chatter, secondary system logs).\n"
         f"{guard_rule}\n"
-        "Preserve any confidential specialist protocol/bulletin/runbook/waiver notice verbatim if present.\n"
+        f"{ovr_rule}\n"
         "Output ONLY the rewritten workplace text (no preamble or markdown fences).\n\n"
         f"Original Ticket:\n{body}"
     )
@@ -549,6 +563,8 @@ def make_imperfect_user_sim(
     """Create an imperfect natural-language requester simulator (with 15% non-answer friction)."""
 
     def _sim(item: Dict[str, Any], clarify_q: str) -> Tuple[str, bool]:
+        if not (clarify_q or "").strip():
+            return ("No clarifying question was asked.", False)
         if not item["is_underspec"] or not item["missing_val"]:
             return (
                 "Honestly I already pasted everything from my side—we don't have visibility into internal specialist overrides or bulletins.",
@@ -725,7 +741,7 @@ def _simulate_bursty_or_shift_stream(
         lam_ema = {"Spec": 0.35}
         drain_interval = 2
 
-    use_ext_flag = method == "Tri-VoI-L2D"
+    use_ext_flag = method in ("Tri-VoI-L2D", "Calibrated-Cascade+Naor", "Joint-Greedy+Naor")
     utils = np.zeros(n, dtype=float)
     ok_cnt = 0
     wait_sum = 0
@@ -763,7 +779,7 @@ def _simulate_bursty_or_shift_stream(
                 qm = queues[m]
                 mu_m = caps[m] / float(drain_interval)
                 rho_m = min(lam_ema[m] / max(1e-6, mu_m), 1.5)
-                cong = gamma_queue * (qm + rho_m * (qm + 1.0)) if (use_ext and (qm > 0 or rho_m >= 0.6)) else gamma_queue * qm
+                cong = gamma_queue * (qm + rho_m * (qm + 1.0)) if (use_ext and (qm >= caps[m] or rho_m >= 0.6)) else gamma_queue * qm
                 um = pe * r_ok + (1.0 - pe) * r_err - costs[m] - cong
                 if um > bu:
                     bu = um
@@ -796,9 +812,9 @@ def _simulate_bursty_or_shift_stream(
             elif obs_c or not unanimous:
                 did_def = True
                 chosen, _ = best_spec(False)
-        elif method == "Calibrated-Cascade":
+        elif method in ("Calibrated-Cascade", "Calibrated-Cascade+Naor"):
             pa = calibrator.get_p_act(obs_m, obs_p, unanimous)
-            bm, ud = best_spec(False)
+            bm, ud = best_spec(use_ext_flag)
             if obs_m:
                 did_ask = True
                 pp = calibrator.p_post_ovr if rec["post_ovr_conf"] else calibrator.p_post_clear
@@ -810,13 +826,13 @@ def _simulate_bursty_or_shift_stream(
             elif ud > (pa * r_ok + (1.0 - pa) * r_err):
                 did_def = True
                 chosen = bm
-        elif method == "Joint-Greedy":
+        elif method in ("Joint-Greedy", "Joint-Greedy+Naor"):
             pa = calibrator.get_p_act(obs_m, obs_p, unanimous)
             pr, po, pn = calibrator.get_post_ask_probs(obs_m, obs_p)
             ua = pa * r_ok + (1.0 - pa) * r_err
             uc = calibrator.p_post_clear * r_ok + (1.0 - calibrator.p_post_clear) * r_err
             uo = calibrator.p_post_ovr * r_ok + (1.0 - calibrator.p_post_ovr) * r_err
-            bm, ud = best_spec(False)
+            bm, ud = best_spec(use_ext_flag)
             if obs_m and (pr * uc + po * uo + pn * ua - c_ask) > max(ua, ud):
                 did_ask = True
                 ans = rec["post_ans"]
@@ -897,7 +913,7 @@ def _simulate_hyperparam_tri(
         pe = tr.mean()
         mu = capacity / float(drain_interval)
         rho = min(lam_ema / max(1e-6, mu), 1.5)
-        cong = gamma_model * (q + rho * (q + 1.0)) if (q > 0 or rho >= 0.6) else gamma_model * q
+        cong = gamma_model * (q + rho * (q + 1.0)) if (q >= capacity or rho >= 0.6) else gamma_model * q
         ud = pe * 10.0 - (1.0 - pe) * 10.0 - 2.0 - cong
         pa = calibrator.get_p_act(rec["obs_missing"], rec["obs_pot_ovr"], rec["maj_count"] == 3)
         pr, po, pn = calibrator.get_post_ask_probs(rec["obs_missing"], rec["obs_pot_ovr"])
@@ -952,7 +968,7 @@ def _audit_error_taxonomy(
         true_acc = 0.60 if t >= (n // 2) else 0.92
         pe = tr.mean()
         rho = min(lam_ema / 1.0, 1.5)
-        cong = 0.85 * (q + rho * (q + 1.0)) if (q > 0 or rho >= 0.6) else 0.85 * q
+        cong = 0.85 * (q + rho * (q + 1.0)) if (q >= 2 or rho >= 0.6) else 0.85 * q
         ud = pe * 10.0 - (1.0 - pe) * 10.0 - 2.0 - cong
         pa = calibrator.get_p_act(rec["obs_missing"], rec["obs_pot_ovr"], rec["maj_count"] == 3)
         pr, po, pn = calibrator.get_post_ask_probs(rec["obs_missing"], rec["obs_pot_ovr"])
@@ -1036,7 +1052,16 @@ def run_stage5_structural(
         ("mu=0.25", 1, 4),
     ]
     cask_grid = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0]
-    phase_methods = ["Tri-VoI-L2D", "Calibrated-Cascade", "Joint-Greedy", "Naive-Cascade", "Congested-L2D-Only"]
+    phase_methods = [
+        "Tri-VoI-L2D",
+        "Calibrated-Cascade",
+        "Calibrated-Cascade+Naor",
+        "Joint-Greedy",
+        "Joint-Greedy+Naor",
+        "w/o Queue-Externality",
+        "Naive-Cascade",
+        "Congested-L2D-Only",
+    ]
     phase_cells = []
     for l_lbl, cap, d_int in load_grid:
         mu_val = round(cap / float(d_int), 2)
@@ -1058,7 +1083,10 @@ def run_stage5_structural(
                     "c_ask": ca,
                     "utils": m_utils,
                     "margin_vs_cascade": round(m_utils["Tri-VoI-L2D"] - m_utils["Calibrated-Cascade"], 4),
+                    "margin_vs_cascade_naor": round(m_utils["Tri-VoI-L2D"] - m_utils["Calibrated-Cascade+Naor"], 4),
                     "margin_vs_greedy": round(m_utils["Tri-VoI-L2D"] - m_utils["Joint-Greedy"], 4),
+                    "margin_vs_greedy_naor": round(m_utils["Tri-VoI-L2D"] - m_utils["Joint-Greedy+Naor"], 4),
+                    "margin_vs_wo_ext": round(m_utils["Tri-VoI-L2D"] - m_utils["w/o Queue-Externality"], 4),
                     "margin_vs_best_baseline": round(
                         m_utils["Tri-VoI-L2D"] - max(m_utils[x] for x in phase_methods if x != "Tri-VoI-L2D"), 4
                     ),
@@ -1157,7 +1185,16 @@ def run_stage5_structural(
     # 5d-1. Bursty Poisson Traffic Waves + 3-Expert Heterogeneous Shift-Fatigue Pool
     bursty_summary = {}
     shift3_summary = {}
-    stress_methods = ["Direct-ACT", "Congested-L2D-Only", "Naive-Cascade", "Joint-Greedy", "Calibrated-Cascade", "Tri-VoI-L2D"]
+    stress_methods = [
+        "Direct-ACT",
+        "Congested-L2D-Only",
+        "Naive-Cascade",
+        "Joint-Greedy",
+        "Joint-Greedy+Naor",
+        "Calibrated-Cascade",
+        "Calibrated-Cascade+Naor",
+        "Tri-VoI-L2D",
+    ]
     for m in stress_methods:
         rb = [_simulate_bursty_or_shift_stream(m, prim_test, prim_calib, mode="bursty", seed=s) for s in range(10)]
         r3 = [_simulate_bursty_or_shift_stream(m, prim_test, prim_calib, mode="shift3", seed=s) for s in range(10)]
@@ -1191,23 +1228,33 @@ def run_stage5_structural(
     avg_lat_g = float(np.mean([r["latency_greedy"] for r in prim_test]))
     avg_lat_d = float(np.mean([r["latency_diag"] for r in prim_test]))
     avg_lat_p = float(np.mean([r["latency_post"] for r in prim_test]))
-    for m in ["Direct-ACT", "Entropy-Clarify (ADEPT)", "Consensus-Defer (DREAM)", "Congested-L2D-Only", "Naive-Cascade", "Joint-Greedy", "Calibrated-Cascade", "Tri-VoI-L2D"]:
+    for m in [
+        "Direct-ACT",
+        "Entropy-ASK (Proxy)",
+        "Consensus-DEFER (Proxy)",
+        "Congested-L2D-Only",
+        "Naive-Cascade",
+        "Joint-Greedy",
+        "Joint-Greedy+Naor",
+        "Calibrated-Cascade",
+        "Calibrated-Cascade+Naor",
+        "Tri-VoI-L2D",
+    ]:
         sr = simulate_stream(m, prim_test, prim_calib, capacity=2, drain_interval=2, c_ask=1.5, seed=0)
         ask_f = sr["ask_rate_pct"] / 100.0
         if m == "Direct-ACT":
             tok = avg_tok_greedy
             lat = avg_lat_g
-        elif m in ("Entropy-Clarify (ADEPT)",):
+        elif m == "Entropy-ASK (Proxy)":
             tok = avg_tok_probe3 + ask_f * avg_tok_post
             lat = 3.0 * avg_lat_g + ask_f * avg_lat_p
-        elif m == "Consensus-Defer (DREAM)":
+        elif m == "Consensus-DEFER (Proxy)":
             tok = avg_tok_probe3
             lat = 3.0 * avg_lat_g
         elif m == "Naive-Cascade":
             tok = avg_tok_probe3 + avg_tok_diag + ask_f * (2.0 * avg_tok_post)
             lat = 3.0 * avg_lat_g + avg_lat_d + ask_f * (2.0 * avg_lat_p)
         else:
-            # Disentangled diagnosis + 1 greedy + 3 probe + conditional single post-ask
             tok = avg_tok_greedy + avg_tok_probe3 + avg_tok_diag + ask_f * avg_tok_post
             lat = avg_lat_g + avg_lat_d + ask_f * avg_lat_p
         pareto_rows.append(
@@ -1224,6 +1271,94 @@ def run_stage5_structural(
     # 5d-4. Error taxonomy
     err_tax = _audit_error_taxonomy(prim_test, prim_calib, c_ask=1.5, seed=0)
 
+    # 5e. Decision-Relevant Subset (excluding decision-invariant Q2 tickets)
+    dr_cal = [r for r in prim_cal if (not r["item"]["is_underspec"]) or r["item"].get("missing_changes_gold", True)]
+    dr_test = [r for r in prim_test if (not r["item"]["is_underspec"]) or r["item"].get("missing_changes_gold", True)]
+    dr_calib = HeldOutCalibrator(dr_cal)
+    dr_methods = [
+        "Naive-Cascade",
+        "Joint-Greedy",
+        "Joint-Greedy+Naor",
+        "Calibrated-Cascade",
+        "Calibrated-Cascade+Naor",
+        "w/o Queue-Externality",
+        "Tri-VoI-L2D",
+    ]
+    dr_regimes = [
+        ("Cap=2, c=1.5", 2, 2, 1.5),
+        ("Cap=2, c=2.5", 2, 2, 2.5),
+        ("Cap=1/3, c=1.5", 1, 3, 1.5),
+    ]
+    dr_results: Dict[str, Any] = {
+        "n_cal_orig": len(prim_cal),
+        "n_cal_filtered": len(dr_cal),
+        "n_test_orig": len(prim_test),
+        "n_test_filtered": len(dr_test),
+        "regimes": {},
+    }
+    for r_lbl, r_cap, r_di, r_ca in dr_regimes:
+        r_map = {}
+        for m in dr_methods:
+            rs = [
+                simulate_stream(
+                    m, dr_test, dr_calib, capacity=r_cap, drain_interval=r_di, drift_mode="sudden", c_ask=r_ca, seed=s
+                )
+                for s in range(5)
+            ]
+            r_map[m] = {
+                "mean_utility": round(float(np.mean([x["mean_utility"] for x in rs])), 3),
+                "acc_pct": round(float(np.mean([x["acc_pct"] for x in rs])), 2),
+                "mean_wait": round(float(np.mean([x["mean_wait"] for x in rs])), 2),
+                "ask_rate_pct": round(float(np.mean([x["ask_rate_pct"] for x in rs])), 1),
+            }
+        dr_results["regimes"][r_lbl] = r_map
+
+    # 5f. Realistic Specialist Simulation Stress (Delayed Feedback + Unclarified-Ticket Rework Penalty)
+    spec_methods = [
+        "Direct-ACT",
+        "Congested-L2D-Only",
+        "Naive-Cascade",
+        "Joint-Greedy",
+        "Joint-Greedy+Naor",
+        "Calibrated-Cascade",
+        "Calibrated-Cascade+Naor",
+        "w/o Queue-Externality",
+        "Tri-VoI-L2D",
+    ]
+    spec_cfgs = [
+        ("Delayed Feedback (Cap=2)", 2, 2, True, False),
+        ("Delayed Feedback (Cap=1/3)", 1, 3, True, False),
+        ("Unclarified Rework (Cap=2)", 2, 2, False, True),
+        ("Unclarified Rework (Cap=1/3)", 1, 3, False, True),
+        ("Delayed + Rework (Cap=2)", 2, 2, True, True),
+        ("Delayed + Rework (Cap=1/3)", 1, 3, True, True),
+    ]
+    spec_stress: Dict[str, Any] = {}
+    for s_lbl, s_cap, s_di, d_fb, u_pen in spec_cfgs:
+        s_map = {}
+        for m in spec_methods:
+            rs = [
+                simulate_stream(
+                    m,
+                    prim_test,
+                    prim_calib,
+                    capacity=s_cap,
+                    drain_interval=s_di,
+                    drift_mode="sudden",
+                    c_ask=1.5,
+                    seed=s,
+                    delayed_feedback=d_fb,
+                    unclarified_spec_penalty=u_pen,
+                )
+                for s in range(5)
+            ]
+            s_map[m] = {
+                "mean_utility": round(float(np.mean([x["mean_utility"] for x in rs])), 3),
+                "acc_pct": round(float(np.mean([x["acc_pct"] for x in rs])), 2),
+                "mean_wait": round(float(np.mean([x["mean_wait"] for x in rs])), 2),
+            }
+        spec_stress[s_lbl] = s_map
+
     return {
         "phase_map_56pt": phase_cells,
         "cv5_cross_model": cv5_rows,
@@ -1235,4 +1370,6 @@ def run_stage5_structural(
         "gamma_sensitivity": gamma_sens,
         "token_latency_pareto": pareto_rows,
         "error_taxonomy": err_tax,
+        "decision_relevant_subset": dr_results,
+        "realistic_specialist_stress": spec_stress,
     }
