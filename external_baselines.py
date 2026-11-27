@@ -59,8 +59,11 @@ class KLPBDController:
         c_hold: float = 0.85,
         c_defer: float = 2.0,
         cal_probed: Optional[List[Dict[str, Any]]] = None,
+        sc_only: bool = False,
     ):
         self.variant = variant
+        self.sc_only = sc_only
+        self.num_levels = 3 if sc_only else self.NUM_LEVELS
         self.total_horizon = max(3, total_horizon)
         self.cap = max(1, int(capacity))
         self.drain_interval = max(1, int(drain_interval))
@@ -69,9 +72,9 @@ class KLPBDController:
         self.c_defer = float(c_defer)
         self.b_max = max(12, self.cap * 6)
 
-        self.O = [0] * self.NUM_LEVELS
-        self.N = [0] * self.NUM_LEVELS
-        self.S = [0] * self.NUM_LEVELS
+        self.O = [0] * self.num_levels
+        self.N = [0] * self.num_levels
+        self.S = [0] * self.num_levels
         self.t_arrivals = 0
 
         if variant == "kl_pbd_plus_warm" and cal_probed:
@@ -91,8 +94,10 @@ class KLPBDController:
             b_next = max(0, b - self.cap)
             self.D[b] = (self.c_hold * float(b)) / self.p_serve + self.D[b_next]
 
-    @staticmethod
-    def level_of(rec: Dict[str, Any]) -> int:
+    def level_of(self, rec: Dict[str, Any]) -> int:
+        if self.sc_only:
+            # Self-consistency-only level (maj_count in {1, 2, 3} -> {0, 1, 2}), no disentangled diag
+            return max(0, min(2, int(rec["maj_count"]) - 1))
         m_flag = 1 if rec["obs_missing"] else 0
         p_flag = 1 if rec["obs_pot_ovr"] else 0
         u_flag = 1 if rec["maj_count"] == 3 else 0
@@ -110,7 +115,7 @@ class KLPBDController:
     def lower_bounds(self) -> List[float]:
         out: List[float] = []
         phi_t = math.log(self.total_horizon) + math.log(max(1.1, math.log(self.total_horizon)))
-        for j in range(self.NUM_LEVELS):
+        for j in range(self.num_levels):
             n_j = self.N[j]
             if n_j <= 0:
                 out.append(0.0)
@@ -126,9 +131,9 @@ class KLPBDController:
 
     def arrival_dist(self) -> List[float]:
         if self.t_arrivals <= 0:
-            return [1.0 / self.NUM_LEVELS] * self.NUM_LEVELS
+            return [1.0 / self.num_levels] * self.num_levels
         inv = 1.0 / float(self.t_arrivals)
-        return [self.O[j] * inv for j in range(self.NUM_LEVELS)]
+        return [self.O[j] * inv for j in range(self.num_levels)]
 
     def marginal_defer_cost(self, b: int, rem_steps: int, c_e: float, p_e_hat: float) -> float:
         """Compute Bellman marginal cost M_t^{h_lcb}(b) via finite-horizon backward DP."""
@@ -138,7 +143,7 @@ class KLPBDController:
         h_lcb = self.lower_bounds()
         omega = self.arrival_dist()
         c_exp = self.c_defer + (1.0 - p_e_hat) * c_e
-        err_costs = [c_e * (1.0 - h_lcb[j]) for j in range(self.NUM_LEVELS)]
+        err_costs = [c_e * (1.0 - h_lcb[j]) for j in range(self.num_levels)]
 
         horizon = max(1, min(rem_steps, 25))
         # E_V[b'] = sum_j omega[j] * V_{s+1}(b', j)
@@ -168,7 +173,7 @@ class KLPBDController:
                 # V_s(b_cur, j) = c_hold*b_cur + cont_0 + min(err_cost_j, m_val)
                 base_val = c_hold * float(b_cur) + cont_0
                 avg_act_defer = 0.0
-                for j in range(self.NUM_LEVELS):
+                for j in range(self.num_levels):
                     w_j = omega[j]
                     if w_j > 0.0:
                         ec = err_costs[j]

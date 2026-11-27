@@ -110,15 +110,17 @@ def build_wave_b_specs(
 
     if prof["is_mediq"]:
         post_prompt = (
-            f"{rubric}\nTicket:\n{item['prose']}{dry_meta}\n"
-            f"[Requester Follow-up]: {oracle_reply}\n\n"
-            "Re-evaluate after the patient/requester's reply:\n"
-            f"- answer: best clinical option {c_list_str}.\n"
-            "- missing_user_info: true if decisive clinical details are still missing.\n"
-            "- override_confirmed: true if a Specialist Escalation trigger (high-acuity subspecialty, multi-specialty complexity, or clinical red flag) is now confirmed present.\n"
-            "Respond in JSON ONLY: "
-            f"{{\"answer\": {c_json_str}, \"missing_user_info\": true|false, \"override_confirmed\": true|false}}."
+            f"{rubric}\nPresenting Vignette:\n{item['prose']}{dry_meta}\n\n"
+            f"[Patient/Requester Clarified Findings]:\n{oracle_reply}\n\n"
+            "Carefully integrate the Presenting Vignette and [Patient/Requester Clarified Findings], then evaluate:\n"
+            "1. rationale: 1-2 concise clinical sentences determining (a) the best diagnostic/management option among A, B, C, D, and (b) whether ANY Specialist Escalation Scope rule is triggered (high-acuity subspecialty: Pediatrics/OB-GYN/Neurology/Cardiology/Surgery/EM/Psychiatry; >=2 consulting specialties; OR clinical red flag).\n"
+            f"2. answer: best clinical option {c_list_str}.\n"
+            "3. missing_user_info: true if decisive clinical details are still missing.\n"
+            "4. override_confirmed: true ONLY if a Specialist Escalation Scope rule is confirmed present after combining the vignette and clarified findings.\n"
+            "Respond in JSON ONLY (rationale first): "
+            f"{{\"rationale\": \"...\", \"answer\": {c_json_str}, \"missing_user_info\": true|false, \"override_confirmed\": true|false}}."
         )
+        post_tag = "post_ask_combined_v2"
     else:
         post_prompt = (
             f"{rubric}\nTicket:\n{item['prose']}{dry_meta}\n"
@@ -130,13 +132,14 @@ def build_wave_b_specs(
             "Respond in JSON ONLY: "
             f"{{\"answer\": {c_json_str}, \"missing_user_info\": true|false, \"override_confirmed\": true|false}}."
         )
+        post_tag = "post_ask_combined"
 
     specs = [
         {
             "messages": [{"role": "user", "content": post_prompt}],
             "temperature": 0.0,
             "max_tokens": 1024,
-            "tag": "post_ask_combined",
+            "tag": post_tag,
             "seed_idx": 0,
         },
         {
@@ -194,8 +197,8 @@ def assemble_probed_record(
         for t in ("probe_s0", "probe_s1", "probe_s2", "greedy_act", "diag_init")
     )
 
-    if clarify_q and "post_ask_combined" in responses_by_tag:
-        r_post = responses_by_tag["post_ask_combined"]
+    r_post = responses_by_tag.get("post_ask_combined_v2") or responses_by_tag.get("post_ask_combined")
+    if clarify_q and r_post is not None:
         post_obj = parse_json_obj(r_post["content"])
         post_ans = extract_answer(r_post["content"], choices)
         post_ovr_conf = bool(post_obj.get("override_confirmed", obs_conf_ovr))

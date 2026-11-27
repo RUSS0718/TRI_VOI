@@ -6,9 +6,9 @@
 - **With Friction (p_no=0.15)**: R1 slope `0.425` (theo `0.425`), R2 slope `-0.2975` (theo `-0.2975`), R3 slope `-0.0` (theo `0.0`)
 
 ## Theorem 2 & Corollary 2 (GLM-4.5-Air Shrinkage & Miscalibration Bound)
-- **k=2**: `n_cal=59` Cap=1/3 `3.234±0.239` ($\epsilon_p=0.1342, \epsilon_\pi=0.2008$) -> `n_cal=139` Cap=1/3 `3.028±0.465` ($\epsilon_p=0.0618, \epsilon_\pi=0.1183$)
-- **k=5**: `n_cal=59` Cap=1/3 `3.222±0.262` ($\epsilon_p=0.1252, \epsilon_\pi=0.1994$) -> `n_cal=139` Cap=1/3 `2.998±0.471` ($\epsilon_p=0.061, \epsilon_\pi=0.1079$)
-- **k=10**: `n_cal=59` Cap=1/3 `3.199±0.228` ($\epsilon_p=0.1184, \epsilon_\pi=0.2056$) -> `n_cal=139` Cap=1/3 `3.023±0.408` ($\epsilon_p=0.0624, \epsilon_\pi=0.1025$)
+- **k=2** (fixed $N_{test}=180$): `n_cal=60` Cap=1/3 `2.786±0.524` ($\epsilon_p=0.1145, \epsilon_\pi=0.1715$) -> `n_cal=240` Cap=1/3 `3.099±0.589` ($\epsilon_p=0.0404, \epsilon_\pi=0.0767$)
+- **k=5** (fixed $N_{test}=180$): `n_cal=60` Cap=1/3 `2.827±0.498` ($\epsilon_p=0.1093, \epsilon_\pi=0.1638$) -> `n_cal=240` Cap=1/3 `3.112±0.606` ($\epsilon_p=0.0408, \epsilon_\pi=0.0779$)
+- **k=10** (fixed $N_{test}=180$): `n_cal=60` Cap=1/3 `2.96±0.635` ($\epsilon_p=0.1081, \epsilon_\pi=0.1742$) -> `n_cal=240` Cap=1/3 `3.14±0.638` ($\epsilon_p=0.0412, \epsilon_\pi=0.0831$)
 - **Qwen3-8B F1 Floor Boundary**: Cap=2 `3.731`, Cap=1/3 `1.714`.
 
 ## Theorem 3 (Foster-Lyapunov Stability Expansion & Non-Zero ASK Latency)

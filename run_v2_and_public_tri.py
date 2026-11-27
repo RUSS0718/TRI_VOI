@@ -177,6 +177,7 @@ def eval_regime_with_sig(
     cap: int,
     di: int,
     c_ask: float,
+    c_defer_base: float = 2.0,
     n_seeds: int = 5,
     unclarified_spec_penalty: bool = False,
 ) -> Dict[str, Any]:
@@ -192,6 +193,7 @@ def eval_regime_with_sig(
                     drain_interval=di,
                     drift_mode="sudden",
                     c_ask=c_ask,
+                    c_defer_base=c_defer_base,
                     seed=s,
                     unclarified_spec_penalty=unclarified_spec_penalty,
                     cal_probed=cal_p,
@@ -355,7 +357,7 @@ def main() -> None:
     for mid in PUBLIC_TRI_MODELS:
         cal_p = probe_dataset_profiled(cal_pt, mid, tracker, dry_run=args.dry_run, workers=args.workers, label="pt_cal60")
         test_p = probe_dataset_profiled(test_pt, mid, tracker, dry_run=args.dry_run, workers=args.workers, label="pt_test240")
-        calib = HeldOutCalibrator(cal_p)
+        calib = HeldOutCalibrator(cal_p, stratify_post_clear=True)
         diag = evaluate_diagnosis_metrics(test_p)
         noncirc = compute_public_tri_noncircular_stats(test_p)
 
@@ -363,6 +365,7 @@ def main() -> None:
             "Cap=2, c=0.5": eval_regime_with_sig(METHODS_PT, cal_p, test_p, calib, cap=2, di=2, c_ask=0.5),
             "Cap=2, c=1.5": eval_regime_with_sig(METHODS_PT, cal_p, test_p, calib, cap=2, di=2, c_ask=1.5),
             "Cap=2, c=3.0": eval_regime_with_sig(METHODS_PT, cal_p, test_p, calib, cap=2, di=2, c_ask=3.0),
+            "Cap=2, c_def=4.0, c=1.5": eval_regime_with_sig(METHODS_PT, cal_p, test_p, calib, cap=2, di=2, c_ask=1.5, c_defer_base=4.0),
             "Cap=3, c=1.5": eval_regime_with_sig(METHODS_PT, cal_p, test_p, calib, cap=3, di=2, c_ask=1.5),
             "Cap=1/2, c=1.5": eval_regime_with_sig(METHODS_PT, cal_p, test_p, calib, cap=1, di=2, c_ask=1.5),
             "Cap=1/3, c=1.5": eval_regime_with_sig(METHODS_PT, cal_p, test_p, calib, cap=1, di=3, c_ask=1.5),

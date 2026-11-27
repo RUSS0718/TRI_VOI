@@ -157,25 +157,38 @@ def verify_theorem_2() -> Dict[str, Any]:
         by_q[r["item"]["quadrant"]].append(r)
 
     full_calib = HeldOutCalibrator(glm_all, k=0.0, k_fine=0.0)
-    n_cal_grid = [40, 60, 100, 140, 180, 240]
+    n_cal_grid = [32, 60, 100, 140, 180, 240]
     k_grid = [2.0, 5.0, 10.0]
 
+    # Constant-size N_test=180 per repetition eliminates stream-length confounding
     glm_curves: Dict[str, List[Dict[str, Any]]] = {}
     for k_val in k_grid:
         rows = []
         for n_cal in n_cal_grid:
             u_cap2, u_sev, eps_p_list, eps_pi_list, gap_list = [], [], [], [], []
             for rep in range(15):
-                rr = random.Random(3000 + rep * 17 + n_cal)
-                cal_s, test_s = [], []
-                per_q = max(4, n_cal // 4)
+                rr_split = random.Random(3000 + rep * 17)
+                test_s, cal_pool = [], []
                 for qk in sorted(by_q.keys()):
                     bkt = list(by_q[qk])
-                    rr.shuffle(bkt)
-                    take = per_q if qk in ("Q1_clear_easy", "Q2_underspec_easy", "Q3_clear_hard") else max(2, per_q // 2)
+                    rr_split.shuffle(bkt)
+                    n_t = 45 if qk in ("Q1_clear_easy", "Q2_underspec_easy", "Q3_clear_hard") else (22 if qk == "Q4_resolvable" else 23)
+                    test_s.extend(bkt[:n_t])
+                    cal_pool.extend(bkt[n_t:])
+                rr_split.shuffle(test_s)
+
+                rr_cal = random.Random(3000 + rep * 17 + n_cal)
+                pool_by_q = defaultdict(list)
+                for r in cal_pool:
+                    pool_by_q[r["item"]["quadrant"]].append(r)
+                cal_s = []
+                per_q = max(4, n_cal // 4)
+                for qk in sorted(pool_by_q.keys()):
+                    bkt = list(pool_by_q[qk])
+                    rr_cal.shuffle(bkt)
+                    take = per_q if qk in ("Q1_clear_easy", "Q2_underspec_easy", "Q3_clear_hard") else (per_q // 2 if qk == "Q4_resolvable" else per_q - per_q // 2)
                     cal_s.extend(bkt[:take])
-                    test_s.extend(bkt[take:])
-                rr.shuffle(test_s)
+
                 eb = HeldOutCalibrator(cal_s, k=k_val, k_fine=k_val)
 
                 # Estimate empirical calibration error vs full-pool truth on (True, True) & (True, False)
@@ -454,10 +467,10 @@ def main() -> None:
     ])
     for klbl, rows in t2["glm_curves"].items():
         r60 = rows[1]
-        r180 = rows[3]
+        r240 = rows[-1]
         lines.append(
-            f"- **{klbl}**: `n_cal={r60['n_cal']}` Cap=1/3 `{r60['u_sev_mean']}±{r60['u_sev_std']}` ($\\epsilon_p={r60['mean_eps_p']}, \\epsilon_\\pi={r60['mean_eps_pi']}$) "
-            f"-> `n_cal={r180['n_cal']}` Cap=1/3 `{r180['u_sev_mean']}±{r180['u_sev_std']}` ($\\epsilon_p={r180['mean_eps_p']}, \\epsilon_\\pi={r180['mean_eps_pi']}$)"
+            f"- **{klbl}** (fixed $N_{{test}}=180$): `n_cal={r60['n_cal']}` Cap=1/3 `{r60['u_sev_mean']}±{r60['u_sev_std']}` ($\\epsilon_p={r60['mean_eps_p']}, \\epsilon_\\pi={r60['mean_eps_pi']}$) "
+            f"-> `n_cal={r240['n_cal']}` Cap=1/3 `{r240['u_sev_mean']}±{r240['u_sev_std']}` ($\\epsilon_p={r240['mean_eps_p']}, \\epsilon_\\pi={r240['mean_eps_pi']}$)"
         )
     lines.append(f"- **Qwen3-8B F1 Floor Boundary**: Cap=2 `{t2['qwen3_8b_boundary']['u_cap2']}`, Cap=1/3 `{t2['qwen3_8b_boundary']['u_sev']}`.")
     lines.extend([

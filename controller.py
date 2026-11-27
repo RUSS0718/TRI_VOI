@@ -202,11 +202,20 @@ def _is_self_act_correct(item: Dict[str, Any], ans: str) -> bool:
 class HeldOutCalibrator:
     """Hierarchical Empirical Bayes calibrator on held-out split (zero test leakage)."""
 
-    def __init__(self, cal_probed: List[Dict[str, Any]], *, k: float = 2.0, k_fine: float = 3.0):
-        # Defaults k=2.0, k_fine=3.0 are frozen for main tables; parameterized for Theorem 2 ablations.
+    def __init__(
+        self,
+        cal_probed: List[Dict[str, Any]],
+        *,
+        k: float = 2.0,
+        k_fine: float = 3.0,
+        stratify_post_clear: bool = False,
+    ):
+        # Defaults k=2.0, k_fine=3.0, stratify_post_clear=False are frozen for Benchmark v1/v2.
+        self.stratify_post_clear = stratify_post_clear
         coarse_stats = defaultdict(lambda: [0, 0])
         fine_stats = defaultdict(lambda: [0, 0])
         post_clear = [0, 0]
+        post_clear_by_ovr = {False: [0, 0], True: [0, 0]}
         post_ovr = [0, 0]
         tri_stats = defaultdict(lambda: [0, 0, 0])  # [n_resolve, n_ovr_after, n_no_info]
 
@@ -227,8 +236,10 @@ class HeldOutCalibrator:
                     post_ovr[0] += 1
             elif m_flag and r["oracle_revealed"]:
                 post_clear[1] += 1
+                post_clear_by_ovr[p_flag][1] += 1
                 if _is_self_act_correct(it_cal, r["post_ans"]):
                     post_clear[0] += 1
+                    post_clear_by_ovr[p_flag][0] += 1
 
             r_key = (m_flag, p_flag)
             if m_flag and r["oracle_revealed"] and (not r["post_ovr_conf"]):
@@ -249,6 +260,10 @@ class HeldOutCalibrator:
             self.p_act[fk] = (ok + k_fine * coarse_prior) / (tot + k_fine)
 
         self.p_post_clear = (post_clear[0] + k * 0.85) / (post_clear[1] + k)
+        self.p_post_clear_by_ovr: Dict[bool, float] = {
+            pf: (post_clear_by_ovr[pf][0] + k * (0.85 if not pf else 0.65)) / (post_clear_by_ovr[pf][1] + k)
+            for pf in (False, True)
+        }
         self.p_post_ovr = (post_ovr[0] + k * 0.35) / (post_ovr[1] + k)
 
         self.tri_probs: Dict[Tuple[bool, bool], Tuple[float, float, float]] = {}
@@ -272,6 +287,11 @@ class HeldOutCalibrator:
             (obs_missing, obs_pot_ovr),
             0.85 if (not obs_missing and not obs_pot_ovr) else 0.50,
         )
+
+    def get_p_post_clear(self, obs_pot_ovr: bool = False) -> float:
+        if self.stratify_post_clear:
+            return self.p_post_clear_by_ovr.get(bool(obs_pot_ovr), self.p_post_clear)
+        return self.p_post_clear
 
     def get_post_ask_probs(self, obs_missing: bool, obs_pot_ovr: bool) -> Tuple[float, float, float]:
         if not obs_missing:
@@ -357,6 +377,9 @@ def simulate_stream(
     delayed_feedback: bool = False,
     unclarified_spec_penalty: bool = False,
     cal_probed: Optional[List[Dict[str, Any]]] = None,
+    ask_latency: int = 0,
+    beta_wait_ask: float = 0.25,
+    real_specialist_ok: Optional[Dict[str, bool]] = None,
 ) -> Dict[str, Any]:
     """Simulate sequential human-AI cooperative stream with queuing & drift."""
     rng = random.Random(5000 + seed)
@@ -397,6 +420,7 @@ def simulate_stream(
         "KL-PBD",
         "KL-PBD+",
         "KL-PBD+ (Warm)",
+        "KL-PBD+ (SC-Only)",
         "ACL-2026-VoI (Calib)",
         "ACL-2026-VoI+Post-Defer",
         "ACL-2026-VoI (Live)",
@@ -404,11 +428,11 @@ def simulate_stream(
     )
 
     kl_ctrl: Optional[KLPBDController] = None
-    if method in ("KL-PBD", "KL-PBD+", "KL-PBD+ (Warm)"):
+    if method in ("KL-PBD", "KL-PBD+", "KL-PBD+ (Warm)", "KL-PBD+ (SC-Only)"):
         kl_var = (
             "kl_pbd"
             if method == "KL-PBD"
-            else ("kl_pbd_plus_warm" if method == "KL-PBD+ (Warm)" else "kl_pbd_plus")
+            else ("kl_pbd_plus" if method == "KL-PBD+" else "kl_pbd_plus_warm")
         )
         kl_ctrl = KLPBDController(
             variant=kl_var,
@@ -418,6 +442,7 @@ def simulate_stream(
             c_hold=gamma_queue,
             c_defer=c_defer_base,
             cal_probed=cal_probed,
+            sc_only=(method == "KL-PBD+ (SC-Only)"),
         )
 
     per_item_utils = np.zeros(n, dtype=float)
@@ -433,10 +458,11 @@ def simulate_stream(
 
     quad_stats = defaultdict(lambda: {"n": 0, "ok": 0, "util": 0.0, "ask": 0, "defer": 0})
     phase2_utils = []
-    rolling_acc = []
+    rolling_acc = [0.0] * n
     queue_trace = []
     pending_fb: List[Tuple[int, str, bool]] = []
     pending_kl_fb: List[Tuple[int, int, bool]] = []
+    pending_ask: List[Dict[str, Any]] = []
 
     for t, rec in enumerate(test_probed):
         it = rec["item"]
@@ -553,7 +579,7 @@ def simulate_stream(
             if u_def > u_act:
                 did_defer = True
                 chosen_spec = m_best
-        elif method in ("KL-PBD", "KL-PBD+", "KL-PBD+ (Warm)"):
+        elif method in ("KL-PBD", "KL-PBD+", "KL-PBD+ (Warm)", "KL-PBD+ (SC-Only)"):
             assert kl_ctrl is not None
             m_best = max(queues.keys(), key=lambda m: trackers[m].mean() * r_ok + (1.0 - trackers[m].mean()) * r_err - costs[m] - gamma_queue * queues[m])
             if kl_ctrl.should_defer(rec, queues[m_best], n - t, r_ok, r_err, trackers[m_best].mean()):
@@ -569,7 +595,7 @@ def simulate_stream(
             p_res, p_ovra, p_no = calibrator.get_post_ask_probs(obs_m, obs_p) if calibrator else (
                 (0.45, 0.45, 0.10) if (obs_m and obs_p) else ((0.85, 0.05, 0.10) if obs_m else (0.0, 0.0, 1.0))
             )
-            p_clear = calibrator.p_post_clear if calibrator else 0.88
+            p_clear = calibrator.get_p_post_clear(obs_p) if calibrator else 0.88
             p_ovr = calibrator.p_post_ovr if calibrator else 0.40
 
             use_live_acl = "Live" in method and bool(rec.get("acl_belief_raw"))
@@ -618,7 +644,7 @@ def simulate_stream(
                 chosen_spec, _ = best_specialist_util()
         elif method in ("Calibrated-Cascade", "Calibrated-Cascade+Naor"):
             p_act = calibrator.get_p_act(obs_m, obs_p, unanimous) if calibrator else (rec["maj_count"] / 3.0)
-            p_clear = calibrator.p_post_clear if calibrator else 0.88
+            p_clear = calibrator.get_p_post_clear(obs_p) if calibrator else 0.88
             p_ovr = calibrator.p_post_ovr if calibrator else 0.40
             u_act = p_act * r_ok + (1.0 - p_act) * r_err
             m_best, u_def = best_specialist_util(use_externality=use_ext_flag)
@@ -639,7 +665,7 @@ def simulate_stream(
             p_res, p_ovra, p_no = calibrator.get_post_ask_probs(obs_m, obs_p) if calibrator else (
                 (0.45, 0.45, 0.10) if (obs_m and obs_p) else ((0.85, 0.05, 0.10) if obs_m else (0.0, 0.0, 1.0))
             )
-            p_clear = calibrator.p_post_clear if calibrator else 0.88
+            p_clear = calibrator.get_p_post_clear(obs_p) if calibrator else 0.88
             p_ovr = calibrator.p_post_ovr if calibrator else 0.40
             u_act = p_act * r_ok + (1.0 - p_act) * r_err
             u_clear = p_clear * r_ok + (1.0 - p_clear) * r_err
@@ -664,20 +690,27 @@ def simulate_stream(
                     did_defer = True
                     chosen_spec = m_best
         else:
-            # Tri-VoI-L2D and its ablation variants
+            # Tri-VoI-L2D, Tri-VoI-L2D (2-Call), Tri-VoI-L2D (Latency-Aware), and ablation variants
             use_diag = (method != "w/o Disentangled-Diag")
             use_calib = (method != "w/o Held-Out-Calib") and (calibrator is not None)
+            use_two_call = (method == "Tri-VoI-L2D (2-Call)")
 
             if use_diag and use_calib:
-                p_act = calibrator.get_p_act(obs_m, obs_p, unanimous)
+                if use_two_call:
+                    p_act = calibrator.coarse_p_act.get(
+                        (obs_m, obs_p),
+                        0.85 if (not obs_m and not obs_p) else 0.50,
+                    )
+                else:
+                    p_act = calibrator.get_p_act(obs_m, obs_p, unanimous)
                 p_res, p_ovra, p_no = calibrator.get_post_ask_probs(obs_m, obs_p)
-                p_clear = calibrator.p_post_clear
+                p_clear = calibrator.get_p_post_clear(obs_p)
                 p_ovr = calibrator.p_post_ovr
             elif not use_diag:
                 # Ablate disentangled diagnosis: rely purely on entropy
                 p_act = 0.55 if ent > 0.45 else 0.86
                 p_res, p_ovra, p_no = (0.60, 0.15, 0.25) if ent > 0.45 else (0.05, 0.05, 0.90)
-                p_clear = calibrator.p_post_clear if calibrator else 0.88
+                p_clear = calibrator.get_p_post_clear(obs_p) if calibrator else 0.88
                 p_ovr = calibrator.p_post_ovr if calibrator else 0.40
             else:
                 # w/o Held-Out-Calib: raw heuristic priors
@@ -705,6 +738,7 @@ def simulate_stream(
 
             u_clear = p_clear * r_ok + (1.0 - p_clear) * r_err
             u_ovr = p_ovr * r_ok + (1.0 - p_ovr) * r_err
+            lat_pen = (beta_wait_ask * float(ask_latency)) if (method == "Tri-VoI-L2D (Latency-Aware)" and ask_latency > 0) else 0.0
 
             # Two-stage Bellman expected utility of ASK over exact 3-outcome partition
             u_ask = (
@@ -712,6 +746,7 @@ def simulate_stream(
                 + p_ovra * max(u_ovr, u_def_ref)
                 + p_no * max(u_act, u_def_ref)
                 - c_ask
+                - lat_pen
             )
 
             if u_ask > max(u_act, u_def_ref):
@@ -729,76 +764,172 @@ def simulate_stream(
                 did_defer = True
                 chosen_spec = m_best
 
+        def _realize_item(
+            orig_t: int,
+            item_rec: Dict[str, Any],
+            asked: bool,
+            deferred: bool,
+            spec_choice: str,
+            ans_final: str,
+            step_now: int,
+            true_acc_now: Dict[str, float],
+            extra_ask_wait: float = 0.0,
+        ) -> None:
+            nonlocal correct_cnt, ask_cnt, defer_cnt, wait_sum, misroute_cnt
+            nonlocal q4_ask_cnt, q4_tot_cnt, q4_res_act_cnt, q4_res_tot_cnt
+            item_it = item_rec["item"]
+            item_q = item_it["quadrant"]
+            r_ok_i = 10.0
+            r_err_i = -20.0 if (asymmetric_risk and item_it["domain"] in ("ClinicalTriage", "FinCompliance")) else -10.0
+            s_u = -extra_ask_wait
+            if asked:
+                ask_cnt += 1
+                s_u -= c_ask
+            if deferred:
+                defer_cnt += 1
+                wait_sum += queues[spec_choice]
+                s_u -= costs[spec_choice] + gamma_queue * queues[spec_choice]
+                queues[spec_choice] += 1
+                eff_acc = true_acc_now[spec_choice]
+                if (
+                    unclarified_spec_penalty
+                    and item_it["is_underspec"]
+                    and item_it.get("missing_changes_gold", True)
+                    and not (asked and item_rec["oracle_revealed"])
+                ):
+                    s_u -= c_ask
+                    eff_acc = min(eff_acc, 0.55)
+                if real_specialist_ok is not None and item_it["qid"] in real_specialist_ok:
+                    is_ok_i = bool(real_specialist_ok[item_it["qid"]])
+                else:
+                    is_ok_i = rng.random() < eff_acc
+                if kl_ctrl is not None:
+                    mu_m = caps[spec_choice] / float(drain_interval)
+                    ready_step_kl = step_now + max(1, math.ceil(queues[spec_choice] / max(1e-6, mu_m)))
+                    pending_kl_fb.append((ready_step_kl, kl_ctrl.level_of(item_rec), _is_self_act_correct(item_it, item_rec["greedy_ans"])))
+                if delayed_feedback:
+                    mu_m = caps[spec_choice] / float(drain_interval)
+                    ready_step = step_now + max(1, math.ceil(queues[spec_choice] / max(1e-6, mu_m)))
+                    pending_fb.append((ready_step, spec_choice, is_ok_i))
+                else:
+                    trackers[spec_choice].update(is_ok_i)
+            else:
+                is_ok_i = _is_self_act_correct(item_it, ans_final)
+
+            s_u += r_ok_i if is_ok_i else r_err_i
+            per_item_utils[orig_t] = s_u
+            if is_ok_i:
+                correct_cnt += 1
+            rolling_acc[orig_t] = 1.0 if is_ok_i else 0.0
+            if orig_t >= n // 2:
+                phase2_utils.append(s_u)
+
+            if item_q in ("Q2_underspec_easy", "Q4_resolvable") and (deferred and not asked):
+                misroute_cnt += 1
+            elif item_q == "Q3_clear_hard" and asked:
+                misroute_cnt += 1
+            elif item_q == "Q1_clear_easy" and (asked or deferred):
+                misroute_cnt += 1
+
+            if item_q in ("Q4_resolvable", "Q4_escalate"):
+                q4_tot_cnt += 1
+                if asked:
+                    q4_ask_cnt += 1
+            if item_q == "Q4_resolvable":
+                q4_res_tot_cnt += 1
+                if not deferred:
+                    q4_res_act_cnt += 1
+
+            qs = quad_stats[item_q]
+            qs["n"] += 1
+            qs["ok"] += int(is_ok_i)
+            qs["util"] += s_u
+            qs["ask"] += int(asked)
+            qs["defer"] += int(deferred)
+
+        # Flush any delayed ASK items arriving at step t
+        if ask_latency > 0 and pending_ask:
+            still_ask = []
+            for pa in pending_ask:
+                if pa["ready_t"] <= t:
+                    p_rec = pa["rec"]
+                    p_def = False
+                    p_spec = chosen_spec
+                    p_ans = p_rec["post_ans"]
+                    if pa["can_post_defer"]:
+                        m_b2, u_d2 = best_specialist_util(use_externality=pa["use_ext"])
+                        if u_d2 > pa["u_act_post"]:
+                            p_def = True
+                            p_spec = m_b2
+                    for m in queues:
+                        lam_ema[m] = 0.90 * lam_ema[m] + 0.10 * (1.0 if (p_def and p_spec == m) else 0.0)
+                    _realize_item(pa["orig_t"], p_rec, True, p_def, p_spec, p_ans, t, true_acc, extra_ask_wait=beta_wait_ask * float(ask_latency))
+                else:
+                    still_ask.append(pa)
+            pending_ask = still_ask
+
+        if ask_latency > 0 and did_ask:
+            can_pd = method in (
+                "Tri-VoI-L2D",
+                "Tri-VoI-L2D (2-Call)",
+                "Tri-VoI-L2D (Latency-Aware)",
+                "w/o Disentangled-Diag",
+                "w/o Held-Out-Calib",
+                "w/o Queue-Externality",
+                "w/o Congestion-Term",
+                "w/o Discounted-Forgetting",
+                "Decoupled-Nominal-EVOI",
+                "w/o Coupled-EVOI (Static-Opt)",
+                "w/o Coupled-EVOI",
+                "Calibrated-Cascade",
+                "Calibrated-Cascade+Naor",
+                "Naive-Cascade",
+                "ACL-2026-VoI+Post-Defer",
+                "ACL-2026-VoI (Live)+Post-Defer",
+            )
+            if method == "Naive-Cascade":
+                force_pd = (rec["post_ans"] != rec["post_s1"] or rec["post_ovr_conf"])
+                u_ap = -1e9 if force_pd else 1e9
+            else:
+                p_cl = calibrator.get_p_post_clear(obs_p) if calibrator else 0.88
+                p_ov = calibrator.p_post_ovr if calibrator else 0.40
+                pp = p_ov if rec["post_ovr_conf"] else p_cl
+                u_ap = pp * r_ok + (1.0 - pp) * r_err
+            pending_ask.append({
+                "ready_t": t + ask_latency,
+                "orig_t": t,
+                "rec": rec,
+                "can_post_defer": can_pd,
+                "use_ext": use_ext_flag if ("ACL" not in method and "Naive" not in method) else False,
+                "u_act_post": u_ap,
+            })
+            continue
+
         # Online arrival-rate EMA update (traffic intensity tracker)
         for m in queues:
             lam_ema[m] = 0.90 * lam_ema[m] + 0.10 * (1.0 if (did_defer and chosen_spec == m) else 0.0)
 
-        # Realize step utility (environment always charges true private wait gamma_queue * Q_t)
-        step_u = 0.0
-        if did_ask:
-            ask_cnt += 1
-            step_u -= c_ask
+        _realize_item(t, rec, did_ask, did_defer, chosen_spec, final_ans, t, true_acc)
 
-        if did_defer:
-            defer_cnt += 1
-            wait_sum += queues[chosen_spec]
-            step_u -= costs[chosen_spec] + gamma_queue * queues[chosen_spec]
-            queues[chosen_spec] += 1
-            eff_acc = true_acc[chosen_spec]
-            if (
-                unclarified_spec_penalty
-                and it["is_underspec"]
-                and it.get("missing_changes_gold", True)
-                and not (did_ask and rec["oracle_revealed"])
-            ):
-                # Specialist lacks requester's private field -> round-trip rework cost + degraded accuracy
-                step_u -= c_ask
-                eff_acc = min(eff_acc, 0.55)
-            is_ok = rng.random() < eff_acc
-            if kl_ctrl is not None:
-                mu_m = caps[chosen_spec] / float(drain_interval)
-                ready_step_kl = t + max(1, math.ceil(queues[chosen_spec] / max(1e-6, mu_m)))
-                pending_kl_fb.append((ready_step_kl, kl_ctrl.level_of(rec), _is_self_act_correct(it, rec["greedy_ans"])))
-            if delayed_feedback:
-                mu_m = caps[chosen_spec] / float(drain_interval)
-                ready_step = t + max(1, math.ceil(queues[chosen_spec] / max(1e-6, mu_m)))
-                pending_fb.append((ready_step, chosen_spec, is_ok))
-            else:
-                trackers[chosen_spec].update(is_ok)
-        else:
-            is_ok = _is_self_act_correct(it, final_ans)
-
-        step_u += r_ok if is_ok else r_err
-        per_item_utils[t] = step_u
-        if is_ok:
-            correct_cnt += 1
-        rolling_acc.append(1.0 if is_ok else 0.0)
-        if t >= n // 2:
-            phase2_utils.append(step_u)
-
-        # Misrouting accounting
-        if quad in ("Q2_underspec_easy", "Q4_resolvable") and (did_defer and not did_ask):
-            misroute_cnt += 1
-        elif quad == "Q3_clear_hard" and did_ask:
-            misroute_cnt += 1
-        elif quad == "Q1_clear_easy" and (did_ask or did_defer):
-            misroute_cnt += 1
-
-        if quad in ("Q4_resolvable", "Q4_escalate"):
-            q4_tot_cnt += 1
-            if did_ask:
-                q4_ask_cnt += 1
-        if quad == "Q4_resolvable":
-            q4_res_tot_cnt += 1
-            if not did_defer:
-                q4_res_act_cnt += 1
-
-        qs = quad_stats[quad]
-        qs["n"] += 1
-        qs["ok"] += int(is_ok)
-        qs["util"] += step_u
-        qs["ask"] += int(did_ask)
-        qs["defer"] += int(did_defer)
+    # Flush remaining delayed ASK items at end of stream
+    if ask_latency > 0 and pending_ask:
+        t_end = n
+        for pa in pending_ask:
+            while t_end < pa["ready_t"]:
+                if t_end % drain_interval == 0:
+                    for m in queues:
+                        queues[m] = max(0, queues[m] - caps[m])
+                t_end += 1
+            p_rec = pa["rec"]
+            p_def = False
+            p_spec = list(queues.keys())[0]
+            p_ans = p_rec["post_ans"]
+            if pa["can_post_defer"]:
+                m_b2, u_d2 = best_specialist_util(use_externality=pa["use_ext"])
+                if u_d2 > pa["u_act_post"]:
+                    p_def = True
+                    p_spec = m_b2
+            _realize_item(pa["orig_t"], p_rec, True, p_def, p_spec, p_ans, t_end, true_acc, extra_ask_wait=beta_wait_ask * float(ask_latency))
 
     return {
         "method": method,
