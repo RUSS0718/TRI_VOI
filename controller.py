@@ -4,11 +4,16 @@ import random
 import re
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
 from benchmark import DOMAIN_RUBRIC, user_oracle
+from external_baselines import (
+    KLPBDController,
+    acl_voi_calib_decision,
+    parse_and_compute_acl_voi,
+)
 from llm_client import call_llm
 
 
@@ -19,17 +24,19 @@ def parse_json_obj(text: str) -> Dict[str, Any]:
             return json.loads(m.group(0))
         except json.JSONDecodeError:
             pass
-    ans_m = re.search(r"\b([A-C])\b", text.upper())
+    ans_m = re.search(r"\b([A-D])\b", text.upper())
     return {"answer": ans_m.group(1) if ans_m else "A"}
 
 
-def extract_answer(text: str) -> str:
+def extract_answer(text: str, valid_choices: Sequence[str] = ("A", "B", "C")) -> str:
+    allowed = tuple(c.upper() for c in valid_choices)
     obj = parse_json_obj(text)
     ans = str(obj.get("answer", "")).strip().upper()
-    if ans in ("A", "B", "C"):
+    if ans in allowed:
         return ans
-    m = re.search(r"\b([A-C])\b", text.upper())
-    return m.group(1) if m else "A"
+    pattern = r"\b([" + "".join(allowed) + r"])\b"
+    m = re.search(pattern, text.upper())
+    return m.group(1) if m else allowed[0]
 
 
 def shannon_entropy(labels: List[str]) -> float:
@@ -187,12 +194,16 @@ def probe_dataset(items: List[Dict[str, Any]], model_id: str, dry_run: bool, wor
     return [out_map[i] for i in range(len(items))]
 
 
+def _is_self_act_correct(item: Dict[str, Any], ans: str) -> bool:
+    """True iff answer matches gold AND item does not require mandatory Specialist escalation."""
+    return (ans == item["gold"]) and (not item.get("require_defer_for_ok", False))
+
+
 class HeldOutCalibrator:
     """Hierarchical Empirical Bayes calibrator on held-out split (zero test leakage)."""
 
-    def __init__(self, cal_probed: List[Dict[str, Any]]):
-        k = 2.0  # Coarse Laplace/Dirichlet smoothing strength
-        k_fine = 3.0  # Fine shrinkage strength toward coarse (obs_m, obs_p) bucket
+    def __init__(self, cal_probed: List[Dict[str, Any]], *, k: float = 2.0, k_fine: float = 3.0):
+        # Defaults k=2.0, k_fine=3.0 are frozen for main tables; parameterized for Theorem 2 ablations.
         coarse_stats = defaultdict(lambda: [0, 0])
         fine_stats = defaultdict(lambda: [0, 0])
         post_clear = [0, 0]
@@ -200,23 +211,23 @@ class HeldOutCalibrator:
         tri_stats = defaultdict(lambda: [0, 0, 0])  # [n_resolve, n_ovr_after, n_no_info]
 
         for r in cal_probed:
-            gold = r["item"]["gold"]
+            it_cal = r["item"]
             m_flag = bool(r["obs_missing"])
             p_flag = bool(r["obs_pot_ovr"])
             u_flag = (r["maj_count"] == 3)
             coarse_stats[(m_flag, p_flag)][1] += 1
             fine_stats[(m_flag, p_flag, u_flag)][1] += 1
-            if r["greedy_ans"] == gold:
+            if _is_self_act_correct(it_cal, r["greedy_ans"]):
                 coarse_stats[(m_flag, p_flag)][0] += 1
                 fine_stats[(m_flag, p_flag, u_flag)][0] += 1
 
             if r["post_ovr_conf"]:
                 post_ovr[1] += 1
-                if r["post_ans"] == gold:
+                if _is_self_act_correct(it_cal, r["post_ans"]):
                     post_ovr[0] += 1
             elif m_flag and r["oracle_revealed"]:
                 post_clear[1] += 1
-                if r["post_ans"] == gold:
+                if _is_self_act_correct(it_cal, r["post_ans"]):
                     post_clear[0] += 1
 
             r_key = (m_flag, p_flag)
@@ -345,6 +356,7 @@ def simulate_stream(
     c_defer_base: float = 2.0,
     delayed_feedback: bool = False,
     unclarified_spec_penalty: bool = False,
+    cal_probed: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """Simulate sequential human-AI cooperative stream with queuing & drift."""
     rng = random.Random(5000 + seed)
@@ -382,7 +394,31 @@ def simulate_stream(
         "Oracle",
         "w/o Queue-Externality",
         "w/o Congestion-Term",
+        "KL-PBD",
+        "KL-PBD+",
+        "KL-PBD+ (Warm)",
+        "ACL-2026-VoI (Calib)",
+        "ACL-2026-VoI+Post-Defer",
+        "ACL-2026-VoI (Live)",
+        "ACL-2026-VoI (Live)+Post-Defer",
     )
+
+    kl_ctrl: Optional[KLPBDController] = None
+    if method in ("KL-PBD", "KL-PBD+", "KL-PBD+ (Warm)"):
+        kl_var = (
+            "kl_pbd"
+            if method == "KL-PBD"
+            else ("kl_pbd_plus_warm" if method == "KL-PBD+ (Warm)" else "kl_pbd_plus")
+        )
+        kl_ctrl = KLPBDController(
+            variant=kl_var,
+            total_horizon=n,
+            capacity=capacity,
+            drain_interval=drain_interval,
+            c_hold=gamma_queue,
+            c_defer=c_defer_base,
+            cal_probed=cal_probed,
+        )
 
     per_item_utils = np.zeros(n, dtype=float)
     correct_cnt = 0
@@ -400,6 +436,7 @@ def simulate_stream(
     rolling_acc = []
     queue_trace = []
     pending_fb: List[Tuple[int, str, bool]] = []
+    pending_kl_fb: List[Tuple[int, int, bool]] = []
 
     for t, rec in enumerate(test_probed):
         it = rec["item"]
@@ -416,6 +453,15 @@ def simulate_stream(
                 else:
                     still_pending.append((ready_t, spec_m, fb_ok))
             pending_fb = still_pending
+
+        if kl_ctrl is not None and pending_kl_fb:
+            still_kl = []
+            for ready_t, lvl_j, llm_ok in pending_kl_fb:
+                if ready_t <= t:
+                    kl_ctrl.record_completion(lvl_j, llm_ok)
+                else:
+                    still_kl.append((ready_t, lvl_j, llm_ok))
+            pending_kl_fb = still_kl
 
         # Queue drainage
         if t % drain_interval == 0:
@@ -456,6 +502,29 @@ def simulate_stream(
                     best_m = m
             return best_m, best_u
 
+        def best_specialist_util_pre_ask(use_externality: bool = False, p_rework: float = 0.0) -> Tuple[str, float]:
+            if (not unclarified_spec_penalty) or p_rework <= 0.0:
+                return best_specialist_util(use_externality=use_externality)
+            best_m = list(queues.keys())[0]
+            best_u = -1e9
+            for m in queues:
+                p_e = trackers[m].mean()
+                q_m = queues[m]
+                mu_m = caps[m] / float(drain_interval)
+                rho_m = min(lam_ema[m] / max(1e-6, mu_m), 1.5)
+                if use_externality and eff_gamma > 0.0 and (q_m >= caps[m] or rho_m >= 0.6):
+                    cong_cost = eff_gamma * (q_m + rho_m * (q_m + 1.0))
+                else:
+                    cong_cost = eff_gamma * q_m
+                u_std = p_e * r_ok + (1.0 - p_e) * r_err - costs[m] - cong_cost
+                p_e_rw = min(p_e, 0.55)
+                u_rw = p_e_rw * r_ok + (1.0 - p_e_rw) * r_err - costs[m] - c_ask - cong_cost
+                u_m = (1.0 - p_rework) * u_std + p_rework * u_rw
+                if u_m > best_u:
+                    best_u = u_m
+                    best_m = m
+            return best_m, best_u
+
         ent = rec["entropy"]
         unanimous = (rec["maj_count"] == 3)
         obs_m = rec["obs_missing"]
@@ -484,6 +553,59 @@ def simulate_stream(
             if u_def > u_act:
                 did_defer = True
                 chosen_spec = m_best
+        elif method in ("KL-PBD", "KL-PBD+", "KL-PBD+ (Warm)"):
+            assert kl_ctrl is not None
+            m_best = max(queues.keys(), key=lambda m: trackers[m].mean() * r_ok + (1.0 - trackers[m].mean()) * r_err - costs[m] - gamma_queue * queues[m])
+            if kl_ctrl.should_defer(rec, queues[m_best], n - t, r_ok, r_err, trackers[m_best].mean()):
+                did_defer = True
+                chosen_spec = m_best
+        elif method in (
+            "ACL-2026-VoI (Calib)",
+            "ACL-2026-VoI+Post-Defer",
+            "ACL-2026-VoI (Live)",
+            "ACL-2026-VoI (Live)+Post-Defer",
+        ):
+            p_act = calibrator.get_p_act(obs_m, obs_p, unanimous) if calibrator else (rec["maj_count"] / 3.0)
+            p_res, p_ovra, p_no = calibrator.get_post_ask_probs(obs_m, obs_p) if calibrator else (
+                (0.45, 0.45, 0.10) if (obs_m and obs_p) else ((0.85, 0.05, 0.10) if obs_m else (0.0, 0.0, 1.0))
+            )
+            p_clear = calibrator.p_post_clear if calibrator else 0.88
+            p_ovr = calibrator.p_post_ovr if calibrator else 0.40
+
+            use_live_acl = "Live" in method and bool(rec.get("acl_belief_raw"))
+            if use_live_acl and rec.get("clarify_q"):
+                choices_tuple = tuple(rec.get("valid_choices", ("A", "B", "C")))
+                net_voi, acl_pre_ans, parsed_ok = parse_and_compute_acl_voi(
+                    rec["acl_belief_raw"], choices=choices_tuple, r_ok=r_ok, r_err=r_err, c_ask=c_ask
+                )
+                if parsed_ok:
+                    ask_flag = net_voi > 0.0
+                    if not ask_flag:
+                        final_ans = acl_pre_ans
+                else:
+                    ask_flag, _ = acl_voi_calib_decision(
+                        p_act=p_act, p_res=p_res, p_ovra=p_ovra, p_no=p_no,
+                        p_clear=p_clear, p_ovr=p_ovr, obs_m=obs_m, r_ok=r_ok, r_err=r_err, c_ask=c_ask,
+                    )
+            else:
+                ask_flag, _ = acl_voi_calib_decision(
+                    p_act=p_act, p_res=p_res, p_ovra=p_ovra, p_no=p_no,
+                    p_clear=p_clear, p_ovr=p_ovr, obs_m=obs_m, r_ok=r_ok, r_err=r_err, c_ask=c_ask,
+                )
+
+            if ask_flag:
+                did_ask = True
+                if "Post-Defer" in method:
+                    post_p = p_ovr if rec["post_ovr_conf"] else p_clear
+                    u_act_post = post_p * r_ok + (1.0 - post_p) * r_err
+                    m_best2, u_def2 = best_specialist_util(use_externality=False)
+                    if u_def2 > u_act_post:
+                        did_defer = True
+                        chosen_spec = m_best2
+                    else:
+                        final_ans = rec["post_ans"]
+                else:
+                    final_ans = rec["post_ans"]
         elif method == "Naive-Cascade":
             if ent > 0.45:
                 did_ask = True
@@ -537,7 +659,8 @@ def simulate_stream(
             elif quad in ("Q3_clear_hard", "Q4_escalate"):
                 m_best = max(true_acc.keys(), key=lambda m: true_acc[m] * r_ok + (1 - true_acc[m]) * r_err - costs[m] - gamma_queue * queues[m])
                 u_def_true = true_acc[m_best] * r_ok + (1 - true_acc[m_best]) * r_err - costs[m_best] - gamma_queue * queues[m_best]
-                if u_def_true > (0.40 * r_ok + 0.60 * r_err):
+                u_self_base = 0.0 if it.get("require_defer_for_ok", False) else 0.40
+                if u_def_true > (u_self_base * r_ok + (1.0 - u_self_base) * r_err):
                     did_defer = True
                     chosen_spec = m_best
         else:
@@ -569,7 +692,8 @@ def simulate_stream(
                 p_ovr = 0.40
 
             u_act = p_act * r_ok + (1.0 - p_act) * r_err
-            m_best, u_def = best_specialist_util(use_externality=use_ext_flag)
+            p_rework = (p_res + p_ovra) if (obs_m and unclarified_spec_penalty) else 0.0
+            m_best, u_def = best_specialist_util_pre_ask(use_externality=use_ext_flag, p_rework=p_rework)
 
             # Reference defer utility inside EVOI: live coupled vs static decoupled controls
             if method == "Decoupled-Nominal-EVOI":
@@ -592,7 +716,7 @@ def simulate_stream(
 
             if u_ask > max(u_act, u_def_ref):
                 did_ask = True
-                # Stage 2 after requester reply (always uses live u_def)
+                # Stage 2 after requester reply (always uses live standard u_def)
                 post_p = (p_ovr if rec["post_ovr_conf"] else p_clear) if use_diag else (0.55 if rec["post_ans"] != rec["post_s1"] else p_clear)
                 u_act_post = post_p * r_ok + (1.0 - post_p) * r_err
                 m_best2, u_def2 = best_specialist_util(use_externality=use_ext_flag)
@@ -631,6 +755,10 @@ def simulate_stream(
                 step_u -= c_ask
                 eff_acc = min(eff_acc, 0.55)
             is_ok = rng.random() < eff_acc
+            if kl_ctrl is not None:
+                mu_m = caps[chosen_spec] / float(drain_interval)
+                ready_step_kl = t + max(1, math.ceil(queues[chosen_spec] / max(1e-6, mu_m)))
+                pending_kl_fb.append((ready_step_kl, kl_ctrl.level_of(rec), _is_self_act_correct(it, rec["greedy_ans"])))
             if delayed_feedback:
                 mu_m = caps[chosen_spec] / float(drain_interval)
                 ready_step = t + max(1, math.ceil(queues[chosen_spec] / max(1e-6, mu_m)))
@@ -638,7 +766,7 @@ def simulate_stream(
             else:
                 trackers[chosen_spec].update(is_ok)
         else:
-            is_ok = (final_ans == it["gold"])
+            is_ok = _is_self_act_correct(it, final_ans)
 
         step_u += r_ok if is_ok else r_err
         per_item_utils[t] = step_u

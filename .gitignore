@@ -8,9 +8,12 @@ __pycache__/
 # Large raw API caches & call logs (reproducible via API / excluded from git)
 results/*.sqlite
 results/calls.jsonl
+results/colab_batches/
+data/raw_*.jsonl
 
 # Dry-run & transient runtime logs
 results/dry_run_*
+results/figs/dry_run_*
 results/overnight/dry_run_*
 results/overnight/figs/dry_run_*
 results/overnight/*.log
