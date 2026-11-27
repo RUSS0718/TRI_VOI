@@ -41,3 +41,33 @@ Public-Tri / \texttt{Qwen3-8B} & 0.802 (91.7\%) & 3.133 & -3.402 & 2.809 & 2.013
 \end{tabular}
 \end{table*}
 
+\begin{table}[t]
+\centering
+\small
+\caption{56-cell 2D Minimax Regret across $(\mu, c_{\mathrm{ask}})$ ($\text{Mean Util} / \text{Worst-Case Regret}$, Wilcoxon $p_{\text{Holm}}$ vs.\ Tri-VoI-L2D).}
+\label{tab:minimax_regret}
+\begin{tabular}{llccc}
+\toprule
+Suite & Method & Mean Util & Max Regret & $p_{\text{Holm}}$ \\
+\midrule
+v1-Clean (Q3.5) & \textbf{Tri-VoI-L2D} & 4.470 & \textbf{0.572} & --- \\
+v1-Clean (Q3.5) & Calib-Casc+Naor & 4.095 & 1.443 & 5.94e-07 \\
+v1-Clean (Q3.5) & Joint-Greedy+Naor & 4.332 & 0.983 & 1.05e-06 \\
+v1-Clean (Q3.5) & KL-PBD+ (Warm) & 4.049 & 1.179 & 1.28e-07 \\
+v1-Clean (Q3.5) & w/o Externality & 4.119 & 1.727 & 5.91e-06 \\
+\midrule
+v2 (DS-V3.2) & \textbf{Tri-VoI-L2D} & 4.258 & \textbf{0.937} & --- \\
+v2 (DS-V3.2) & Calib-Casc+Naor & 4.117 & 0.983 & 1.85e-03 \\
+v2 (DS-V3.2) & Joint-Greedy+Naor & 4.174 & 0.741 & 1.85e-03 \\
+v2 (DS-V3.2) & KL-PBD+ (Warm) & 3.301 & 2.368 & 1.98e-08 \\
+v2 (DS-V3.2) & w/o Externality & 4.001 & 1.939 & 7.58e-06 \\
+\midrule
+Public-Tri (Q3.5, $c_{\mathrm{def}}=4$) & \textbf{Tri-VoI-L2D} & 1.283 & \textbf{0.579} & --- \\
+Public-Tri (Q3.5, $c_{\mathrm{def}}=4$) & Calib-Casc+Naor & 0.859 & 1.885 & 1.21e-07 \\
+Public-Tri (Q3.5, $c_{\mathrm{def}}=4$) & Joint-Greedy+Naor & 1.472 & 0.411 & 5.17e-10 \\
+Public-Tri (Q3.5, $c_{\mathrm{def}}=4$) & KL-PBD+ (Warm) & 0.977 & 1.792 & 6.45e-06 \\
+Public-Tri (Q3.5, $c_{\mathrm{def}}=4$) & w/o Externality & 0.878 & 1.775 & 2.20e-07 \\
+\bottomrule
+\end{tabular}
+\end{table}
+

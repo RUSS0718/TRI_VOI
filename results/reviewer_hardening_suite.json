@@ -3633,6 +3633,3640 @@
       ]
     }
   },
+  "phase2d_public_tri": {
+    "Qwen/Qwen3.5-35B-A3B (c_def=2.0)": {
+      "suite": "Public-Tri (Qwen/Qwen3.5-35B-A3B, c_def=2.0)",
+      "summary": {
+        "Tri-VoI-L2D": {
+          "mean_util_56": 2.331,
+          "mean_regret_56": 0.21,
+          "worst_case_regret_56": 0.78,
+          "best_cells": 1,
+          "tri_beats_or_ties_cells": 56
+        },
+        "Calibrated-Cascade+Naor": {
+          "mean_util_56": 1.852,
+          "mean_regret_56": 0.689,
+          "worst_case_regret_56": 2.185,
+          "best_cells": 1,
+          "tri_beats_or_ties_cells": 46,
+          "wilcoxon_p": 2.7735866913696764e-08,
+          "wilcoxon_p_holm": 1.1094e-07
+        },
+        "Joint-Greedy+Naor": {
+          "mean_util_56": 2.488,
+          "mean_regret_56": 0.053,
+          "worst_case_regret_56": 0.566,
+          "best_cells": 35,
+          "tri_beats_or_ties_cells": 4,
+          "wilcoxon_p": 1.7818723327580102e-10,
+          "wilcoxon_p_holm": 8.9094e-10
+        },
+        "KL-PBD+ (Warm)": {
+          "mean_util_56": 2.189,
+          "mean_regret_56": 0.352,
+          "worst_case_regret_56": 1.456,
+          "best_cells": 11,
+          "tri_beats_or_ties_cells": 32,
+          "wilcoxon_p": 0.08521416062735625,
+          "wilcoxon_p_holm": 0.085214
+        },
+        "ACL-2026-VoI (Live)+Post-Defer": {
+          "mean_util_56": -0.412,
+          "mean_regret_56": 2.953,
+          "worst_case_regret_56": 5.157,
+          "best_cells": 0,
+          "tri_beats_or_ties_cells": 56,
+          "wilcoxon_p": 7.536625455631608e-11,
+          "wilcoxon_p_holm": 4.522e-10
+        },
+        "Congested-L2D-Only": {
+          "mean_util_56": 0.826,
+          "mean_regret_56": 1.715,
+          "worst_case_regret_56": 4.263,
+          "best_cells": 8,
+          "tri_beats_or_ties_cells": 44,
+          "wilcoxon_p": 2.8824241627725916e-07,
+          "wilcoxon_p_holm": 8.6473e-07
+        },
+        "w/o Queue-Externality": {
+          "mean_util_56": 1.721,
+          "mean_regret_56": 0.82,
+          "worst_case_regret_56": 2.032,
+          "best_cells": 0,
+          "tri_beats_or_ties_cells": 49,
+          "wilcoxon_p": 3.501214009499887e-07,
+          "wilcoxon_p_holm": 8.6473e-07
+        }
+      },
+      "cells": [
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.9358,
+            "Calibrated-Cascade+Naor": 3.745,
+            "Joint-Greedy+Naor": 4.0612,
+            "KL-PBD+ (Warm)": 3.74,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.8112,
+            "Congested-L2D-Only": 3.755,
+            "w/o Queue-Externality": 3.9358
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.8592,
+            "Calibrated-Cascade+Naor": 3.5033,
+            "Joint-Greedy+Naor": 4.025,
+            "KL-PBD+ (Warm)": 3.74,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.5883,
+            "Congested-L2D-Only": 3.755,
+            "w/o Queue-Externality": 3.8592
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.8079,
+            "Calibrated-Cascade+Naor": 3.2617,
+            "Joint-Greedy+Naor": 3.8421,
+            "KL-PBD+ (Warm)": 3.74,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.2967,
+            "Congested-L2D-Only": 3.755,
+            "w/o Queue-Externality": 3.8079
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.7733,
+            "Calibrated-Cascade+Naor": 3.02,
+            "Joint-Greedy+Naor": 3.8017,
+            "KL-PBD+ (Warm)": 3.74,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.0683,
+            "Congested-L2D-Only": 3.755,
+            "w/o Queue-Externality": 3.7733
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.7371,
+            "Calibrated-Cascade+Naor": 2.7783,
+            "Joint-Greedy+Naor": 3.7317,
+            "KL-PBD+ (Warm)": 3.74,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.3133,
+            "Congested-L2D-Only": 3.755,
+            "w/o Queue-Externality": 3.7371
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.6158,
+            "Calibrated-Cascade+Naor": 2.5367,
+            "Joint-Greedy+Naor": 3.6975,
+            "KL-PBD+ (Warm)": 3.74,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.5242,
+            "Congested-L2D-Only": 3.755,
+            "w/o Queue-Externality": 3.6158
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.5817,
+            "Calibrated-Cascade+Naor": 2.0533,
+            "Joint-Greedy+Naor": 3.6683,
+            "KL-PBD+ (Warm)": 3.74,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.0883,
+            "Congested-L2D-Only": 3.755,
+            "w/o Queue-Externality": 3.5817
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.5708,
+            "Calibrated-Cascade+Naor": 1.57,
+            "Joint-Greedy+Naor": 3.6483,
+            "KL-PBD+ (Warm)": 3.74,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.4017,
+            "Congested-L2D-Only": 3.755,
+            "w/o Queue-Externality": 3.5708
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.9358,
+            "Calibrated-Cascade+Naor": 3.745,
+            "Joint-Greedy+Naor": 4.0612,
+            "KL-PBD+ (Warm)": 3.74,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.8112,
+            "Congested-L2D-Only": 3.755,
+            "w/o Queue-Externality": 3.9358
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.8592,
+            "Calibrated-Cascade+Naor": 3.5033,
+            "Joint-Greedy+Naor": 4.025,
+            "KL-PBD+ (Warm)": 3.74,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.5883,
+            "Congested-L2D-Only": 3.755,
+            "w/o Queue-Externality": 3.8592
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.8079,
+            "Calibrated-Cascade+Naor": 3.2617,
+            "Joint-Greedy+Naor": 3.8421,
+            "KL-PBD+ (Warm)": 3.74,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.2967,
+            "Congested-L2D-Only": 3.755,
+            "w/o Queue-Externality": 3.8079
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.7733,
+            "Calibrated-Cascade+Naor": 3.02,
+            "Joint-Greedy+Naor": 3.8017,
+            "KL-PBD+ (Warm)": 3.74,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.0683,
+            "Congested-L2D-Only": 3.755,
+            "w/o Queue-Externality": 3.7733
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.7371,
+            "Calibrated-Cascade+Naor": 2.7783,
+            "Joint-Greedy+Naor": 3.7317,
+            "KL-PBD+ (Warm)": 3.74,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.3133,
+            "Congested-L2D-Only": 3.755,
+            "w/o Queue-Externality": 3.7371
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.6158,
+            "Calibrated-Cascade+Naor": 2.5367,
+            "Joint-Greedy+Naor": 3.6975,
+            "KL-PBD+ (Warm)": 3.74,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.5242,
+            "Congested-L2D-Only": 3.755,
+            "w/o Queue-Externality": 3.6158
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.5817,
+            "Calibrated-Cascade+Naor": 2.0533,
+            "Joint-Greedy+Naor": 3.6683,
+            "KL-PBD+ (Warm)": 3.74,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.0883,
+            "Congested-L2D-Only": 3.755,
+            "w/o Queue-Externality": 3.5817
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.5708,
+            "Calibrated-Cascade+Naor": 1.57,
+            "Joint-Greedy+Naor": 3.6483,
+            "KL-PBD+ (Warm)": 3.74,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.4017,
+            "Congested-L2D-Only": 3.755,
+            "w/o Queue-Externality": 3.5708
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.6468,
+            "Calibrated-Cascade+Naor": 3.5502,
+            "Joint-Greedy+Naor": 3.7824,
+            "KL-PBD+ (Warm)": 3.5326,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.744,
+            "Congested-L2D-Only": 3.4566,
+            "w/o Queue-Externality": 3.7043
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.5905,
+            "Calibrated-Cascade+Naor": 3.3085,
+            "Joint-Greedy+Naor": 3.7795,
+            "KL-PBD+ (Warm)": 3.5326,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.521,
+            "Congested-L2D-Only": 3.4566,
+            "w/o Queue-Externality": 3.649
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.6121,
+            "Calibrated-Cascade+Naor": 3.0669,
+            "Joint-Greedy+Naor": 3.7234,
+            "KL-PBD+ (Warm)": 3.5326,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.2379,
+            "Congested-L2D-Only": 3.4566,
+            "w/o Queue-Externality": 3.545
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.4741,
+            "Calibrated-Cascade+Naor": 2.8252,
+            "Joint-Greedy+Naor": 3.6145,
+            "KL-PBD+ (Warm)": 3.5326,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.12,
+            "Congested-L2D-Only": 3.4566,
+            "w/o Queue-Externality": 3.4877
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.367,
+            "Calibrated-Cascade+Naor": 2.5835,
+            "Joint-Greedy+Naor": 3.4751,
+            "KL-PBD+ (Warm)": 3.5326,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.3541,
+            "Congested-L2D-Only": 3.4566,
+            "w/o Queue-Externality": 3.4636
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.3255,
+            "Calibrated-Cascade+Naor": 2.3419,
+            "Joint-Greedy+Naor": 3.4191,
+            "KL-PBD+ (Warm)": 3.5326,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.5633,
+            "Congested-L2D-Only": 3.4566,
+            "w/o Queue-Externality": 3.4361
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.2481,
+            "Calibrated-Cascade+Naor": 1.8585,
+            "Joint-Greedy+Naor": 3.3185,
+            "KL-PBD+ (Warm)": 3.5326,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.1273,
+            "Congested-L2D-Only": 3.4566,
+            "w/o Queue-Externality": 3.3719
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.2914,
+            "Calibrated-Cascade+Naor": 1.3752,
+            "Joint-Greedy+Naor": 3.3177,
+            "KL-PBD+ (Warm)": 3.5326,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.4293,
+            "Congested-L2D-Only": 3.4566,
+            "w/o Queue-Externality": 3.3302
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.058,
+            "Calibrated-Cascade+Naor": 3.0857,
+            "Joint-Greedy+Naor": 2.9886,
+            "KL-PBD+ (Warm)": 2.0487,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.6067,
+            "Congested-L2D-Only": 0.3235,
+            "w/o Queue-Externality": 2.5795
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.9135,
+            "Calibrated-Cascade+Naor": 2.8441,
+            "Joint-Greedy+Naor": 2.9067,
+            "KL-PBD+ (Warm)": 2.0487,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.3838,
+            "Congested-L2D-Only": 0.3235,
+            "w/o Queue-Externality": 2.382
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 2.6825,
+            "Calibrated-Cascade+Naor": 2.6024,
+            "Joint-Greedy+Naor": 2.8633,
+            "KL-PBD+ (Warm)": 2.0487,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.0788,
+            "Congested-L2D-Only": 0.3235,
+            "w/o Queue-Externality": 2.2805
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.5461,
+            "Calibrated-Cascade+Naor": 2.3608,
+            "Joint-Greedy+Naor": 2.7734,
+            "KL-PBD+ (Warm)": 2.0487,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.1757,
+            "Congested-L2D-Only": 0.3235,
+            "w/o Queue-Externality": 2.1055
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 2.4775,
+            "Calibrated-Cascade+Naor": 2.1191,
+            "Joint-Greedy+Naor": 2.7428,
+            "KL-PBD+ (Warm)": 2.0487,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.3728,
+            "Congested-L2D-Only": 0.3235,
+            "w/o Queue-Externality": 1.886
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.3342,
+            "Calibrated-Cascade+Naor": 1.8774,
+            "Joint-Greedy+Naor": 2.5416,
+            "KL-PBD+ (Warm)": 2.0487,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.6341,
+            "Congested-L2D-Only": 0.3235,
+            "w/o Queue-Externality": 1.6592
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.0929,
+            "Calibrated-Cascade+Naor": 1.3941,
+            "Joint-Greedy+Naor": 2.2512,
+            "KL-PBD+ (Warm)": 2.0487,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.2294,
+            "Congested-L2D-Only": 0.3235,
+            "w/o Queue-Externality": 1.1364
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.8569,
+            "Calibrated-Cascade+Naor": 0.9107,
+            "Joint-Greedy+Naor": 2.0221,
+            "KL-PBD+ (Warm)": 2.0487,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.4856,
+            "Congested-L2D-Only": 0.3235,
+            "w/o Queue-Externality": 0.8217
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 2.4795,
+            "Calibrated-Cascade+Naor": 2.394,
+            "Joint-Greedy+Naor": 2.5828,
+            "KL-PBD+ (Warm)": 1.1267,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.4793,
+            "Congested-L2D-Only": -1.6805,
+            "w/o Queue-Externality": 1.3529
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.1574,
+            "Calibrated-Cascade+Naor": 2.1523,
+            "Joint-Greedy+Naor": 2.3283,
+            "KL-PBD+ (Warm)": 1.1267,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.2564,
+            "Congested-L2D-Only": -1.6805,
+            "w/o Queue-Externality": 1.027
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.8216,
+            "Calibrated-Cascade+Naor": 1.9106,
+            "Joint-Greedy+Naor": 2.0562,
+            "KL-PBD+ (Warm)": 1.1267,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.0287,
+            "Congested-L2D-Only": -1.6805,
+            "w/o Queue-Externality": 0.7252
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.5761,
+            "Calibrated-Cascade+Naor": 1.669,
+            "Joint-Greedy+Naor": 1.8963,
+            "KL-PBD+ (Warm)": 1.1267,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.2929,
+            "Congested-L2D-Only": -1.6805,
+            "w/o Queue-Externality": 0.4477
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.5067,
+            "Calibrated-Cascade+Naor": 1.4273,
+            "Joint-Greedy+Naor": 1.702,
+            "KL-PBD+ (Warm)": 1.1267,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.4109,
+            "Congested-L2D-Only": -1.6805,
+            "w/o Queue-Externality": 0.1701
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.3714,
+            "Calibrated-Cascade+Naor": 1.1856,
+            "Joint-Greedy+Naor": 1.5287,
+            "KL-PBD+ (Warm)": 1.1267,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.655,
+            "Congested-L2D-Only": -1.6805,
+            "w/o Queue-Externality": 0.0208
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.9386,
+            "Calibrated-Cascade+Naor": 0.7023,
+            "Joint-Greedy+Naor": 1.1171,
+            "KL-PBD+ (Warm)": 1.1267,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.1735,
+            "Congested-L2D-Only": -1.6805,
+            "w/o Queue-Externality": -0.4217
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.6608,
+            "Calibrated-Cascade+Naor": 0.219,
+            "Joint-Greedy+Naor": 0.701,
+            "KL-PBD+ (Warm)": 1.1267,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.4449,
+            "Congested-L2D-Only": -1.6805,
+            "w/o Queue-Externality": -0.7053
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.8097,
+            "Calibrated-Cascade+Naor": 1.83,
+            "Joint-Greedy+Naor": 2.074,
+            "KL-PBD+ (Warm)": 0.897,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.2093,
+            "Congested-L2D-Only": -1.9886,
+            "w/o Queue-Externality": 0.4681
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.5147,
+            "Calibrated-Cascade+Naor": 1.5883,
+            "Joint-Greedy+Naor": 1.7996,
+            "KL-PBD+ (Warm)": 0.897,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.0137,
+            "Congested-L2D-Only": -1.9886,
+            "w/o Queue-Externality": 0.1807
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.2587,
+            "Calibrated-Cascade+Naor": 1.3466,
+            "Joint-Greedy+Naor": 1.4503,
+            "KL-PBD+ (Warm)": 0.897,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.2404,
+            "Congested-L2D-Only": -1.9886,
+            "w/o Queue-Externality": -0.0575
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.0152,
+            "Calibrated-Cascade+Naor": 1.105,
+            "Joint-Greedy+Naor": 1.2948,
+            "KL-PBD+ (Warm)": 0.897,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.5514,
+            "Congested-L2D-Only": -1.9886,
+            "w/o Queue-Externality": -0.3868
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.7933,
+            "Calibrated-Cascade+Naor": 0.8633,
+            "Joint-Greedy+Naor": 1.1556,
+            "KL-PBD+ (Warm)": 0.897,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.6256,
+            "Congested-L2D-Only": -1.9886,
+            "w/o Queue-Externality": -0.6494
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.6797,
+            "Calibrated-Cascade+Naor": 0.6216,
+            "Joint-Greedy+Naor": 1.0742,
+            "KL-PBD+ (Warm)": 0.897,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.8468,
+            "Congested-L2D-Only": -1.9886,
+            "w/o Queue-Externality": -0.7862
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.4225,
+            "Calibrated-Cascade+Naor": 0.1383,
+            "Joint-Greedy+Naor": 0.7364,
+            "KL-PBD+ (Warm)": 0.897,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.3465,
+            "Congested-L2D-Only": -1.9886,
+            "w/o Queue-Externality": -1.0445
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.1175,
+            "Calibrated-Cascade+Naor": -0.345,
+            "Joint-Greedy+Naor": 0.3309,
+            "KL-PBD+ (Warm)": 0.897,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.6057,
+            "Congested-L2D-Only": -1.9886,
+            "w/o Queue-Externality": -1.1348
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.15,
+            "Calibrated-Cascade+Naor": 1.172,
+            "Joint-Greedy+Naor": 1.5385,
+            "KL-PBD+ (Warm)": 0.2389,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.0087,
+            "Congested-L2D-Only": -1.8369,
+            "w/o Queue-Externality": 0.1945
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.9316,
+            "Calibrated-Cascade+Naor": 0.9303,
+            "Joint-Greedy+Naor": 1.1404,
+            "KL-PBD+ (Warm)": 0.2389,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.2316,
+            "Congested-L2D-Only": -1.8369,
+            "w/o Queue-Externality": -0.0455
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.7359,
+            "Calibrated-Cascade+Naor": 0.6887,
+            "Joint-Greedy+Naor": 0.9096,
+            "KL-PBD+ (Warm)": 0.2389,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.428,
+            "Congested-L2D-Only": -1.8369,
+            "w/o Queue-Externality": -0.3607
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.3619,
+            "Calibrated-Cascade+Naor": 0.447,
+            "Joint-Greedy+Naor": 0.5508,
+            "KL-PBD+ (Warm)": 0.2389,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.7443,
+            "Congested-L2D-Only": -1.8369,
+            "w/o Queue-Externality": -0.6987
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.2379,
+            "Calibrated-Cascade+Naor": 0.2053,
+            "Joint-Greedy+Naor": 0.5275,
+            "KL-PBD+ (Warm)": 0.2389,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.8292,
+            "Congested-L2D-Only": -1.8369,
+            "w/o Queue-Externality": -0.8385
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.1408,
+            "Calibrated-Cascade+Naor": -0.0363,
+            "Joint-Greedy+Naor": 0.4088,
+            "KL-PBD+ (Warm)": 0.2389,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.0344,
+            "Congested-L2D-Only": -1.8369,
+            "w/o Queue-Externality": -0.9747
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.0959,
+            "Calibrated-Cascade+Naor": -0.5197,
+            "Joint-Greedy+Naor": 0.109,
+            "KL-PBD+ (Warm)": 0.2389,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.5401,
+            "Congested-L2D-Only": -1.8369,
+            "w/o Queue-Externality": -1.2417
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.3263,
+            "Calibrated-Cascade+Naor": -1.003,
+            "Joint-Greedy+Naor": -0.1341,
+            "KL-PBD+ (Warm)": 0.2389,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.7223,
+            "Congested-L2D-Only": -1.8369,
+            "w/o Queue-Externality": -1.4499
+          }
+        }
+      ]
+    },
+    "Qwen/Qwen3.5-35B-A3B (c_def=4.0)": {
+      "suite": "Public-Tri (Qwen/Qwen3.5-35B-A3B, c_def=4.0)",
+      "summary": {
+        "Tri-VoI-L2D": {
+          "mean_util_56": 1.283,
+          "mean_regret_56": 0.21,
+          "worst_case_regret_56": 0.579,
+          "best_cells": 2,
+          "tri_beats_or_ties_cells": 56
+        },
+        "Calibrated-Cascade+Naor": {
+          "mean_util_56": 0.859,
+          "mean_regret_56": 0.635,
+          "worst_case_regret_56": 1.885,
+          "best_cells": 0,
+          "tri_beats_or_ties_cells": 45,
+          "wilcoxon_p": 4.0216029397648524e-08,
+          "wilcoxon_p_holm": 1.2065e-07
+        },
+        "Joint-Greedy+Naor": {
+          "mean_util_56": 1.472,
+          "mean_regret_56": 0.022,
+          "worst_case_regret_56": 0.411,
+          "best_cells": 46,
+          "tri_beats_or_ties_cells": 2,
+          "wilcoxon_p": 1.292286270447761e-10,
+          "wilcoxon_p_holm": 5.1691e-10
+        },
+        "KL-PBD+ (Warm)": {
+          "mean_util_56": 0.977,
+          "mean_regret_56": 0.516,
+          "worst_case_regret_56": 1.792,
+          "best_cells": 8,
+          "tri_beats_or_ties_cells": 41,
+          "wilcoxon_p": 6.451731441484902e-06,
+          "wilcoxon_p_holm": 6.4517e-06
+        },
+        "ACL-2026-VoI (Live)+Post-Defer": {
+          "mean_util_56": -0.699,
+          "mean_regret_56": 2.192,
+          "worst_case_regret_56": 3.79,
+          "best_cells": 0,
+          "tri_beats_or_ties_cells": 56,
+          "wilcoxon_p": 7.536625455631608e-11,
+          "wilcoxon_p_holm": 4.522e-10
+        },
+        "Congested-L2D-Only": {
+          "mean_util_56": -0.175,
+          "mean_regret_56": 1.669,
+          "worst_case_regret_56": 3.97,
+          "best_cells": 0,
+          "tri_beats_or_ties_cells": 56,
+          "wilcoxon_p": 7.536625455631608e-11,
+          "wilcoxon_p_holm": 4.522e-10
+        },
+        "w/o Queue-Externality": {
+          "mean_util_56": 0.878,
+          "mean_regret_56": 0.616,
+          "worst_case_regret_56": 1.775,
+          "best_cells": 0,
+          "tri_beats_or_ties_cells": 53,
+          "wilcoxon_p": 1.1003955905052473e-07,
+          "wilcoxon_p_holm": 2.2008e-07
+        }
+      },
+      "cells": [
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 2.4054,
+            "Calibrated-Cascade+Naor": 2.365,
+            "Joint-Greedy+Naor": 2.5387,
+            "KL-PBD+ (Warm)": 2.0533,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.2696,
+            "Congested-L2D-Only": 1.8733,
+            "w/o Queue-Externality": 2.4054
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.2708,
+            "Calibrated-Cascade+Naor": 2.1233,
+            "Joint-Greedy+Naor": 2.5667,
+            "KL-PBD+ (Warm)": 2.0533,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.0467,
+            "Congested-L2D-Only": 1.8733,
+            "w/o Queue-Externality": 2.2708
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 2.2771,
+            "Calibrated-Cascade+Naor": 1.8817,
+            "Joint-Greedy+Naor": 2.5292,
+            "KL-PBD+ (Warm)": 2.0533,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.1667,
+            "Congested-L2D-Only": 1.8733,
+            "w/o Queue-Externality": 2.2771
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.29,
+            "Calibrated-Cascade+Naor": 1.64,
+            "Joint-Greedy+Naor": 2.47,
+            "KL-PBD+ (Warm)": 2.0533,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.4967,
+            "Congested-L2D-Only": 1.8733,
+            "w/o Queue-Externality": 2.29
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 2.1921,
+            "Calibrated-Cascade+Naor": 1.3983,
+            "Joint-Greedy+Naor": 2.3763,
+            "KL-PBD+ (Warm)": 2.0533,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.64,
+            "Congested-L2D-Only": 1.8733,
+            "w/o Queue-Externality": 2.1921
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.0425,
+            "Calibrated-Cascade+Naor": 1.1567,
+            "Joint-Greedy+Naor": 2.2133,
+            "KL-PBD+ (Warm)": 2.0533,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.9525,
+            "Congested-L2D-Only": 1.8733,
+            "w/o Queue-Externality": 2.0425
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.9167,
+            "Calibrated-Cascade+Naor": 0.6733,
+            "Joint-Greedy+Naor": 2.0267,
+            "KL-PBD+ (Warm)": 2.0533,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.5767,
+            "Congested-L2D-Only": 1.8733,
+            "w/o Queue-Externality": 1.9167
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.895,
+            "Calibrated-Cascade+Naor": 0.19,
+            "Joint-Greedy+Naor": 1.915,
+            "KL-PBD+ (Warm)": 2.0533,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.7367,
+            "Congested-L2D-Only": 1.8733,
+            "w/o Queue-Externality": 1.895
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 2.4054,
+            "Calibrated-Cascade+Naor": 2.365,
+            "Joint-Greedy+Naor": 2.5387,
+            "KL-PBD+ (Warm)": 2.0533,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.2696,
+            "Congested-L2D-Only": 1.8733,
+            "w/o Queue-Externality": 2.4054
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.2708,
+            "Calibrated-Cascade+Naor": 2.1233,
+            "Joint-Greedy+Naor": 2.5667,
+            "KL-PBD+ (Warm)": 2.0533,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.0467,
+            "Congested-L2D-Only": 1.8733,
+            "w/o Queue-Externality": 2.2708
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 2.2771,
+            "Calibrated-Cascade+Naor": 1.8817,
+            "Joint-Greedy+Naor": 2.5292,
+            "KL-PBD+ (Warm)": 2.0533,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.1667,
+            "Congested-L2D-Only": 1.8733,
+            "w/o Queue-Externality": 2.2771
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.29,
+            "Calibrated-Cascade+Naor": 1.64,
+            "Joint-Greedy+Naor": 2.47,
+            "KL-PBD+ (Warm)": 2.0533,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.4967,
+            "Congested-L2D-Only": 1.8733,
+            "w/o Queue-Externality": 2.29
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 2.1921,
+            "Calibrated-Cascade+Naor": 1.3983,
+            "Joint-Greedy+Naor": 2.3763,
+            "KL-PBD+ (Warm)": 2.0533,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.64,
+            "Congested-L2D-Only": 1.8733,
+            "w/o Queue-Externality": 2.1921
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.0425,
+            "Calibrated-Cascade+Naor": 1.1567,
+            "Joint-Greedy+Naor": 2.2133,
+            "KL-PBD+ (Warm)": 2.0533,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.9525,
+            "Congested-L2D-Only": 1.8733,
+            "w/o Queue-Externality": 2.0425
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.9167,
+            "Calibrated-Cascade+Naor": 0.6733,
+            "Joint-Greedy+Naor": 2.0267,
+            "KL-PBD+ (Warm)": 2.0533,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.5767,
+            "Congested-L2D-Only": 1.8733,
+            "w/o Queue-Externality": 1.9167
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.895,
+            "Calibrated-Cascade+Naor": 0.19,
+            "Joint-Greedy+Naor": 1.915,
+            "KL-PBD+ (Warm)": 2.0533,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.7367,
+            "Congested-L2D-Only": 1.8733,
+            "w/o Queue-Externality": 1.895
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 2.1859,
+            "Calibrated-Cascade+Naor": 2.1676,
+            "Joint-Greedy+Naor": 2.3659,
+            "KL-PBD+ (Warm)": 1.8775,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.244,
+            "Congested-L2D-Only": 1.6816,
+            "w/o Queue-Externality": 2.2282
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.088,
+            "Calibrated-Cascade+Naor": 1.926,
+            "Joint-Greedy+Naor": 2.2668,
+            "KL-PBD+ (Warm)": 1.8775,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.0211,
+            "Congested-L2D-Only": 1.6816,
+            "w/o Queue-Externality": 2.0966
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.9985,
+            "Calibrated-Cascade+Naor": 1.6843,
+            "Joint-Greedy+Naor": 2.2373,
+            "KL-PBD+ (Warm)": 1.8775,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.2332,
+            "Congested-L2D-Only": 1.6816,
+            "w/o Queue-Externality": 1.9663
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.9273,
+            "Calibrated-Cascade+Naor": 1.4426,
+            "Joint-Greedy+Naor": 2.101,
+            "KL-PBD+ (Warm)": 1.8775,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.5356,
+            "Congested-L2D-Only": 1.6816,
+            "w/o Queue-Externality": 1.9946
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 2.0204,
+            "Calibrated-Cascade+Naor": 1.201,
+            "Joint-Greedy+Naor": 2.209,
+            "KL-PBD+ (Warm)": 1.8775,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.6907,
+            "Congested-L2D-Only": 1.6816,
+            "w/o Queue-Externality": 2.0025
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.9745,
+            "Calibrated-Cascade+Naor": 0.9593,
+            "Joint-Greedy+Naor": 2.2077,
+            "KL-PBD+ (Warm)": 1.8775,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.0472,
+            "Congested-L2D-Only": 1.6816,
+            "w/o Queue-Externality": 1.9223
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.8139,
+            "Calibrated-Cascade+Naor": 0.476,
+            "Joint-Greedy+Naor": 2.0263,
+            "KL-PBD+ (Warm)": 1.8775,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.5841,
+            "Congested-L2D-Only": 1.6816,
+            "w/o Queue-Externality": 1.7502
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.6842,
+            "Calibrated-Cascade+Naor": -0.0074,
+            "Joint-Greedy+Naor": 1.738,
+            "KL-PBD+ (Warm)": 1.8775,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.7205,
+            "Congested-L2D-Only": 1.6816,
+            "w/o Queue-Externality": 1.6217
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.896,
+            "Calibrated-Cascade+Naor": 1.8361,
+            "Joint-Greedy+Naor": 2.0629,
+            "KL-PBD+ (Warm)": 0.8263,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.2766,
+            "Congested-L2D-Only": -0.4794,
+            "w/o Queue-Externality": 1.8567
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.75,
+            "Calibrated-Cascade+Naor": 1.5945,
+            "Joint-Greedy+Naor": 1.9935,
+            "KL-PBD+ (Warm)": 0.8263,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.0537,
+            "Congested-L2D-Only": -0.4794,
+            "w/o Queue-Externality": 1.6789
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.6015,
+            "Calibrated-Cascade+Naor": 1.3528,
+            "Joint-Greedy+Naor": 1.5457,
+            "KL-PBD+ (Warm)": 0.8263,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.1457,
+            "Congested-L2D-Only": -0.4794,
+            "w/o Queue-Externality": 1.2172
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.3785,
+            "Calibrated-Cascade+Naor": 1.1111,
+            "Joint-Greedy+Naor": 1.3892,
+            "KL-PBD+ (Warm)": 0.8263,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.4493,
+            "Congested-L2D-Only": -0.4794,
+            "w/o Queue-Externality": 1.04
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.1781,
+            "Calibrated-Cascade+Naor": 0.8695,
+            "Joint-Greedy+Naor": 1.245,
+            "KL-PBD+ (Warm)": 0.8263,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.7228,
+            "Congested-L2D-Only": -0.4794,
+            "w/o Queue-Externality": 0.9978
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.167,
+            "Calibrated-Cascade+Naor": 0.6278,
+            "Joint-Greedy+Naor": 1.137,
+            "KL-PBD+ (Warm)": 0.8263,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.0214,
+            "Congested-L2D-Only": -0.4794,
+            "w/o Queue-Externality": 0.7765
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.7252,
+            "Calibrated-Cascade+Naor": 0.1445,
+            "Joint-Greedy+Naor": 0.9636,
+            "KL-PBD+ (Warm)": 0.8263,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.5448,
+            "Congested-L2D-Only": -0.4794,
+            "w/o Queue-Externality": 0.3385
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.7474,
+            "Calibrated-Cascade+Naor": -0.3389,
+            "Joint-Greedy+Naor": 0.8159,
+            "KL-PBD+ (Warm)": 0.8263,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.6544,
+            "Congested-L2D-Only": -0.4794,
+            "w/o Queue-Externality": -0.0153
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.8411,
+            "Calibrated-Cascade+Naor": 1.8315,
+            "Joint-Greedy+Naor": 1.995,
+            "KL-PBD+ (Warm)": 0.3163,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.239,
+            "Congested-L2D-Only": -1.8218,
+            "w/o Queue-Externality": 1.1057
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.5479,
+            "Calibrated-Cascade+Naor": 1.5898,
+            "Joint-Greedy+Naor": 1.643,
+            "KL-PBD+ (Warm)": 0.3163,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.016,
+            "Congested-L2D-Only": -1.8218,
+            "w/o Queue-Externality": 0.7899
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.225,
+            "Calibrated-Cascade+Naor": 1.3481,
+            "Joint-Greedy+Naor": 1.4996,
+            "KL-PBD+ (Warm)": 0.3163,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.3048,
+            "Congested-L2D-Only": -1.8218,
+            "w/o Queue-Externality": 0.5918
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.0081,
+            "Calibrated-Cascade+Naor": 1.1065,
+            "Joint-Greedy+Naor": 1.308,
+            "KL-PBD+ (Warm)": 0.3163,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.6238,
+            "Congested-L2D-Only": -1.8218,
+            "w/o Queue-Externality": 0.4032
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.8644,
+            "Calibrated-Cascade+Naor": 0.8648,
+            "Joint-Greedy+Naor": 1.1043,
+            "KL-PBD+ (Warm)": 0.3163,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.7879,
+            "Congested-L2D-Only": -1.8218,
+            "w/o Queue-Externality": 0.0598
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.7505,
+            "Calibrated-Cascade+Naor": 0.6231,
+            "Joint-Greedy+Naor": 0.9052,
+            "KL-PBD+ (Warm)": 0.3163,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.0709,
+            "Congested-L2D-Only": -1.8218,
+            "w/o Queue-Externality": -0.1416
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.3657,
+            "Calibrated-Cascade+Naor": 0.1398,
+            "Joint-Greedy+Naor": 0.4851,
+            "KL-PBD+ (Warm)": 0.3163,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.5947,
+            "Congested-L2D-Only": -1.8218,
+            "w/o Queue-Externality": -0.5811
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.0946,
+            "Calibrated-Cascade+Naor": -0.3435,
+            "Joint-Greedy+Naor": 0.0634,
+            "KL-PBD+ (Warm)": 0.3163,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.7262,
+            "Congested-L2D-Only": -1.8218,
+            "w/o Queue-Externality": -0.86
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.2986,
+            "Calibrated-Cascade+Naor": 1.3358,
+            "Joint-Greedy+Naor": 1.6311,
+            "KL-PBD+ (Warm)": 0.2971,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.2166,
+            "Congested-L2D-Only": -2.3386,
+            "w/o Queue-Externality": 0.4299
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.046,
+            "Calibrated-Cascade+Naor": 1.0942,
+            "Joint-Greedy+Naor": 1.3433,
+            "KL-PBD+ (Warm)": 0.2971,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.0063,
+            "Congested-L2D-Only": -2.3386,
+            "w/o Queue-Externality": 0.1718
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.7804,
+            "Calibrated-Cascade+Naor": 0.8525,
+            "Joint-Greedy+Naor": 1.0821,
+            "KL-PBD+ (Warm)": 0.2971,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.2545,
+            "Congested-L2D-Only": -2.3386,
+            "w/o Queue-Externality": -0.2473
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.4073,
+            "Calibrated-Cascade+Naor": 0.6108,
+            "Joint-Greedy+Naor": 0.7709,
+            "KL-PBD+ (Warm)": 0.2971,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.5461,
+            "Congested-L2D-Only": -2.3386,
+            "w/o Queue-Externality": -0.5266
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.3286,
+            "Calibrated-Cascade+Naor": 0.3692,
+            "Joint-Greedy+Naor": 0.593,
+            "KL-PBD+ (Warm)": 0.2971,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.6784,
+            "Congested-L2D-Only": -2.3386,
+            "w/o Queue-Externality": -0.891
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.1925,
+            "Calibrated-Cascade+Naor": 0.1275,
+            "Joint-Greedy+Naor": 0.482,
+            "KL-PBD+ (Warm)": 0.2971,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.9762,
+            "Congested-L2D-Only": -2.3386,
+            "w/o Queue-Externality": -1.0101
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.0279,
+            "Calibrated-Cascade+Naor": -0.3558,
+            "Joint-Greedy+Naor": 0.3221,
+            "KL-PBD+ (Warm)": 0.2971,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.6517,
+            "Congested-L2D-Only": -2.3386,
+            "w/o Queue-Externality": -1.2494
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.2816,
+            "Calibrated-Cascade+Naor": -0.8392,
+            "Joint-Greedy+Naor": -0.114,
+            "KL-PBD+ (Warm)": 0.2971,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.6577,
+            "Congested-L2D-Only": -2.3386,
+            "w/o Queue-Externality": -1.4782
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.6503,
+            "Calibrated-Cascade+Naor": 0.6638,
+            "Joint-Greedy+Naor": 1.2077,
+            "KL-PBD+ (Warm)": -0.584,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.0185,
+            "Congested-L2D-Only": -2.0148,
+            "w/o Queue-Externality": 0.3075
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.4588,
+            "Calibrated-Cascade+Naor": 0.4221,
+            "Joint-Greedy+Naor": 0.8962,
+            "KL-PBD+ (Warm)": -0.584,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.2044,
+            "Congested-L2D-Only": -2.0148,
+            "w/o Queue-Externality": 0.0612
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.2514,
+            "Calibrated-Cascade+Naor": 0.1805,
+            "Joint-Greedy+Naor": 0.606,
+            "KL-PBD+ (Warm)": -0.584,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.382,
+            "Congested-L2D-Only": -2.0148,
+            "w/o Queue-Externality": -0.2475
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.0937,
+            "Calibrated-Cascade+Naor": -0.0612,
+            "Joint-Greedy+Naor": 0.0058,
+            "KL-PBD+ (Warm)": -0.584,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.6785,
+            "Congested-L2D-Only": -2.0148,
+            "w/o Queue-Externality": -0.6633
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": -0.1544,
+            "Calibrated-Cascade+Naor": -0.3029,
+            "Joint-Greedy+Naor": -0.0253,
+            "KL-PBD+ (Warm)": -0.584,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.7974,
+            "Congested-L2D-Only": -2.0148,
+            "w/o Queue-Externality": -0.9298
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.2037,
+            "Calibrated-Cascade+Naor": -0.5445,
+            "Joint-Greedy+Naor": -0.1393,
+            "KL-PBD+ (Warm)": -0.584,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.0064,
+            "Congested-L2D-Only": -2.0148,
+            "w/o Queue-Externality": -1.0825
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.4036,
+            "Calibrated-Cascade+Naor": -1.0279,
+            "Joint-Greedy+Naor": -0.3108,
+            "KL-PBD+ (Warm)": -0.584,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.6186,
+            "Congested-L2D-Only": -2.0148,
+            "w/o Queue-Externality": -1.3208
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.6187,
+            "Calibrated-Cascade+Naor": -1.5112,
+            "Joint-Greedy+Naor": -0.5187,
+            "KL-PBD+ (Warm)": -0.584,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.7899,
+            "Congested-L2D-Only": -2.0148,
+            "w/o Queue-Externality": -1.5724
+          }
+        }
+      ]
+    },
+    "deepseek-ai/DeepSeek-V3.2 (c_def=2.0)": {
+      "suite": "Public-Tri (deepseek-ai/DeepSeek-V3.2, c_def=2.0)",
+      "summary": {
+        "Tri-VoI-L2D": {
+          "mean_util_56": 2.084,
+          "mean_regret_56": 0.217,
+          "worst_case_regret_56": 0.709,
+          "best_cells": 8,
+          "tri_beats_or_ties_cells": 56
+        },
+        "Calibrated-Cascade+Naor": {
+          "mean_util_56": 1.546,
+          "mean_regret_56": 0.755,
+          "worst_case_regret_56": 2.495,
+          "best_cells": 11,
+          "tri_beats_or_ties_cells": 37,
+          "wilcoxon_p": 1.5942870803131437e-05,
+          "wilcoxon_p_holm": 4.7829e-05
+        },
+        "Joint-Greedy+Naor": {
+          "mean_util_56": 2.07,
+          "mean_regret_56": 0.231,
+          "worst_case_regret_56": 0.737,
+          "best_cells": 12,
+          "tri_beats_or_ties_cells": 33,
+          "wilcoxon_p": 0.18944442588543386,
+          "wilcoxon_p_holm": 0.18944
+        },
+        "KL-PBD+ (Warm)": {
+          "mean_util_56": 2.184,
+          "mean_regret_56": 0.118,
+          "worst_case_regret_56": 0.842,
+          "best_cells": 19,
+          "tri_beats_or_ties_cells": 23,
+          "wilcoxon_p": 0.014715209445115618,
+          "wilcoxon_p_holm": 0.02943
+        },
+        "ACL-2026-VoI (Live)+Post-Defer": {
+          "mean_util_56": -0.896,
+          "mean_regret_56": 3.198,
+          "worst_case_regret_56": 5.65,
+          "best_cells": 0,
+          "tri_beats_or_ties_cells": 56,
+          "wilcoxon_p": 7.536625455631608e-11,
+          "wilcoxon_p_holm": 4.522e-10
+        },
+        "Congested-L2D-Only": {
+          "mean_util_56": 1.234,
+          "mean_regret_56": 1.067,
+          "worst_case_regret_56": 3.034,
+          "best_cells": 11,
+          "tri_beats_or_ties_cells": 42,
+          "wilcoxon_p": 7.96157105174528e-07,
+          "wilcoxon_p_holm": 3.1846e-06
+        },
+        "w/o Queue-Externality": {
+          "mean_util_56": 1.533,
+          "mean_regret_56": 0.768,
+          "worst_case_regret_56": 2.097,
+          "best_cells": 14,
+          "tri_beats_or_ties_cells": 48,
+          "wilcoxon_p": 4.980949993458693e-07,
+          "wilcoxon_p_holm": 2.4905e-06
+        }
+      },
+      "cells": [
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.9804,
+            "Calibrated-Cascade+Naor": 3.7521,
+            "Joint-Greedy+Naor": 3.8508,
+            "KL-PBD+ (Warm)": 3.83,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.3971,
+            "Congested-L2D-Only": 3.8433,
+            "w/o Queue-Externality": 3.9804
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.8592,
+            "Calibrated-Cascade+Naor": 3.4958,
+            "Joint-Greedy+Naor": 3.86,
+            "KL-PBD+ (Warm)": 3.83,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.0708,
+            "Congested-L2D-Only": 3.8433,
+            "w/o Queue-Externality": 3.8592
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.8429,
+            "Calibrated-Cascade+Naor": 3.2396,
+            "Joint-Greedy+Naor": 3.8117,
+            "KL-PBD+ (Warm)": 3.83,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.39,
+            "Congested-L2D-Only": 3.8433,
+            "w/o Queue-Externality": 3.8429
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.8,
+            "Calibrated-Cascade+Naor": 2.9833,
+            "Joint-Greedy+Naor": 3.8,
+            "KL-PBD+ (Warm)": 3.83,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.6667,
+            "Congested-L2D-Only": 3.8433,
+            "w/o Queue-Externality": 3.8
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.8325,
+            "Calibrated-Cascade+Naor": 2.7271,
+            "Joint-Greedy+Naor": 3.8671,
+            "KL-PBD+ (Warm)": 3.83,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.7771,
+            "Congested-L2D-Only": 3.8433,
+            "w/o Queue-Externality": 3.8325
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.8592,
+            "Calibrated-Cascade+Naor": 2.4708,
+            "Joint-Greedy+Naor": 3.8592,
+            "KL-PBD+ (Warm)": 3.83,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.0442,
+            "Congested-L2D-Only": 3.8433,
+            "w/o Queue-Externality": 3.8592
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.8433,
+            "Calibrated-Cascade+Naor": 1.9583,
+            "Joint-Greedy+Naor": 3.8433,
+            "KL-PBD+ (Warm)": 3.83,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.4633,
+            "Congested-L2D-Only": 3.8433,
+            "w/o Queue-Externality": 3.8433
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.8433,
+            "Calibrated-Cascade+Naor": 1.4458,
+            "Joint-Greedy+Naor": 3.8433,
+            "KL-PBD+ (Warm)": 3.83,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.8067,
+            "Congested-L2D-Only": 3.8433,
+            "w/o Queue-Externality": 3.8433
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.9804,
+            "Calibrated-Cascade+Naor": 3.7521,
+            "Joint-Greedy+Naor": 3.8508,
+            "KL-PBD+ (Warm)": 3.83,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.3971,
+            "Congested-L2D-Only": 3.8433,
+            "w/o Queue-Externality": 3.9804
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.8592,
+            "Calibrated-Cascade+Naor": 3.4958,
+            "Joint-Greedy+Naor": 3.86,
+            "KL-PBD+ (Warm)": 3.83,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.0708,
+            "Congested-L2D-Only": 3.8433,
+            "w/o Queue-Externality": 3.8592
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.8429,
+            "Calibrated-Cascade+Naor": 3.2396,
+            "Joint-Greedy+Naor": 3.8117,
+            "KL-PBD+ (Warm)": 3.83,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.39,
+            "Congested-L2D-Only": 3.8433,
+            "w/o Queue-Externality": 3.8429
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.8,
+            "Calibrated-Cascade+Naor": 2.9833,
+            "Joint-Greedy+Naor": 3.8,
+            "KL-PBD+ (Warm)": 3.83,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.6667,
+            "Congested-L2D-Only": 3.8433,
+            "w/o Queue-Externality": 3.8
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.8325,
+            "Calibrated-Cascade+Naor": 2.7271,
+            "Joint-Greedy+Naor": 3.8671,
+            "KL-PBD+ (Warm)": 3.83,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.7771,
+            "Congested-L2D-Only": 3.8433,
+            "w/o Queue-Externality": 3.8325
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.8592,
+            "Calibrated-Cascade+Naor": 2.4708,
+            "Joint-Greedy+Naor": 3.8592,
+            "KL-PBD+ (Warm)": 3.83,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.0442,
+            "Congested-L2D-Only": 3.8433,
+            "w/o Queue-Externality": 3.8592
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.8433,
+            "Calibrated-Cascade+Naor": 1.9583,
+            "Joint-Greedy+Naor": 3.8433,
+            "KL-PBD+ (Warm)": 3.83,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.4633,
+            "Congested-L2D-Only": 3.8433,
+            "w/o Queue-Externality": 3.8433
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.8433,
+            "Calibrated-Cascade+Naor": 1.4458,
+            "Joint-Greedy+Naor": 3.8433,
+            "KL-PBD+ (Warm)": 3.83,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.8067,
+            "Congested-L2D-Only": 3.8433,
+            "w/o Queue-Externality": 3.8433
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.4455,
+            "Calibrated-Cascade+Naor": 3.2816,
+            "Joint-Greedy+Naor": 3.3746,
+            "KL-PBD+ (Warm)": 3.4433,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.319,
+            "Congested-L2D-Only": 3.4705,
+            "w/o Queue-Externality": 3.4969
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.377,
+            "Calibrated-Cascade+Naor": 3.0253,
+            "Joint-Greedy+Naor": 3.3773,
+            "KL-PBD+ (Warm)": 3.4433,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.0156,
+            "Congested-L2D-Only": 3.4705,
+            "w/o Queue-Externality": 3.5306
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.3265,
+            "Calibrated-Cascade+Naor": 2.7691,
+            "Joint-Greedy+Naor": 3.3308,
+            "KL-PBD+ (Warm)": 3.4433,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.4141,
+            "Congested-L2D-Only": 3.4705,
+            "w/o Queue-Externality": 3.5055
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.3367,
+            "Calibrated-Cascade+Naor": 2.5128,
+            "Joint-Greedy+Naor": 3.3545,
+            "KL-PBD+ (Warm)": 3.4433,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.6899,
+            "Congested-L2D-Only": 3.4705,
+            "w/o Queue-Externality": 3.522
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 3.3693,
+            "Calibrated-Cascade+Naor": 2.2566,
+            "Joint-Greedy+Naor": 3.3707,
+            "KL-PBD+ (Warm)": 3.4433,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.7991,
+            "Congested-L2D-Only": 3.4705,
+            "w/o Queue-Externality": 3.5068
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.4371,
+            "Calibrated-Cascade+Naor": 2.0003,
+            "Joint-Greedy+Naor": 3.4183,
+            "KL-PBD+ (Warm)": 3.4433,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.0775,
+            "Congested-L2D-Only": 3.4705,
+            "w/o Queue-Externality": 3.4559
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.4141,
+            "Calibrated-Cascade+Naor": 1.4878,
+            "Joint-Greedy+Naor": 3.4158,
+            "KL-PBD+ (Warm)": 3.4433,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.4938,
+            "Congested-L2D-Only": 3.4705,
+            "w/o Queue-Externality": 3.4671
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 3.3977,
+            "Calibrated-Cascade+Naor": 0.9753,
+            "Joint-Greedy+Naor": 3.3977,
+            "KL-PBD+ (Warm)": 3.4433,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.8286,
+            "Congested-L2D-Only": 3.4705,
+            "w/o Queue-Externality": 3.4705
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 2.919,
+            "Calibrated-Cascade+Naor": 2.9282,
+            "Joint-Greedy+Naor": 2.6912,
+            "KL-PBD+ (Warm)": 2.4425,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.253,
+            "Congested-L2D-Only": 1.75,
+            "w/o Queue-Externality": 2.2656
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.6573,
+            "Calibrated-Cascade+Naor": 2.672,
+            "Joint-Greedy+Naor": 2.4827,
+            "KL-PBD+ (Warm)": 2.4425,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.1143,
+            "Congested-L2D-Only": 1.75,
+            "w/o Queue-Externality": 1.9539
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 2.3675,
+            "Calibrated-Cascade+Naor": 2.4157,
+            "Joint-Greedy+Naor": 2.2142,
+            "KL-PBD+ (Warm)": 2.4425,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.4777,
+            "Congested-L2D-Only": 1.75,
+            "w/o Queue-Externality": 1.8405
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.203,
+            "Calibrated-Cascade+Naor": 2.1595,
+            "Joint-Greedy+Naor": 2.103,
+            "KL-PBD+ (Warm)": 2.4425,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.7551,
+            "Congested-L2D-Only": 1.75,
+            "w/o Queue-Externality": 1.699
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 2.0847,
+            "Calibrated-Cascade+Naor": 1.9032,
+            "Joint-Greedy+Naor": 1.9876,
+            "KL-PBD+ (Warm)": 2.4425,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.8749,
+            "Congested-L2D-Only": 1.75,
+            "w/o Queue-Externality": 1.6145
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.0337,
+            "Calibrated-Cascade+Naor": 1.647,
+            "Joint-Greedy+Naor": 2.0407,
+            "KL-PBD+ (Warm)": 2.4425,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.1296,
+            "Congested-L2D-Only": 1.75,
+            "w/o Queue-Externality": 1.6323
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.0118,
+            "Calibrated-Cascade+Naor": 1.1345,
+            "Joint-Greedy+Naor": 2.0151,
+            "KL-PBD+ (Warm)": 2.4425,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.5285,
+            "Congested-L2D-Only": 1.75,
+            "w/o Queue-Externality": 1.7648
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.0053,
+            "Calibrated-Cascade+Naor": 0.622,
+            "Joint-Greedy+Naor": 1.9864,
+            "KL-PBD+ (Warm)": 2.4425,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.8765,
+            "Congested-L2D-Only": 1.75,
+            "w/o Queue-Externality": 1.7506
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.7292,
+            "Calibrated-Cascade+Naor": 1.9027,
+            "Joint-Greedy+Naor": 1.6577,
+            "KL-PBD+ (Warm)": 1.0839,
+            "ACL-2026-VoI (Live)+Post-Defer": 0.2585,
+            "Congested-L2D-Only": -0.7694,
+            "w/o Queue-Externality": 0.6221
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.4706,
+            "Calibrated-Cascade+Naor": 1.6465,
+            "Joint-Greedy+Naor": 1.4013,
+            "KL-PBD+ (Warm)": 1.0839,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.1046,
+            "Congested-L2D-Only": -0.7694,
+            "w/o Queue-Externality": 0.3445
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.9865,
+            "Calibrated-Cascade+Naor": 1.3902,
+            "Joint-Greedy+Naor": 0.8984,
+            "KL-PBD+ (Warm)": 1.0839,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.5327,
+            "Congested-L2D-Only": -0.7694,
+            "w/o Queue-Externality": -0.1305
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.7611,
+            "Calibrated-Cascade+Naor": 1.134,
+            "Joint-Greedy+Naor": 0.9232,
+            "KL-PBD+ (Warm)": 1.0839,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.7016,
+            "Congested-L2D-Only": -0.7694,
+            "w/o Queue-Externality": -0.4762
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.6235,
+            "Calibrated-Cascade+Naor": 0.8778,
+            "Joint-Greedy+Naor": 0.8229,
+            "KL-PBD+ (Warm)": 1.0839,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.8466,
+            "Congested-L2D-Only": -0.7694,
+            "w/o Queue-Externality": -0.6317
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.6775,
+            "Calibrated-Cascade+Naor": 0.6215,
+            "Joint-Greedy+Naor": 0.6526,
+            "KL-PBD+ (Warm)": 1.0839,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.1041,
+            "Congested-L2D-Only": -0.7694,
+            "w/o Queue-Externality": -0.5362
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.6233,
+            "Calibrated-Cascade+Naor": 0.109,
+            "Joint-Greedy+Naor": 0.6539,
+            "KL-PBD+ (Warm)": 1.0839,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.5065,
+            "Congested-L2D-Only": -0.7694,
+            "w/o Queue-Externality": -0.6297
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.4766,
+            "Calibrated-Cascade+Naor": -0.4035,
+            "Joint-Greedy+Naor": 0.4634,
+            "KL-PBD+ (Warm)": 1.0839,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.8545,
+            "Congested-L2D-Only": -0.7694,
+            "w/o Queue-Externality": -0.7567
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.1635,
+            "Calibrated-Cascade+Naor": 1.2644,
+            "Joint-Greedy+Naor": 1.3397,
+            "KL-PBD+ (Warm)": 0.5589,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.4234,
+            "Congested-L2D-Only": -1.6944,
+            "w/o Queue-Externality": -0.0377
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.8222,
+            "Calibrated-Cascade+Naor": 1.0082,
+            "Joint-Greedy+Naor": 0.8852,
+            "KL-PBD+ (Warm)": 0.5589,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.742,
+            "Congested-L2D-Only": -1.6944,
+            "w/o Queue-Externality": -0.3804
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.4174,
+            "Calibrated-Cascade+Naor": 0.7519,
+            "Joint-Greedy+Naor": 0.4436,
+            "KL-PBD+ (Warm)": 0.5589,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.9458,
+            "Congested-L2D-Only": -1.6944,
+            "w/o Queue-Externality": -0.7552
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.2561,
+            "Calibrated-Cascade+Naor": 0.4957,
+            "Joint-Greedy+Naor": 0.342,
+            "KL-PBD+ (Warm)": 0.5589,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.0938,
+            "Congested-L2D-Only": -1.6944,
+            "w/o Queue-Externality": -0.9519
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.1953,
+            "Calibrated-Cascade+Naor": 0.2394,
+            "Joint-Greedy+Naor": 0.1451,
+            "KL-PBD+ (Warm)": 0.5589,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.9815,
+            "Congested-L2D-Only": -1.6944,
+            "w/o Queue-Externality": -1.2022
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.1258,
+            "Calibrated-Cascade+Naor": -0.0168,
+            "Joint-Greedy+Naor": 0.0598,
+            "KL-PBD+ (Warm)": 0.5589,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.2389,
+            "Congested-L2D-Only": -1.6944,
+            "w/o Queue-Externality": -1.243
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.0312,
+            "Calibrated-Cascade+Naor": -0.5293,
+            "Joint-Greedy+Naor": 0.0035,
+            "KL-PBD+ (Warm)": 0.5589,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.5413,
+            "Congested-L2D-Only": -1.6944,
+            "w/o Queue-Externality": -1.3896
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.1415,
+            "Calibrated-Cascade+Naor": -1.0418,
+            "Joint-Greedy+Naor": -0.1777,
+            "KL-PBD+ (Warm)": 0.5589,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.883,
+            "Congested-L2D-Only": -1.6944,
+            "w/o Queue-Externality": -1.5382
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.8691,
+            "Calibrated-Cascade+Naor": 0.8921,
+            "Joint-Greedy+Naor": 0.9385,
+            "KL-PBD+ (Warm)": 0.0961,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.6051,
+            "Congested-L2D-Only": -1.804,
+            "w/o Queue-Externality": -0.1421
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.4095,
+            "Calibrated-Cascade+Naor": 0.6358,
+            "Joint-Greedy+Naor": 0.5889,
+            "KL-PBD+ (Warm)": 0.0961,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.9478,
+            "Congested-L2D-Only": -1.804,
+            "w/o Queue-Externality": -0.4734
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.045,
+            "Calibrated-Cascade+Naor": 0.3796,
+            "Joint-Greedy+Naor": 0.048,
+            "KL-PBD+ (Warm)": 0.0961,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.2863,
+            "Congested-L2D-Only": -1.804,
+            "w/o Queue-Externality": -0.9063
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.0642,
+            "Calibrated-Cascade+Naor": 0.1233,
+            "Joint-Greedy+Naor": -0.184,
+            "KL-PBD+ (Warm)": 0.0961,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.4263,
+            "Congested-L2D-Only": -1.804,
+            "w/o Queue-Externality": -1.111
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": -0.2562,
+            "Calibrated-Cascade+Naor": -0.1329,
+            "Joint-Greedy+Naor": -0.3753,
+            "KL-PBD+ (Warm)": 0.0961,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.3752,
+            "Congested-L2D-Only": -1.804,
+            "w/o Queue-Externality": -1.424
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.4098,
+            "Calibrated-Cascade+Naor": -0.3892,
+            "Joint-Greedy+Naor": -0.5078,
+            "KL-PBD+ (Warm)": 0.0961,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.7589,
+            "Congested-L2D-Only": -1.804,
+            "w/o Queue-Externality": -1.4493
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.5178,
+            "Calibrated-Cascade+Naor": -0.9017,
+            "Joint-Greedy+Naor": -0.4768,
+            "KL-PBD+ (Warm)": 0.0961,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.7608,
+            "Congested-L2D-Only": -1.804,
+            "w/o Queue-Externality": -1.5397
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.613,
+            "Calibrated-Cascade+Naor": -1.4142,
+            "Joint-Greedy+Naor": -0.6333,
+            "KL-PBD+ (Warm)": 0.0961,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.9634,
+            "Congested-L2D-Only": -1.804,
+            "w/o Queue-Externality": -1.6108
+          }
+        }
+      ]
+    },
+    "deepseek-ai/DeepSeek-V3.2 (c_def=4.0)": {
+      "suite": "Public-Tri (deepseek-ai/DeepSeek-V3.2, c_def=4.0)",
+      "summary": {
+        "Tri-VoI-L2D": {
+          "mean_util_56": 0.946,
+          "mean_regret_56": 0.219,
+          "worst_case_regret_56": 0.543,
+          "best_cells": 7,
+          "tri_beats_or_ties_cells": 56
+        },
+        "Calibrated-Cascade+Naor": {
+          "mean_util_56": 0.61,
+          "mean_regret_56": 0.554,
+          "worst_case_regret_56": 2.179,
+          "best_cells": 13,
+          "tri_beats_or_ties_cells": 35,
+          "wilcoxon_p": 0.003982474297755248,
+          "wilcoxon_p_holm": 0.011947
+        },
+        "Joint-Greedy+Naor": {
+          "mean_util_56": 0.934,
+          "mean_regret_56": 0.231,
+          "worst_case_regret_56": 0.557,
+          "best_cells": 4,
+          "tri_beats_or_ties_cells": 35,
+          "wilcoxon_p": 0.23304197472124877,
+          "wilcoxon_p_holm": 0.23304
+        },
+        "KL-PBD+ (Warm)": {
+          "mean_util_56": 0.985,
+          "mean_regret_56": 0.179,
+          "worst_case_regret_56": 1.111,
+          "best_cells": 33,
+          "tri_beats_or_ties_cells": 20,
+          "wilcoxon_p": 0.11352930664791819,
+          "wilcoxon_p_holm": 0.22706
+        },
+        "ACL-2026-VoI (Live)+Post-Defer": {
+          "mean_util_56": -1.277,
+          "mean_regret_56": 2.442,
+          "worst_case_regret_56": 4.343,
+          "best_cells": 0,
+          "tri_beats_or_ties_cells": 56,
+          "wilcoxon_p": 7.536625455631608e-11,
+          "wilcoxon_p_holm": 4.522e-10
+        },
+        "Congested-L2D-Only": {
+          "mean_util_56": 0.13,
+          "mean_regret_56": 1.034,
+          "worst_case_regret_56": 2.92,
+          "best_cells": 0,
+          "tri_beats_or_ties_cells": 42,
+          "wilcoxon_p": 4.625106890903787e-07,
+          "wilcoxon_p_holm": 1.85e-06
+        },
+        "w/o Queue-Externality": {
+          "mean_util_56": 0.467,
+          "mean_regret_56": 0.698,
+          "worst_case_regret_56": 1.765,
+          "best_cells": 0,
+          "tri_beats_or_ties_cells": 52,
+          "wilcoxon_p": 1.2748166065305516e-07,
+          "wilcoxon_p_holm": 6.3741e-07
+        }
+      },
+      "cells": [
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 2.2204,
+            "Calibrated-Cascade+Naor": 2.3304,
+            "Joint-Greedy+Naor": 2.0171,
+            "KL-PBD+ (Warm)": 2.1167,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.1012,
+            "Congested-L2D-Only": 1.95,
+            "w/o Queue-Externality": 2.2204
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.9308,
+            "Calibrated-Cascade+Naor": 2.0742,
+            "Joint-Greedy+Naor": 1.9558,
+            "KL-PBD+ (Warm)": 2.1167,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.5125,
+            "Congested-L2D-Only": 1.95,
+            "w/o Queue-Externality": 1.9308
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.8054,
+            "Calibrated-Cascade+Naor": 1.8179,
+            "Joint-Greedy+Naor": 1.8425,
+            "KL-PBD+ (Warm)": 2.1167,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.8483,
+            "Congested-L2D-Only": 1.95,
+            "w/o Queue-Externality": 1.8054
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.7783,
+            "Calibrated-Cascade+Naor": 1.5617,
+            "Joint-Greedy+Naor": 1.7867,
+            "KL-PBD+ (Warm)": 2.1167,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.98,
+            "Congested-L2D-Only": 1.95,
+            "w/o Queue-Externality": 1.7783
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.7937,
+            "Calibrated-Cascade+Naor": 1.3054,
+            "Joint-Greedy+Naor": 2.0054,
+            "KL-PBD+ (Warm)": 2.1167,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.1204,
+            "Congested-L2D-Only": 1.95,
+            "w/o Queue-Externality": 1.7937
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.0092,
+            "Calibrated-Cascade+Naor": 1.0492,
+            "Joint-Greedy+Naor": 2.0267,
+            "KL-PBD+ (Warm)": 2.1167,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.6058,
+            "Congested-L2D-Only": 1.95,
+            "w/o Queue-Externality": 2.0092
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.02,
+            "Calibrated-Cascade+Naor": 0.5367,
+            "Joint-Greedy+Naor": 2.0067,
+            "KL-PBD+ (Warm)": 2.1167,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.9167,
+            "Congested-L2D-Only": 1.95,
+            "w/o Queue-Externality": 2.02
+          }
+        },
+        {
+          "load": "mu=4.00",
+          "cap": 4,
+          "di": 1,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.005,
+            "Calibrated-Cascade+Naor": 0.0242,
+            "Joint-Greedy+Naor": 1.9925,
+            "KL-PBD+ (Warm)": 2.1167,
+            "ACL-2026-VoI (Live)+Post-Defer": -2.2267,
+            "Congested-L2D-Only": 1.95,
+            "w/o Queue-Externality": 2.005
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 2.2204,
+            "Calibrated-Cascade+Naor": 2.3304,
+            "Joint-Greedy+Naor": 2.0171,
+            "KL-PBD+ (Warm)": 2.1167,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.1012,
+            "Congested-L2D-Only": 1.95,
+            "w/o Queue-Externality": 2.2204
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.9308,
+            "Calibrated-Cascade+Naor": 2.0742,
+            "Joint-Greedy+Naor": 1.9558,
+            "KL-PBD+ (Warm)": 2.1167,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.5125,
+            "Congested-L2D-Only": 1.95,
+            "w/o Queue-Externality": 1.9308
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.8054,
+            "Calibrated-Cascade+Naor": 1.8179,
+            "Joint-Greedy+Naor": 1.8425,
+            "KL-PBD+ (Warm)": 2.1167,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.8483,
+            "Congested-L2D-Only": 1.95,
+            "w/o Queue-Externality": 1.8054
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.7783,
+            "Calibrated-Cascade+Naor": 1.5617,
+            "Joint-Greedy+Naor": 1.7867,
+            "KL-PBD+ (Warm)": 2.1167,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.98,
+            "Congested-L2D-Only": 1.95,
+            "w/o Queue-Externality": 1.7783
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.7937,
+            "Calibrated-Cascade+Naor": 1.3054,
+            "Joint-Greedy+Naor": 2.0054,
+            "KL-PBD+ (Warm)": 2.1167,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.1204,
+            "Congested-L2D-Only": 1.95,
+            "w/o Queue-Externality": 1.7937
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.0092,
+            "Calibrated-Cascade+Naor": 1.0492,
+            "Joint-Greedy+Naor": 2.0267,
+            "KL-PBD+ (Warm)": 2.1167,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.6058,
+            "Congested-L2D-Only": 1.95,
+            "w/o Queue-Externality": 2.0092
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.02,
+            "Calibrated-Cascade+Naor": 0.5367,
+            "Joint-Greedy+Naor": 2.0067,
+            "KL-PBD+ (Warm)": 2.1167,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.9167,
+            "Congested-L2D-Only": 1.95,
+            "w/o Queue-Externality": 2.02
+          }
+        },
+        {
+          "load": "mu=2.00",
+          "cap": 2,
+          "di": 1,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 2.005,
+            "Calibrated-Cascade+Naor": 0.0242,
+            "Joint-Greedy+Naor": 1.9925,
+            "KL-PBD+ (Warm)": 2.1167,
+            "ACL-2026-VoI (Live)+Post-Defer": -2.2267,
+            "Congested-L2D-Only": 1.95,
+            "w/o Queue-Externality": 2.005
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 2.1415,
+            "Calibrated-Cascade+Naor": 2.0633,
+            "Joint-Greedy+Naor": 1.9244,
+            "KL-PBD+ (Warm)": 1.9357,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.153,
+            "Congested-L2D-Only": 1.7413,
+            "w/o Queue-Externality": 2.0902
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.912,
+            "Calibrated-Cascade+Naor": 1.807,
+            "Joint-Greedy+Naor": 1.8048,
+            "KL-PBD+ (Warm)": 1.9357,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.5419,
+            "Congested-L2D-Only": 1.7413,
+            "w/o Queue-Externality": 1.7746
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.6344,
+            "Calibrated-Cascade+Naor": 1.5508,
+            "Joint-Greedy+Naor": 1.5996,
+            "KL-PBD+ (Warm)": 1.9357,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.888,
+            "Congested-L2D-Only": 1.7413,
+            "w/o Queue-Externality": 1.5756
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.5507,
+            "Calibrated-Cascade+Naor": 1.2945,
+            "Joint-Greedy+Naor": 1.5645,
+            "KL-PBD+ (Warm)": 1.9357,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.0321,
+            "Congested-L2D-Only": 1.7413,
+            "w/o Queue-Externality": 1.5089
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.5055,
+            "Calibrated-Cascade+Naor": 1.0383,
+            "Joint-Greedy+Naor": 1.4959,
+            "KL-PBD+ (Warm)": 1.9357,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.1523,
+            "Congested-L2D-Only": 1.7413,
+            "w/o Queue-Externality": 1.5398
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.528,
+            "Calibrated-Cascade+Naor": 0.782,
+            "Joint-Greedy+Naor": 1.7068,
+            "KL-PBD+ (Warm)": 1.9357,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.6313,
+            "Congested-L2D-Only": 1.7413,
+            "w/o Queue-Externality": 1.7629
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.6818,
+            "Calibrated-Cascade+Naor": 0.2695,
+            "Joint-Greedy+Naor": 1.6804,
+            "KL-PBD+ (Warm)": 1.9357,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.9415,
+            "Congested-L2D-Only": 1.7413,
+            "w/o Queue-Externality": 1.7089
+          }
+        },
+        {
+          "load": "mu=1.00",
+          "cap": 2,
+          "di": 2,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.6436,
+            "Calibrated-Cascade+Naor": -0.243,
+            "Joint-Greedy+Naor": 1.6436,
+            "KL-PBD+ (Warm)": 1.9357,
+            "ACL-2026-VoI (Live)+Post-Defer": -2.2465,
+            "Congested-L2D-Only": 1.7413,
+            "w/o Queue-Externality": 1.7355
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.6896,
+            "Calibrated-Cascade+Naor": 1.6407,
+            "Joint-Greedy+Naor": 1.5184,
+            "KL-PBD+ (Warm)": 0.7994,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.2099,
+            "Congested-L2D-Only": 0.4275,
+            "w/o Queue-Externality": 1.3908
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 1.3898,
+            "Calibrated-Cascade+Naor": 1.3844,
+            "Joint-Greedy+Naor": 1.2987,
+            "KL-PBD+ (Warm)": 0.7994,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.6102,
+            "Congested-L2D-Only": 0.4275,
+            "w/o Queue-Externality": 1.0505
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.1308,
+            "Calibrated-Cascade+Naor": 1.1282,
+            "Joint-Greedy+Naor": 1.0387,
+            "KL-PBD+ (Warm)": 0.7994,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.92,
+            "Congested-L2D-Only": 0.4275,
+            "w/o Queue-Externality": 0.7589
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.955,
+            "Calibrated-Cascade+Naor": 0.8719,
+            "Joint-Greedy+Naor": 0.779,
+            "KL-PBD+ (Warm)": 0.7994,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.0982,
+            "Congested-L2D-Only": 0.4275,
+            "w/o Queue-Externality": 0.6028
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.7481,
+            "Calibrated-Cascade+Naor": 0.6157,
+            "Joint-Greedy+Naor": 0.7182,
+            "KL-PBD+ (Warm)": 0.7994,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.2175,
+            "Congested-L2D-Only": 0.4275,
+            "w/o Queue-Externality": 0.3212
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.8054,
+            "Calibrated-Cascade+Naor": 0.3594,
+            "Joint-Greedy+Naor": 0.8796,
+            "KL-PBD+ (Warm)": 0.7994,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.626,
+            "Congested-L2D-Only": 0.4275,
+            "w/o Queue-Externality": 0.2715
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.8338,
+            "Calibrated-Cascade+Naor": -0.1531,
+            "Joint-Greedy+Naor": 0.8306,
+            "KL-PBD+ (Warm)": 0.7994,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.9617,
+            "Congested-L2D-Only": 0.4275,
+            "w/o Queue-Externality": 0.3013
+          }
+        },
+        {
+          "load": "mu=0.75",
+          "cap": 3,
+          "di": 4,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.8567,
+            "Calibrated-Cascade+Naor": -0.6656,
+            "Joint-Greedy+Naor": 0.8567,
+            "KL-PBD+ (Warm)": 0.7994,
+            "ACL-2026-VoI (Live)+Post-Defer": -2.2677,
+            "Congested-L2D-Only": 0.4275,
+            "w/o Queue-Externality": 0.4019
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 1.3298,
+            "Calibrated-Cascade+Naor": 1.4806,
+            "Joint-Greedy+Naor": 1.129,
+            "KL-PBD+ (Warm)": 0.3695,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.272,
+            "Congested-L2D-Only": -1.4398,
+            "w/o Queue-Externality": 0.4268
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.8645,
+            "Calibrated-Cascade+Naor": 1.2243,
+            "Joint-Greedy+Naor": 0.9592,
+            "KL-PBD+ (Warm)": 0.3695,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.6493,
+            "Congested-L2D-Only": -1.4398,
+            "w/o Queue-Externality": -0.0351
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.4848,
+            "Calibrated-Cascade+Naor": 0.9681,
+            "Joint-Greedy+Naor": 0.4616,
+            "KL-PBD+ (Warm)": 0.3695,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.9181,
+            "Congested-L2D-Only": -1.4398,
+            "w/o Queue-Externality": -0.5495
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.3008,
+            "Calibrated-Cascade+Naor": 0.7118,
+            "Joint-Greedy+Naor": 0.2088,
+            "KL-PBD+ (Warm)": 0.3695,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.0753,
+            "Congested-L2D-Only": -1.4398,
+            "w/o Queue-Externality": -0.6969
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.137,
+            "Calibrated-Cascade+Naor": 0.4556,
+            "Joint-Greedy+Naor": 0.0895,
+            "KL-PBD+ (Warm)": 0.3695,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.2107,
+            "Congested-L2D-Only": -1.4398,
+            "w/o Queue-Externality": -0.9233
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.0242,
+            "Calibrated-Cascade+Naor": 0.1993,
+            "Joint-Greedy+Naor": -0.0317,
+            "KL-PBD+ (Warm)": 0.3695,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.6359,
+            "Congested-L2D-Only": -1.4398,
+            "w/o Queue-Externality": -1.0974
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.0969,
+            "Calibrated-Cascade+Naor": -0.3132,
+            "Joint-Greedy+Naor": -0.123,
+            "KL-PBD+ (Warm)": 0.3695,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.9314,
+            "Congested-L2D-Only": -1.4398,
+            "w/o Queue-Externality": -1.2569
+          }
+        },
+        {
+          "load": "mu=0.50",
+          "cap": 1,
+          "di": 2,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.1731,
+            "Calibrated-Cascade+Naor": -0.8257,
+            "Joint-Greedy+Naor": -0.1877,
+            "KL-PBD+ (Warm)": 0.3695,
+            "ACL-2026-VoI (Live)+Post-Defer": -2.2529,
+            "Congested-L2D-Only": -1.4398,
+            "w/o Queue-Externality": -1.3953
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.6806,
+            "Calibrated-Cascade+Naor": 0.8374,
+            "Joint-Greedy+Naor": 0.9,
+            "KL-PBD+ (Warm)": 0.003,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.5495,
+            "Congested-L2D-Only": -1.7418,
+            "w/o Queue-Externality": -0.1806
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.3975,
+            "Calibrated-Cascade+Naor": 0.5812,
+            "Joint-Greedy+Naor": 0.6046,
+            "KL-PBD+ (Warm)": 0.003,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.856,
+            "Congested-L2D-Only": -1.7418,
+            "w/o Queue-Externality": -0.5785
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.071,
+            "Calibrated-Cascade+Naor": 0.3249,
+            "Joint-Greedy+Naor": 0.1105,
+            "KL-PBD+ (Warm)": 0.003,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.2055,
+            "Congested-L2D-Only": -1.7418,
+            "w/o Queue-Externality": -0.8274
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.0444,
+            "Calibrated-Cascade+Naor": 0.0687,
+            "Joint-Greedy+Naor": -0.0819,
+            "KL-PBD+ (Warm)": 0.003,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.3066,
+            "Congested-L2D-Only": -1.7418,
+            "w/o Queue-Externality": -1.0849
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": -0.1821,
+            "Calibrated-Cascade+Naor": -0.1876,
+            "Joint-Greedy+Naor": -0.1943,
+            "KL-PBD+ (Warm)": 0.003,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.3843,
+            "Congested-L2D-Only": -1.7418,
+            "w/o Queue-Externality": -1.3545
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.2949,
+            "Calibrated-Cascade+Naor": -0.4438,
+            "Joint-Greedy+Naor": -0.333,
+            "KL-PBD+ (Warm)": 0.003,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.7517,
+            "Congested-L2D-Only": -1.7418,
+            "w/o Queue-Externality": -1.4071
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.4158,
+            "Calibrated-Cascade+Naor": -0.9563,
+            "Joint-Greedy+Naor": -0.4024,
+            "KL-PBD+ (Warm)": 0.003,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.9403,
+            "Congested-L2D-Only": -1.7418,
+            "w/o Queue-Externality": -1.475
+          }
+        },
+        {
+          "load": "mu=0.33",
+          "cap": 1,
+          "di": 3,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.4522,
+            "Calibrated-Cascade+Naor": -1.4688,
+            "Joint-Greedy+Naor": -0.4891,
+            "KL-PBD+ (Warm)": 0.003,
+            "ACL-2026-VoI (Live)+Post-Defer": -2.2687,
+            "Congested-L2D-Only": -1.7418,
+            "w/o Queue-Externality": -1.576
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 0.5,
+          "utils": {
+            "Tri-VoI-L2D": 0.4777,
+            "Calibrated-Cascade+Naor": 0.5399,
+            "Joint-Greedy+Naor": 0.5192,
+            "KL-PBD+ (Warm)": -0.4442,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.6242,
+            "Congested-L2D-Only": -1.9743,
+            "w/o Queue-Externality": -0.4611
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 1.0,
+          "utils": {
+            "Tri-VoI-L2D": 0.1348,
+            "Calibrated-Cascade+Naor": 0.2837,
+            "Joint-Greedy+Naor": 0.2664,
+            "KL-PBD+ (Warm)": -0.4442,
+            "ACL-2026-VoI (Live)+Post-Defer": -0.9729,
+            "Congested-L2D-Only": -1.9743,
+            "w/o Queue-Externality": -0.7444
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 1.5,
+          "utils": {
+            "Tri-VoI-L2D": -0.1205,
+            "Calibrated-Cascade+Naor": 0.0274,
+            "Joint-Greedy+Naor": -0.2173,
+            "KL-PBD+ (Warm)": -0.4442,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.271,
+            "Congested-L2D-Only": -1.9743,
+            "w/o Queue-Externality": -0.9207
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 2.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.3367,
+            "Calibrated-Cascade+Naor": -0.2288,
+            "Joint-Greedy+Naor": -0.4199,
+            "KL-PBD+ (Warm)": -0.4442,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.4637,
+            "Congested-L2D-Only": -1.9743,
+            "w/o Queue-Externality": -1.2185
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 2.5,
+          "utils": {
+            "Tri-VoI-L2D": -0.5321,
+            "Calibrated-Cascade+Naor": -0.4851,
+            "Joint-Greedy+Naor": -0.6409,
+            "KL-PBD+ (Warm)": -0.4442,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.5841,
+            "Congested-L2D-Only": -1.9743,
+            "w/o Queue-Externality": -1.4937
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 3.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.74,
+            "Calibrated-Cascade+Naor": -0.7413,
+            "Joint-Greedy+Naor": -0.7067,
+            "KL-PBD+ (Warm)": -0.4442,
+            "ACL-2026-VoI (Live)+Post-Defer": -1.944,
+            "Congested-L2D-Only": -1.9743,
+            "w/o Queue-Externality": -1.5122
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 4.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.8231,
+            "Calibrated-Cascade+Naor": -1.2538,
+            "Joint-Greedy+Naor": -0.85,
+            "KL-PBD+ (Warm)": -0.4442,
+            "ACL-2026-VoI (Live)+Post-Defer": -2.0517,
+            "Congested-L2D-Only": -1.9743,
+            "w/o Queue-Externality": -1.6354
+          }
+        },
+        {
+          "load": "mu=0.25",
+          "cap": 1,
+          "di": 4,
+          "c_ask": 5.0,
+          "utils": {
+            "Tri-VoI-L2D": -0.8504,
+            "Calibrated-Cascade+Naor": -1.7663,
+            "Joint-Greedy+Naor": -0.8643,
+            "KL-PBD+ (Warm)": -0.4442,
+            "ACL-2026-VoI (Live)+Post-Defer": -2.2706,
+            "Congested-L2D-Only": -1.9743,
+            "w/o Queue-Externality": -1.7921
+          }
+        }
+      ]
+    }
+  },
   "stage3_noisy_external": {
     "Qwen/Qwen3.5-35B-A3B": {
       "Cap=2, c=1.5": {
@@ -4232,6 +7866,60 @@
     ]
   },
   "real_llm_specialist": {
+    "v1_qwen35_to_hy4": {
+      "Cap=2, c=1.5": {
+        "Direct-ACT": 2.0,
+        "KL-PBD+ (Warm)": 5.592,
+        "ACL-2026-VoI (Calib)": 2.182,
+        "Calibrated-Cascade+Naor": 5.662,
+        "Joint-Greedy+Naor": 6.06,
+        "Tri-VoI-L2D": 5.893
+      },
+      "Cap=1/3, c=1.5": {
+        "Direct-ACT": 2.0,
+        "KL-PBD+ (Warm)": 3.633,
+        "ACL-2026-VoI (Calib)": 2.182,
+        "Calibrated-Cascade+Naor": 4.216,
+        "Joint-Greedy+Naor": 3.602,
+        "Tri-VoI-L2D": 4.175
+      }
+    },
+    "v2_qwen35_to_hy4": {
+      "Cap=2, c=1.5": {
+        "Direct-ACT": 1.333,
+        "KL-PBD+ (Warm)": 4.652,
+        "ACL-2026-VoI (Live)": 2.203,
+        "Calibrated-Cascade+Naor": 4.772,
+        "Joint-Greedy+Naor": 5.044,
+        "Tri-VoI-L2D": 4.795
+      },
+      "Cap=1/3, c=1.5": {
+        "Direct-ACT": 1.333,
+        "KL-PBD+ (Warm)": 2.563,
+        "ACL-2026-VoI (Live)": 2.203,
+        "Calibrated-Cascade+Naor": 3.906,
+        "Joint-Greedy+Naor": 3.525,
+        "Tri-VoI-L2D": 3.908
+      }
+    },
+    "public_tri_qwen35_to_deepseek": {
+      "Cap=2, c_def=4.0, c=1.5": {
+        "Direct-ACT": -1.25,
+        "KL-PBD+ (Warm)": 1.847,
+        "ACL-2026-VoI (Live)": -0.4,
+        "Calibrated-Cascade+Naor": 1.639,
+        "Joint-Greedy+Naor": 2.322,
+        "Tri-VoI-L2D": 1.927
+      },
+      "Cap=1/3, c_def=2.0, c=1.5": {
+        "Direct-ACT": -1.25,
+        "KL-PBD+ (Warm)": 0.707,
+        "ACL-2026-VoI (Live)": -0.4,
+        "Calibrated-Cascade+Naor": 1.441,
+        "Joint-Greedy+Naor": 1.483,
+        "Tri-VoI-L2D": 1.471
+      }
+    },
     "v1_qwen8b_to_hy4": {
       "Cap=2, c=1.5": {
         "Direct-ACT": 0.778,

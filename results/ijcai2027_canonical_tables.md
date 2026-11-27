@@ -25,7 +25,7 @@ Generated automatically by `generate_ijcai_tables.py` using canonical terminolog
 | Public-Tri / `DeepSeek-V3.2` | 0.831 / 72.5% | 3.443 | -0.792 | 3.331 | 2.769 | **3.327** (c\_def=4: 1.634) | **0.417** |
 | Public-Tri / `Qwen3-8B` | 0.802 / 91.7% | 3.133 | -3.402 | 2.809 | 2.013 | **2.809** (c\_def=4: 0.937) | **-1.611** |
 
-## Table 3: 56-Cell 2D Minimax Regret (`v1-Clean` & `v2`) & Lightweight 2-Call Ablation
+## Table 3: 56-Cell 2D Minimax Regret (`v1-Clean`, `v2`, `Public-Tri`) & Lightweight 2-Call Ablation
 | Suite | Method | Mean Util (56) | Worst-Case Regret | Wilcoxon $p_{\text{Holm}}$ vs `Tri-VoI-L2D` |
 |:---|:---|---:|---:|---:|
 | v1-Clean (Qwen3.5) | `Tri-VoI-L2D` | 4.470 | **0.572** | — |
@@ -43,6 +43,16 @@ Generated automatically by `generate_ijcai_tables.py` using canonical terminolog
 | v2 (Qwen3.5) | `Joint-Greedy+Naor` | 3.903 | **0.954** | 8.42e-06 |
 | v2 (Qwen3.5) | `KL-PBD+ (Warm)` | 3.144 | **2.086** | 4.52e-10 |
 | v2 (Qwen3.5) | `w/o Queue-Externality` | 3.760 | **1.368** | 3.30e-07 |
+| Public-Tri (Qwen3.5, c_def=2.0) | `Tri-VoI-L2D` | 2.331 | **0.780** | — |
+| Public-Tri (Qwen3.5, c_def=2.0) | `Calibrated-Cascade+Naor` | 1.852 | **2.185** | 1.11e-07 |
+| Public-Tri (Qwen3.5, c_def=2.0) | `Joint-Greedy+Naor` | 2.488 | **0.566** | 8.91e-10 |
+| Public-Tri (Qwen3.5, c_def=2.0) | `KL-PBD+ (Warm)` | 2.189 | **1.456** | 8.52e-02 |
+| Public-Tri (Qwen3.5, c_def=2.0) | `w/o Queue-Externality` | 1.721 | **2.032** | 8.65e-07 |
+| Public-Tri (Qwen3.5, c_def=4.0) | `Tri-VoI-L2D` | 1.283 | **0.579** | — |
+| Public-Tri (Qwen3.5, c_def=4.0) | `Calibrated-Cascade+Naor` | 0.859 | **1.885** | 1.21e-07 |
+| Public-Tri (Qwen3.5, c_def=4.0) | `Joint-Greedy+Naor` | 1.472 | **0.411** | 5.17e-10 |
+| Public-Tri (Qwen3.5, c_def=4.0) | `KL-PBD+ (Warm)` | 0.977 | **1.792** | 6.45e-06 |
+| Public-Tri (Qwen3.5, c_def=4.0) | `w/o Queue-Externality` | 0.878 | **1.775** | 2.20e-07 |
 
 ### 2-Call Lightweight Deployment vs. Full 5-Call & Signal-Parity `KL-PBD+`
 | Suite | Model | `Tri-VoI` Full | `Tri-VoI` 2-Call | Tokens Full -> 2-Call | `KL-PBD+ (Warm)` | `KL-PBD+ (SC-Only)` |
@@ -53,3 +63,16 @@ Generated automatically by `generate_ijcai_tables.py` using canonical terminolog
 | v2 | Qwen3.5-35B-A3B | 4.657 | **4.750** | 5428 -> 2822 | 3.366 | 3.221 |
 | v2 | DeepSeek-V3.2 | 5.031 | **5.031** | 4901 -> 2549 | 3.620 | 2.965 |
 | v2 | Hy4-preview | 6.053 | **6.053** | 5056 -> 2629 | 3.426 | 2.788 |
+
+### Real-LLM Heterogeneous Specialist Summary
+| Pair (Agent -> Real Specialist) | Regime | `KL-PBD+ (Warm)` | `Calib-Casc+Naor` | `Joint-Greedy+Naor` | `Tri-VoI-L2D` |
+|:---|:---|---:|---:|---:|---:|
+| v1: `Qwen3.5-35B` -> `Hy4-preview` (Healthy) | Cap=2, c=1.5 | 5.592 | 5.662 | 6.060 | **5.893** |
+| v1: `Qwen3.5-35B` -> `Hy4-preview` (Healthy) | Cap=1/3, c=1.5 | 3.633 | 4.216 | 3.602 | **4.175** |
+| v2: `Qwen3.5-35B` -> `Hy4-preview` (Healthy) | Cap=2, c=1.5 | 4.652 | 4.772 | 5.044 | **4.795** |
+| v2: `Qwen3.5-35B` -> `Hy4-preview` (Healthy) | Cap=1/3, c=1.5 | 2.563 | 3.906 | 3.525 | **3.908** |
+| Public-Tri: `Qwen3.5-35B` -> `DeepSeek-V3.2` (Healthy) | Cap=2, c_def=4.0, c=1.5 | 1.847 | 1.639 | 2.322 | **1.927** |
+| Public-Tri: `Qwen3.5-35B` -> `DeepSeek-V3.2` (Healthy) | Cap=1/3, c_def=2.0, c=1.5 | 0.707 | 1.441 | 1.483 | **1.471** |
+| v1: `Qwen3-8B` -> `Hy4-preview` (Diagnostic-Floor) | Cap=2, c=1.5 | 5.258 | 5.324 | 5.202 | **5.202** |
+| v1: `Qwen3-8B` -> `Hy4-preview` (Diagnostic-Floor) | Cap=1/3, c=1.5 | 2.800 | 2.217 | 2.095 | **2.095** |
+| Public-Tri: `Qwen3-8B` -> `DeepSeek-V3.2` (Diagnostic-Floor) | Cap=2, c_def=4.0, c=1.5 | 1.438 | -0.140 | 1.051 | **0.821** |

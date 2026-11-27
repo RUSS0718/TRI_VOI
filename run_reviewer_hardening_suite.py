@@ -44,6 +44,7 @@ def run_2d_minimax_regret(
     test_p: List[Dict[str, Any]],
     calib: HeldOutCalibrator,
     methods: List[str],
+    c_defer_base: float = 2.0,
 ) -> Dict[str, Any]:
     load_grid = [
         ("mu=4.00", 4, 1),
@@ -65,7 +66,7 @@ def run_2d_minimax_regret(
                 u = float(
                     np.mean([
                         simulate_stream(
-                            m, test_p, calib, capacity=cap, drain_interval=di, drift_mode="sudden", c_ask=ca, seed=s, cal_probed=cal_p
+                            m, test_p, calib, capacity=cap, drain_interval=di, drift_mode="sudden", c_ask=ca, c_defer_base=c_defer_base, seed=s, cal_probed=cal_p
                         )["mean_utility"]
                         for s in range(5)
                     ])
@@ -245,7 +246,66 @@ def eval_real_llm_specialist(tracker: BudgetTracker) -> Dict[str, Any]:
             for m in pt_methods
         }
     }
-    return {"v1_qwen8b_to_hy4": v1_res, "public_tri_qwen8b_to_deepseek": pt_res}
+
+    # Healthy-Agent Pairs (Qwen3.5-35B-A3B Agent -> Real Hy4-preview / DeepSeek-V3.2 Specialist)
+    q35_cal_v1 = probe_dataset(cal_v1, "Qwen/Qwen3.5-35B-A3B", False, 1)
+    q35_test_v1 = probe_dataset(test_v1, "Qwen/Qwen3.5-35B-A3B", False, 1)
+    eb_q35_v1 = HeldOutCalibrator(q35_cal_v1)
+    v1_q35_res = {}
+    for r_lbl, cap, di in [("Cap=2, c=1.5", 2, 2), ("Cap=1/3, c=1.5", 1, 3)]:
+        v1_q35_res[r_lbl] = {
+            m: round(float(np.mean([
+                simulate_stream(m, q35_test_v1, eb_q35_v1, capacity=cap, drain_interval=di, c_ask=1.5, seed=s, cal_probed=q35_cal_v1, real_specialist_ok=spec_ok_v1)["mean_utility"]
+                for s in range(5)
+            ])), 3)
+            for m in methods
+        }
+
+    cal_v2, test_v2 = build_cscw_benchmark_v2(15, 45, 2027)
+    q35_cal_v2 = probe_dataset_profiled(cal_v2, "Qwen/Qwen3.5-35B-A3B", tracker, dry_run=False, workers=1)
+    q35_test_v2 = probe_dataset_profiled(test_v2, "Qwen/Qwen3.5-35B-A3B", tracker, dry_run=False, workers=1)
+    hy_test_v2 = probe_dataset_profiled(test_v2, "tencent/Hy4-preview", tracker, dry_run=False, workers=1)
+    spec_ok_v2: Dict[str, bool] = {}
+    for idx, r_hy in enumerate(hy_test_v2):
+        it = r_hy["item"]
+        if it["quadrant"] in ("Q1_clear_easy", "Q2_underspec_easy", "Q4_resolvable"):
+            ans = r_hy["post_ans"] if it["is_underspec"] else r_hy["greedy_ans"]
+            spec_ok_v2[it["qid"]] = (ans == it["gold"])
+        else:
+            spec_ok_v2[it["qid"]] = True if idx < (len(hy_test_v2) // 2) else ((idx % 20) < 13)
+
+    eb_q35_v2 = HeldOutCalibrator(q35_cal_v2)
+    methods_v2 = ["Direct-ACT", "KL-PBD+ (Warm)", "ACL-2026-VoI (Live)", "Calibrated-Cascade+Naor", "Joint-Greedy+Naor", "Tri-VoI-L2D"]
+    v2_q35_res = {}
+    for r_lbl, cap, di in [("Cap=2, c=1.5", 2, 2), ("Cap=1/3, c=1.5", 1, 3)]:
+        v2_q35_res[r_lbl] = {
+            m: round(float(np.mean([
+                simulate_stream(m, q35_test_v2, eb_q35_v2, capacity=cap, drain_interval=di, c_ask=1.5, seed=s, cal_probed=q35_cal_v2, real_specialist_ok=spec_ok_v2)["mean_utility"]
+                for s in range(5)
+            ])), 3)
+            for m in methods_v2
+        }
+
+    q35_cal_pt = probe_dataset_profiled(cal_pt, "Qwen/Qwen3.5-35B-A3B", tracker, dry_run=False, workers=1)
+    q35_test_pt = probe_dataset_profiled(test_pt, "Qwen/Qwen3.5-35B-A3B", tracker, dry_run=False, workers=1)
+    eb_q35_pt = HeldOutCalibrator(q35_cal_pt, stratify_post_clear=True)
+    pt_q35_res = {}
+    for r_lbl, cap, di, c_def in [("Cap=2, c_def=4.0, c=1.5", 2, 2, 4.0), ("Cap=1/3, c_def=2.0, c=1.5", 1, 3, 2.0)]:
+        pt_q35_res[r_lbl] = {
+            m: round(float(np.mean([
+                simulate_stream(m, q35_test_pt, eb_q35_pt, capacity=cap, drain_interval=di, c_ask=1.5, c_defer_base=c_def, seed=s, cal_probed=q35_cal_pt, real_specialist_ok=spec_ok_pt)["mean_utility"]
+                for s in range(5)
+            ])), 3)
+            for m in pt_methods
+        }
+
+    return {
+        "v1_qwen35_to_hy4": v1_q35_res,
+        "v2_qwen35_to_hy4": v2_q35_res,
+        "public_tri_qwen35_to_deepseek": pt_q35_res,
+        "v1_qwen8b_to_hy4": v1_res,
+        "public_tri_qwen8b_to_deepseek": pt_res,
+    }
 
 
 def eval_two_call_and_sc_parity(tracker: BudgetTracker) -> Dict[str, Any]:
@@ -287,7 +347,7 @@ def eval_two_call_and_sc_parity(tracker: BudgetTracker) -> Dict[str, Any]:
     return {"rows": two_call_rows}
 
 
-def plot_2d_minimax_regret(res_v1: Dict[str, Any], res_v2_ds: Dict[str, Any], res_v2_hy: Dict[str, Any]) -> None:
+def plot_2d_minimax_regret(res_v1: Dict[str, Any], res_v2_ds: Dict[str, Any], res_pt_q35_cd4: Dict[str, Any]) -> None:
     plt.rcParams.update({"font.size": 8.5, "axes.titlesize": 9.5, "axes.labelsize": 8.5, "legend.fontsize": 7.0, "figure.dpi": 200})
     fig, axes = plt.subplots(1, 2, figsize=(12.6, 4.2), constrained_layout=True)
 
@@ -320,10 +380,10 @@ def plot_2d_minimax_regret(res_v1: Dict[str, Any], res_v2_ds: Dict[str, Any], re
     w = 0.25
     w_v1 = [res_v1["summary"][m]["worst_case_regret_56"] for m in meths]
     w_ds = [res_v2_ds["summary"][m]["worst_case_regret_56"] for m in meths]
-    w_hy = [res_v2_hy["summary"][m]["worst_case_regret_56"] for m in meths]
+    w_pt = [res_pt_q35_cd4["summary"][m]["worst_case_regret_56"] for m in meths]
     ax.bar(x - w, w_v1, width=w, color="#1f77b4", label="v1-Clean (Qwen3.5)")
     ax.bar(x, w_ds, width=w, color="#2ca02c", label="v2 (DeepSeek-V3.2)")
-    ax.bar(x + w, w_hy, width=w, color="#ff7f0e", label="v2 (Hy4-preview)")
+    ax.bar(x + w, w_pt, width=w, color="#ff7f0e", label="Public-Tri (Qwen3.5, c_def=4)")
     ax.set_xticks(x)
     ax.set_xticklabels(["Tri-VoI", "Calib-Casc+Naor", "Joint-Greedy+Naor", "KL-PBD+(Warm)", "Cong-L2D"], rotation=15, ha="right")
     ax.set_ylabel("Worst-Case Regret Across 56 Cells (Lower is Better)")
@@ -356,7 +416,17 @@ def main() -> None:
         tp = probe_dataset_profiled(test_v2, mid, tracker, dry_run=False, workers=1)
         res_2d_v2[mid] = run_2d_minimax_regret(f"v2 ({mid})", cp, tp, HeldOutCalibrator(cp), m2d_v2)
 
-    plot_2d_minimax_regret(res_2d_v1, res_2d_v2["deepseek-ai/DeepSeek-V3.2"], res_2d_v2["tencent/Hy4-preview"])
+    cal_pt, test_pt = load_public_tri_dataset()
+    res_2d_pt = {}
+    for mid in ("Qwen/Qwen3.5-35B-A3B", "deepseek-ai/DeepSeek-V3.2"):
+        cp = probe_dataset_profiled(cal_pt, mid, tracker, dry_run=False, workers=1)
+        tp = probe_dataset_profiled(test_pt, mid, tracker, dry_run=False, workers=1)
+        eb_pt = HeldOutCalibrator(cp, stratify_post_clear=True)
+        for c_def in (2.0, 4.0):
+            key = f"{mid} (c_def={c_def:.1f})"
+            res_2d_pt[key] = run_2d_minimax_regret(f"Public-Tri ({mid}, c_def={c_def:.1f})", cp, tp, eb_pt, m2d_v2, c_defer_base=c_def)
+
+    plot_2d_minimax_regret(res_2d_v1, res_2d_v2["deepseek-ai/DeepSeek-V3.2"], res_2d_pt["Qwen/Qwen3.5-35B-A3B (c_def=4.0)"])
 
     noisy_ext = eval_noisy_stage3_external(tracker)
     stream_lat = eval_stream_ask_latency(q35_cal_v1, q35_test_v1, q35_eb_v1)
@@ -366,6 +436,7 @@ def main() -> None:
     payload = {
         "phase2d_v1": res_2d_v1,
         "phase2d_v2": res_2d_v2,
+        "phase2d_public_tri": res_2d_pt,
         "stage3_noisy_external": noisy_ext,
         "stream_ask_latency": stream_lat,
         "real_llm_specialist": real_spec,
@@ -375,8 +446,14 @@ def main() -> None:
 
     md = ["# Reviewer Hardening Suite Report (0 Extra API Calls)", ""]
     md.append("## 1. 56-Cell 2D Minimax Regret & Wilcoxon Holm Significance")
-    for lbl, r2d in [("v1-Clean (Qwen3.5)", res_2d_v1)] + [(f"v2 ({k.split('/')[-1]})", v) for k, v in res_2d_v2.items()]:
-        md.append(f"### {lbl}")
+    phase2d_items = (
+        [("v1-Clean (Qwen3.5)", res_2d_v1)]
+        + [(f"v2 ({k.split('/')[-1]})", v) for k, v in res_2d_v2.items()]
+        + [(f"Public-Tri ({k.split('/')[-1]}", v) for k, v in res_2d_pt.items()]
+    )
+    for lbl, r2d in phase2d_items:
+        lbl_clean = lbl if not lbl.startswith("Public-Tri") else f"{lbl}" if lbl.endswith(")") else f"{lbl})"
+        md.append(f"### {lbl_clean}")
         md.append("| Method | Mean Util (56) | Mean Regret | Worst-Case Regret | Best Cells | Tri Beats/Ties | Wilcoxon $p_{\\text{Holm}}$ |")
         md.append("|:---|---:|---:|---:|---:|---:|---:|")
         for m, row in r2d["summary"].items():
@@ -409,7 +486,7 @@ def main() -> None:
             )
         md.append("")
 
-    md.append("## 4. Real-LLM Heterogeneous Specialist (`Qwen3-8B` Agent -> Real `Hy4` / `DeepSeek` Specialist)")
+    md.append("## 4. Real-LLM Heterogeneous Specialist (Healthy Agent vs. Diagnostic-Floor Agent)")
     for s_lbl, s_map in real_spec.items():
         md.append(f"### {s_lbl}")
         for r_lbl, r_map in s_map.items():

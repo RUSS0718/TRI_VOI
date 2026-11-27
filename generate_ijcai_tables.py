@@ -131,15 +131,50 @@ def main() -> None:
 
     md.extend([
         "",
-        "## Table 3: 56-Cell 2D Minimax Regret (`v1-Clean` & `v2`) & Lightweight 2-Call Ablation",
+        "## Table 3: 56-Cell 2D Minimax Regret (`v1-Clean`, `v2`, `Public-Tri`) & Lightweight 2-Call Ablation",
         "| Suite | Method | Mean Util (56) | Worst-Case Regret | Wilcoxon $p_{\\text{Holm}}$ vs `Tri-VoI-L2D` |",
         "|:---|:---|---:|---:|---:|",
     ])
-    for lbl, r2d in [("v1-Clean (Qwen3.5)", hard["phase2d_v1"]), ("v2 (DeepSeek-V3.2)", hard["phase2d_v2"]["deepseek-ai/DeepSeek-V3.2"]), ("v2 (Qwen3.5)", hard["phase2d_v2"]["Qwen/Qwen3.5-35B-A3B"])]:
+    t3_suites = [
+        ("v1-Clean (Qwen3.5)", hard["phase2d_v1"]),
+        ("v2 (DeepSeek-V3.2)", hard["phase2d_v2"]["deepseek-ai/DeepSeek-V3.2"]),
+        ("v2 (Qwen3.5)", hard["phase2d_v2"]["Qwen/Qwen3.5-35B-A3B"]),
+        ("Public-Tri (Qwen3.5, c_def=2.0)", hard["phase2d_public_tri"]["Qwen/Qwen3.5-35B-A3B (c_def=2.0)"]),
+        ("Public-Tri (Qwen3.5, c_def=4.0)", hard["phase2d_public_tri"]["Qwen/Qwen3.5-35B-A3B (c_def=4.0)"]),
+    ]
+    for lbl, r2d in t3_suites:
         for m in ("Tri-VoI-L2D", "Calibrated-Cascade+Naor", "Joint-Greedy+Naor", "KL-PBD+ (Warm)", "w/o Queue-Externality"):
             row = r2d["summary"][m]
             pw = f"{row['wilcoxon_p_holm']:.2e}" if "wilcoxon_p_holm" in row else "—"
             md.append(f"| {lbl} | `{m}` | {row['mean_util_56']:.3f} | **{row['worst_case_regret_56']:.3f}** | {pw} |")
+
+    tex.extend([
+        "\\begin{table}[t]",
+        "\\centering",
+        "\\small",
+        "\\caption{56-cell 2D Minimax Regret across $(\\mu, c_{\\mathrm{ask}})$ ($\\text{Mean Util} / \\text{Worst-Case Regret}$, Wilcoxon $p_{\\text{Holm}}$ vs.\\ Tri-VoI-L2D).}",
+        "\\label{tab:minimax_regret}",
+        "\\begin{tabular}{llccc}",
+        "\\toprule",
+        "Suite & Method & Mean Util & Max Regret & $p_{\\text{Holm}}$ \\\\",
+        "\\midrule",
+    ])
+    for idx_s, (lbl, r2d) in enumerate([
+        ("v1-Clean (Q3.5)", hard["phase2d_v1"]),
+        ("v2 (DS-V3.2)", hard["phase2d_v2"]["deepseek-ai/DeepSeek-V3.2"]),
+        ("Public-Tri (Q3.5, $c_{\\mathrm{def}}=4$)", hard["phase2d_public_tri"]["Qwen/Qwen3.5-35B-A3B (c_def=4.0)"]),
+    ]):
+        if idx_s > 0:
+            tex.append("\\midrule")
+        for m in ("Tri-VoI-L2D", "Calibrated-Cascade+Naor", "Joint-Greedy+Naor", "KL-PBD+ (Warm)", "w/o Queue-Externality"):
+            row = r2d["summary"][m]
+            pw = f"{row['wilcoxon_p_holm']:.2e}" if "wilcoxon_p_holm" in row else "---"
+            m_short = m.replace("Calibrated-Cascade+Naor", "Calib-Casc+Naor").replace("Joint-Greedy+Naor", "Joint-Greedy+Naor").replace("w/o Queue-Externality", "w/o Externality")
+            if m == "Tri-VoI-L2D":
+                tex.append(f"{lbl} & \\textbf{{{m_short}}} & {row['mean_util_56']:.3f} & \\textbf{{{row['worst_case_regret_56']:.3f}}} & {pw} \\\\")
+            else:
+                tex.append(f"{lbl} & {m_short} & {row['mean_util_56']:.3f} & {row['worst_case_regret_56']:.3f} & {pw} \\\\")
+    tex.extend(["\\bottomrule", "\\end{tabular}", "\\end{table}", ""])
 
     md.extend(["", "### 2-Call Lightweight Deployment vs. Full 5-Call & Signal-Parity `KL-PBD+`"])
     md.append("| Suite | Model | `Tri-VoI` Full | `Tri-VoI` 2-Call | Tokens Full -> 2-Call | `KL-PBD+ (Warm)` | `KL-PBD+ (SC-Only)` |")
@@ -149,6 +184,23 @@ def main() -> None:
             f"| {r['suite']} | {r['model']} | {r['tri_full_util']:.3f} | **{r['tri_2call_util']:.3f}** | "
             f"{r['est_tok_full']:.0f} -> {r['est_tok_2call']:.0f} | {r['kl_pbd_warm']:.3f} | {r['kl_pbd_sc_only']:.3f} |"
         )
+
+    md.extend(["", "### Real-LLM Heterogeneous Specialist Summary"])
+    md.append("| Pair (Agent -> Real Specialist) | Regime | `KL-PBD+ (Warm)` | `Calib-Casc+Naor` | `Joint-Greedy+Naor` | `Tri-VoI-L2D` |")
+    md.append("|:---|:---|---:|---:|---:|---:|")
+    spec_labels = [
+        ("v1: `Qwen3.5-35B` -> `Hy4-preview` (Healthy)", "v1_qwen35_to_hy4"),
+        ("v2: `Qwen3.5-35B` -> `Hy4-preview` (Healthy)", "v2_qwen35_to_hy4"),
+        ("Public-Tri: `Qwen3.5-35B` -> `DeepSeek-V3.2` (Healthy)", "public_tri_qwen35_to_deepseek"),
+        ("v1: `Qwen3-8B` -> `Hy4-preview` (Diagnostic-Floor)", "v1_qwen8b_to_hy4"),
+        ("Public-Tri: `Qwen3-8B` -> `DeepSeek-V3.2` (Diagnostic-Floor)", "public_tri_qwen8b_to_deepseek"),
+    ]
+    for p_lbl, p_key in spec_labels:
+        for r_lbl, r_map in hard["real_llm_specialist"][p_key].items():
+            md.append(
+                f"| {p_lbl} | {r_lbl} | {r_map['KL-PBD+ (Warm)']:.3f} | {r_map['Calibrated-Cascade+Naor']:.3f} | "
+                f"{r_map['Joint-Greedy+Naor']:.3f} | **{r_map['Tri-VoI-L2D']:.3f}** |"
+            )
 
     (RESULTS_DIR / "ijcai2027_canonical_tables.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     (RESULTS_DIR / "ijcai2027_canonical_tables.tex").write_text("\n".join(tex) + "\n", encoding="utf-8")
