@@ -6,9 +6,9 @@
 - **With Friction (p_no=0.15)**: R1 slope `0.425` (theo `0.425`), R2 slope `-0.2975` (theo `-0.2975`), R3 slope `-0.0` (theo `0.0`)
 
 ## Theorem 2 & Corollary 2 (GLM-4.5-Air Shrinkage & Miscalibration Bound)
-- **k=2** (fixed $N_{test}=180$): `n_cal=60` Cap=1/3 `2.786±0.524` ($\epsilon_p=0.1145, \epsilon_\pi=0.1715$) -> `n_cal=240` Cap=1/3 `3.099±0.589` ($\epsilon_p=0.0404, \epsilon_\pi=0.0767$)
-- **k=5** (fixed $N_{test}=180$): `n_cal=60` Cap=1/3 `2.827±0.498` ($\epsilon_p=0.1093, \epsilon_\pi=0.1638$) -> `n_cal=240` Cap=1/3 `3.112±0.606` ($\epsilon_p=0.0408, \epsilon_\pi=0.0779$)
-- **k=10** (fixed $N_{test}=180$): `n_cal=60` Cap=1/3 `2.96±0.635` ($\epsilon_p=0.1081, \epsilon_\pi=0.1742$) -> `n_cal=240` Cap=1/3 `3.14±0.638` ($\epsilon_p=0.0412, \epsilon_\pi=0.0831$)
+- **k=2** (fixed $N_{test}=180$): `n_cal=60` Cap=1/3 `2.786±0.524` ($\epsilon_p=0.6261, \epsilon_\pi=0.3046$) -> `n_cal=240` Cap=1/3 `3.099±0.589` ($\epsilon_p=0.5248, \epsilon_\pi=0.1907$)
+- **k=5** (fixed $N_{test}=180$): `n_cal=60` Cap=1/3 `2.827±0.498` ($\epsilon_p=0.6044, \epsilon_\pi=0.2824$) -> `n_cal=240` Cap=1/3 `3.112±0.606` ($\epsilon_p=0.538, \epsilon_\pi=0.1881$)
+- **k=10** (fixed $N_{test}=180$): `n_cal=60` Cap=1/3 `2.96±0.635` ($\epsilon_p=0.5997, \epsilon_\pi=0.2672$) -> `n_cal=240` Cap=1/3 `3.14±0.638` ($\epsilon_p=0.5525, \epsilon_\pi=0.1868$)
 - **Qwen3-8B F1 Floor Boundary**: Cap=2 `3.731`, Cap=1/3 `1.714`.
 
 ## Theorem 3 (Foster-Lyapunov Stability Expansion & Non-Zero ASK Latency)
@@ -34,3 +34,11 @@
 | 4 | -1.053 | -1.045 |
 | 6 | -1.848 | -1.843 |
 | 8 | -2.660 | -2.640 |
+
+### Real `simulate_stream` Empirical Queue vs. Accuracy (`v1-Clean`, `Qwen3.5-35B-A3B`)
+| Service Rate $\mu$ | `Congested-L2D-Only` $\bar{Q}$ (Acc%, Util) | `Tri-VoI-L2D` $\bar{Q}$ (Acc%, Util) |
+|---:|---:|---:|
+| 2.00 | 0.00 (80.72%, 4.870) | 0.00 (83.83%, 5.367) |
+| 1.00 | 0.32 (80.44%, 4.646) | 0.28 (83.67%, 5.220) |
+| 0.50 | 5.21 (77.06%, 2.321) | 0.99 (81.50%, 4.610) |
+| 0.33 | 8.19 (71.83%, 1.447) | 3.38 (79.56%, 3.792) |

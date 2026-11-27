@@ -326,7 +326,7 @@ def main() -> None:
         eps = split_stratified_episodes(test_p, n_episodes=6, seed=2029)
         ep_res = eval_independent_episodes(
             ["Direct-ACT", "KL-PBD+ (Warm)", "ACL-2026-VoI (Live)", "Calibrated-Cascade+Naor", "Joint-Greedy+Naor", "Tri-VoI-L2D"],
-            eps, calib, n_seeds=5, capacity=2, drain_interval=2, c_ask=2.5
+            eps, calib, n_seeds=5, capacity=2, drain_interval=2, c_ask=2.5, cal_probed=cal_p
         )
         extra = {}
         if mid == V2_MODELS[0]:
@@ -374,7 +374,7 @@ def main() -> None:
         eps = split_stratified_episodes(test_p, n_episodes=6, seed=2030)
         ep_res = eval_independent_episodes(
             ["Direct-ACT", "KL-PBD+ (Warm)", "ACL-2026-VoI (Live)", "Calibrated-Cascade+Naor", "Joint-Greedy+Naor", "Tri-VoI-L2D"],
-            eps, calib, n_seeds=5, capacity=2, drain_interval=2, c_ask=1.5
+            eps, calib, n_seeds=5, capacity=2, drain_interval=2, c_ask=1.5, cal_probed=cal_p
         )
         pt_models_out[mid] = {
             "diagnosis": diag,

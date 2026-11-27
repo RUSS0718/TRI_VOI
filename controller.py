@@ -58,6 +58,15 @@ def probe_item(item: Dict[str, Any], model_id: str, dry_run: bool) -> Dict[str, 
 
     samples = []
     tokens = 0
+    tag_tokens: Dict[str, int] = {
+        "probe_s0": 0,
+        "probe_s1": 0,
+        "probe_s2": 0,
+        "greedy_act": 0,
+        "diag_init": 0,
+        "post_ask_combined": 0,
+        "post_ask_s1": 0,
+    }
     for s_idx in range(3):
         r = call_llm(
             [{"role": "user", "content": base_prompt}],
@@ -69,7 +78,9 @@ def probe_item(item: Dict[str, Any], model_id: str, dry_run: bool) -> Dict[str, 
             dry_run=dry_run,
         )
         samples.append(extract_answer(r["content"]))
-        tokens += r["prompt_tokens"] + r["completion_tokens"]
+        t_cur = r["prompt_tokens"] + r["completion_tokens"]
+        tokens += t_cur
+        tag_tokens[f"probe_s{s_idx}"] = t_cur
 
     r_greedy = call_llm(
         [{"role": "user", "content": base_prompt}],
@@ -81,7 +92,9 @@ def probe_item(item: Dict[str, Any], model_id: str, dry_run: bool) -> Dict[str, 
         dry_run=dry_run,
     )
     greedy_ans = extract_answer(r_greedy["content"])
-    tokens += r_greedy["prompt_tokens"] + r_greedy["completion_tokens"]
+    t_greedy = r_greedy["prompt_tokens"] + r_greedy["completion_tokens"]
+    tokens += t_greedy
+    tag_tokens["greedy_act"] = t_greedy
 
     diag_prompt = (
         f"{DOMAIN_RUBRIC}\nTicket:\n{item['prose']}{dry_meta}\n\n"
@@ -103,7 +116,9 @@ def probe_item(item: Dict[str, Any], model_id: str, dry_run: bool) -> Dict[str, 
         dry_run=dry_run,
     )
     diag_obj = parse_json_obj(r_diag["content"])
-    tokens += r_diag["prompt_tokens"] + r_diag["completion_tokens"]
+    t_diag = r_diag["prompt_tokens"] + r_diag["completion_tokens"]
+    tokens += t_diag
+    tag_tokens["diag_init"] = t_diag
 
     obs_missing = bool(diag_obj.get("missing_user_info", False))
     obs_pot_ovr = bool(diag_obj.get("potential_override", False))
@@ -135,7 +150,9 @@ def probe_item(item: Dict[str, Any], model_id: str, dry_run: bool) -> Dict[str, 
         post_obj = parse_json_obj(r_post["content"])
         post_ans = extract_answer(r_post["content"])
         post_ovr_conf = bool(post_obj.get("override_confirmed", obs_conf_ovr))
-        tokens += r_post["prompt_tokens"] + r_post["completion_tokens"]
+        t_post = r_post["prompt_tokens"] + r_post["completion_tokens"]
+        tokens += t_post
+        tag_tokens["post_ask_combined"] = t_post
 
         # Second stochastic post-ASK sample for Naive-Cascade agreement check
         r_post_s1 = call_llm(
@@ -148,7 +165,9 @@ def probe_item(item: Dict[str, Any], model_id: str, dry_run: bool) -> Dict[str, 
             dry_run=dry_run,
         )
         post_s1 = extract_answer(r_post_s1["content"])
-        tokens += r_post_s1["prompt_tokens"] + r_post_s1["completion_tokens"]
+        t_ps1 = r_post_s1["prompt_tokens"] + r_post_s1["completion_tokens"]
+        tokens += t_ps1
+        tag_tokens["post_ask_s1"] = t_ps1
     else:
         oracle_reply = "No clarifying question was asked."
         oracle_revealed = False
@@ -173,6 +192,7 @@ def probe_item(item: Dict[str, Any], model_id: str, dry_run: bool) -> Dict[str, 
         "post_s1": post_s1,
         "post_ovr_conf": post_ovr_conf,
         "tokens": tokens,
+        "tag_tokens": tag_tokens,
     }
 
 
@@ -446,6 +466,8 @@ def simulate_stream(
         )
 
     per_item_utils = np.zeros(n, dtype=float)
+    per_item_tokens = np.zeros(n, dtype=float)
+    smooth_naor = (method == "Tri-VoI-L2D (Smooth-Naor)")
     correct_cnt = 0
     ask_cnt = 0
     defer_cnt = 0
@@ -518,7 +540,7 @@ def simulate_stream(
                 q_m = queues[m]
                 mu_m = caps[m] / float(drain_interval)
                 rho_m = min(lam_ema[m] / max(1e-6, mu_m), 1.5)
-                if use_externality and eff_gamma > 0.0 and (q_m >= caps[m] or rho_m >= 0.6):
+                if use_externality and eff_gamma > 0.0 and (smooth_naor or q_m >= caps[m] or rho_m >= 0.6):
                     cong_cost = eff_gamma * (q_m + rho_m * (q_m + 1.0))
                 else:
                     cong_cost = eff_gamma * q_m
@@ -538,7 +560,7 @@ def simulate_stream(
                 q_m = queues[m]
                 mu_m = caps[m] / float(drain_interval)
                 rho_m = min(lam_ema[m] / max(1e-6, mu_m), 1.5)
-                if use_externality and eff_gamma > 0.0 and (q_m >= caps[m] or rho_m >= 0.6):
+                if use_externality and eff_gamma > 0.0 and (smooth_naor or q_m >= caps[m] or rho_m >= 0.6):
                     cong_cost = eff_gamma * (q_m + rho_m * (q_m + 1.0))
                 else:
                     cong_cost = eff_gamma * q_m
@@ -588,8 +610,10 @@ def simulate_stream(
         elif method in (
             "ACL-2026-VoI (Calib)",
             "ACL-2026-VoI+Post-Defer",
+            "ACL-2026-VoI+Full-Defer+Naor",
             "ACL-2026-VoI (Live)",
             "ACL-2026-VoI (Live)+Post-Defer",
+            "ACL-2026-VoI (Live)+Full-Defer+Naor",
         ):
             p_act = calibrator.get_p_act(obs_m, obs_p, unanimous) if calibrator else (rec["maj_count"] / 3.0)
             p_res, p_ovra, p_no = calibrator.get_post_ask_probs(obs_m, obs_p) if calibrator else (
@@ -621,10 +645,10 @@ def simulate_stream(
 
             if ask_flag:
                 did_ask = True
-                if "Post-Defer" in method:
+                if "Post-Defer" in method or "Full-Defer" in method:
                     post_p = p_ovr if rec["post_ovr_conf"] else p_clear
                     u_act_post = post_p * r_ok + (1.0 - post_p) * r_err
-                    m_best2, u_def2 = best_specialist_util(use_externality=False)
+                    m_best2, u_def2 = best_specialist_util(use_externality=(use_ext_flag if "Full-Defer" in method else False))
                     if u_def2 > u_act_post:
                         did_defer = True
                         chosen_spec = m_best2
@@ -632,6 +656,12 @@ def simulate_stream(
                         final_ans = rec["post_ans"]
                 else:
                     final_ans = rec["post_ans"]
+            elif "Full-Defer" in method:
+                u_act_pre = p_act * r_ok + (1.0 - p_act) * r_err
+                m_b0, u_d0 = best_specialist_util(use_externality=use_ext_flag)
+                if u_d0 > u_act_pre:
+                    did_defer = True
+                    chosen_spec = m_b0
         elif method == "Naive-Cascade":
             if ent > 0.45:
                 did_ask = True
@@ -727,23 +757,32 @@ def simulate_stream(
             u_act = p_act * r_ok + (1.0 - p_act) * r_err
             p_rework = (p_res + p_ovra) if (obs_m and unclarified_spec_penalty) else 0.0
             m_best, u_def = best_specialist_util_pre_ask(use_externality=use_ext_flag, p_rework=p_rework)
+            _, u_def_post = best_specialist_util(use_externality=use_ext_flag)
 
             # Reference defer utility inside EVOI: live coupled vs static decoupled controls
             if method == "Decoupled-Nominal-EVOI":
                 u_def_ref = 0.80 * r_ok + 0.20 * r_err - costs[m_best] - eff_gamma * 1.0
+                u_def_post_ref = u_def_ref
             elif method in ("w/o Coupled-EVOI (Static-Opt)", "w/o Coupled-EVOI"):
                 u_def_ref = 0.90 * r_ok + 0.10 * r_err - costs[m_best]
+                u_def_post_ref = u_def_ref
             else:
                 u_def_ref = u_def
+                u_def_post_ref = u_def_post
 
             u_clear = p_clear * r_ok + (1.0 - p_clear) * r_err
             u_ovr = p_ovr * r_ok + (1.0 - p_ovr) * r_err
-            lat_pen = (beta_wait_ask * float(ask_latency)) if (method == "Tri-VoI-L2D (Latency-Aware)" and ask_latency > 0) else 0.0
+            if method == "Tri-VoI-L2D (Latency-Aware)" and ask_latency > 0:
+                mu_best = caps[m_best] / float(drain_interval)
+                delta_drift = max(0.0, lam_ema[m_best] - mu_best) * float(ask_latency)
+                lat_pen = beta_wait_ask * float(ask_latency) + (1.0 - p_res) * eff_gamma * delta_drift
+            else:
+                lat_pen = 0.0
 
-            # Two-stage Bellman expected utility of ASK over exact 3-outcome partition
+            # Two-stage Bellman expected utility of ASK over exact 3-outcome partition (Cor. 1 aligned)
             u_ask = (
-                p_res * max(u_clear, u_def_ref)
-                + p_ovra * max(u_ovr, u_def_ref)
+                p_res * max(u_clear, u_def_post_ref)
+                + p_ovra * max(u_ovr, u_def_post_ref)
                 + p_no * max(u_act, u_def_ref)
                 - c_ask
                 - lat_pen
@@ -818,6 +857,28 @@ def simulate_stream(
 
             s_u += r_ok_i if is_ok_i else r_err_i
             per_item_utils[orig_t] = s_u
+            tt = item_rec.get("tag_tokens") or {}
+            if tt:
+                t1_probes = tt.get("probe_s0", 0) + tt.get("probe_s1", 0) + tt.get("probe_s2", 0)
+                t1_gd = tt.get("greedy_act", 0) + tt.get("diag_init", 0)
+                t_post = tt.get("post_ask_combined", 0) if asked else 0
+                if method == "Direct-ACT":
+                    tok_i = tt.get("greedy_act", 0)
+                elif method == "Tri-VoI-L2D (2-Call)":
+                    tok_i = t1_gd + t_post
+                elif method == "KL-PBD+ (SC-Only)":
+                    tok_i = t1_probes + tt.get("greedy_act", 0)
+                elif method in ("KL-PBD", "KL-PBD+", "KL-PBD+ (Warm)"):
+                    tok_i = t1_probes + t1_gd
+                elif "ACL-2026-VoI (Live)" in method:
+                    tok_i = t1_gd + tt.get("acl_voi_belief", 0) + t_post
+                elif method == "Naive-Cascade":
+                    tok_i = t1_probes + t1_gd + (t_post + tt.get("post_ask_s1", 0) if asked else 0)
+                else:
+                    tok_i = t1_probes + t1_gd + t_post
+            else:
+                tok_i = float(item_rec.get("tokens", 0))
+            per_item_tokens[orig_t] = float(tok_i)
             if is_ok_i:
                 correct_cnt += 1
             rolling_acc[orig_t] = 1.0 if is_ok_i else 0.0
@@ -873,6 +934,7 @@ def simulate_stream(
                 "Tri-VoI-L2D",
                 "Tri-VoI-L2D (2-Call)",
                 "Tri-VoI-L2D (Latency-Aware)",
+                "Tri-VoI-L2D (Smooth-Naor)",
                 "w/o Disentangled-Diag",
                 "w/o Held-Out-Calib",
                 "w/o Queue-Externality",
@@ -885,7 +947,9 @@ def simulate_stream(
                 "Calibrated-Cascade+Naor",
                 "Naive-Cascade",
                 "ACL-2026-VoI+Post-Defer",
+                "ACL-2026-VoI+Full-Defer+Naor",
                 "ACL-2026-VoI (Live)+Post-Defer",
+                "ACL-2026-VoI (Live)+Full-Defer+Naor",
             )
             if method == "Naive-Cascade":
                 force_pd = (rec["post_ans"] != rec["post_s1"] or rec["post_ovr_conf"])
@@ -900,7 +964,7 @@ def simulate_stream(
                 "orig_t": t,
                 "rec": rec,
                 "can_post_defer": can_pd,
-                "use_ext": use_ext_flag if ("ACL" not in method and "Naive" not in method) else False,
+                "use_ext": use_ext_flag if ("Full-Defer+Naor" in method or ("ACL" not in method and "Naive" not in method)) else False,
                 "u_act_post": u_ap,
             })
             continue
@@ -936,6 +1000,7 @@ def simulate_stream(
         "acc_pct": 100.0 * correct_cnt / n,
         "net_utility": float(np.sum(per_item_utils)),
         "mean_utility": float(np.mean(per_item_utils)),
+        "mean_realized_tokens": float(np.mean(per_item_tokens)),
         "ask_rate_pct": 100.0 * ask_cnt / n,
         "defer_rate_pct": 100.0 * defer_cnt / n,
         "mean_wait": wait_sum / max(1, defer_cnt),

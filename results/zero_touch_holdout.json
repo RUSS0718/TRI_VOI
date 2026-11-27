@@ -1,0 +1,2492 @@
+{
+  "holdout_mediq_disjoint": {
+    "n_cal": 48,
+    "n_test": 128,
+    "models": {
+      "Qwen/Qwen3.5-35B-A3B": {
+        "diagnosis": {
+          "missing_f1": 0.7969,
+          "override_f1": 0.5827,
+          "entropy_collapse_pct": 59.38,
+          "underspec_acc_greedy_pct": 67.19
+        },
+        "raw_usmle_acc": {
+          "Q1_clear_easy": {
+            "n": 32,
+            "zero_turn_acc_pct": 75.0,
+            "post_ask_acc_pct": 75.0,
+            "oracle_revealed_pct": 0.0
+          },
+          "Q2_underspec_easy": {
+            "n": 32,
+            "zero_turn_acc_pct": 56.25,
+            "post_ask_acc_pct": 65.62,
+            "oracle_revealed_pct": 65.6
+          },
+          "Q3_clear_hard": {
+            "n": 32,
+            "zero_turn_acc_pct": 71.88,
+            "post_ask_acc_pct": 75.0,
+            "oracle_revealed_pct": 0.0
+          },
+          "Q4_resolvable": {
+            "n": 16,
+            "zero_turn_acc_pct": 81.25,
+            "post_ask_acc_pct": 87.5,
+            "oracle_revealed_pct": 68.8
+          },
+          "Q4_escalate": {
+            "n": 16,
+            "zero_turn_acc_pct": 75.0,
+            "post_ask_acc_pct": 87.5,
+            "oracle_revealed_pct": 100.0
+          }
+        },
+        "regimes_by_calibrator": {
+          "unified_default": {
+            "Cap=2, c=1.5": {
+              "Direct-ACT": {
+                "mean_utility": -1.406,
+                "acc_pct": 42.97,
+                "ask_pct": 0.0,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 5.096,
+                "ci95": [
+                  3.07,
+                  7.039
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "KL-PBD+ (Warm)": {
+                "mean_utility": 3.632,
+                "acc_pct": 76.88,
+                "ask_pct": 0.0,
+                "defer_pct": 74.5,
+                "mean_wait": 0.4,
+                "delta_vs_tri": 0.058,
+                "ci95": [
+                  -0.631,
+                  0.706
+                ],
+                "boot_p": 0.86571,
+                "boot_p_holm": 1.0
+              },
+              "ACL-2026-VoI (Live)": {
+                "mean_utility": -1.91,
+                "acc_pct": 42.97,
+                "ask_pct": 33.6,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 5.6,
+                "ci95": [
+                  3.512,
+                  7.666
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "ACL-2026-VoI (Live)+Full-Defer+Naor": {
+                "mean_utility": 3.529,
+                "acc_pct": 77.03,
+                "ask_pct": 33.6,
+                "defer_pct": 60.3,
+                "mean_wait": 0.33,
+                "delta_vs_tri": 0.161,
+                "ci95": [
+                  -0.811,
+                  1.106
+                ],
+                "boot_p": 0.72809,
+                "boot_p_holm": 1.0
+              },
+              "Joint-Greedy": {
+                "mean_utility": 3.781,
+                "acc_pct": 77.5,
+                "ask_pct": 11.1,
+                "defer_pct": 66.6,
+                "mean_wait": 0.39,
+                "delta_vs_tri": -0.09,
+                "ci95": [
+                  -0.522,
+                  0.388
+                ],
+                "boot_p": 0.6851,
+                "boot_p_holm": 1.0
+              },
+              "Joint-Greedy+Naor": {
+                "mean_utility": 3.843,
+                "acc_pct": 77.81,
+                "ask_pct": 11.6,
+                "defer_pct": 66.6,
+                "mean_wait": 0.38,
+                "delta_vs_tri": -0.153,
+                "ci95": [
+                  -0.606,
+                  0.316
+                ],
+                "boot_p": 0.50483,
+                "boot_p_holm": 1.0
+              },
+              "Calibrated-Cascade": {
+                "mean_utility": 3.441,
+                "acc_pct": 77.34,
+                "ask_pct": 50.0,
+                "defer_pct": 56.1,
+                "mean_wait": 0.33,
+                "delta_vs_tri": 0.249,
+                "ci95": [
+                  -0.493,
+                  0.988
+                ],
+                "boot_p": 0.51416,
+                "boot_p_holm": 1.0
+              },
+              "Calibrated-Cascade+Naor": {
+                "mean_utility": 3.453,
+                "acc_pct": 77.19,
+                "ask_pct": 50.0,
+                "defer_pct": 54.7,
+                "mean_wait": 0.3,
+                "delta_vs_tri": 0.237,
+                "ci95": [
+                  -0.499,
+                  1.023
+                ],
+                "boot_p": 0.53915,
+                "boot_p_holm": 1.0
+              },
+              "w/o Queue-Externality": {
+                "mean_utility": 3.814,
+                "acc_pct": 78.12,
+                "ask_pct": 17.2,
+                "defer_pct": 67.2,
+                "mean_wait": 0.37,
+                "delta_vs_tri": -0.124,
+                "ci95": [
+                  -0.373,
+                  0.106
+                ],
+                "boot_p": 0.30556,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D": {
+                "mean_utility": 3.69,
+                "acc_pct": 77.5,
+                "ask_pct": 19.4,
+                "defer_pct": 65.9,
+                "mean_wait": 0.36
+              },
+              "Tri-VoI-L2D (2-Call)": {
+                "mean_utility": 3.497,
+                "acc_pct": 76.25,
+                "ask_pct": 19.8,
+                "defer_pct": 63.3,
+                "mean_wait": 0.35,
+                "delta_vs_tri": 0.193,
+                "ci95": [
+                  -0.172,
+                  0.538
+                ],
+                "boot_p": 0.28457,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D (Smooth-Naor)": {
+                "mean_utility": 3.698,
+                "acc_pct": 77.5,
+                "ask_pct": 19.7,
+                "defer_pct": 65.3,
+                "mean_wait": 0.36,
+                "delta_vs_tri": -0.008,
+                "ci95": [
+                  -0.134,
+                  0.12
+                ],
+                "boot_p": 0.87771,
+                "boot_p_holm": 1.0
+              },
+              "Oracle": {
+                "mean_utility": 4.134,
+                "acc_pct": 77.5,
+                "ask_pct": 37.5,
+                "defer_pct": 37.5,
+                "mean_wait": 0.17,
+                "delta_vs_tri": -0.444,
+                "ci95": [
+                  -1.374,
+                  0.453
+                ],
+                "boot_p": 0.32822
+              }
+            },
+            "Cap=2, c_def=4.0, c=1.5": {
+              "Direct-ACT": {
+                "mean_utility": -1.406,
+                "acc_pct": 42.97,
+                "ask_pct": 0.0,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 3.731,
+                "ci95": [
+                  1.794,
+                  5.494
+                ],
+                "boot_p": 0.00099967,
+                "boot_p_holm": 0.0099967
+              },
+              "KL-PBD+ (Warm)": {
+                "mean_utility": 2.397,
+                "acc_pct": 77.19,
+                "ask_pct": 0.0,
+                "defer_pct": 70.2,
+                "mean_wait": 0.39,
+                "delta_vs_tri": -0.073,
+                "ci95": [
+                  -0.991,
+                  0.878
+                ],
+                "boot_p": 0.88704,
+                "boot_p_holm": 1.0
+              },
+              "ACL-2026-VoI (Live)": {
+                "mean_utility": -1.91,
+                "acc_pct": 42.97,
+                "ask_pct": 33.6,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 4.235,
+                "ci95": [
+                  2.381,
+                  6.118
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "ACL-2026-VoI (Live)+Full-Defer+Naor": {
+                "mean_utility": 2.188,
+                "acc_pct": 75.16,
+                "ask_pct": 33.6,
+                "defer_pct": 55.0,
+                "mean_wait": 0.3,
+                "delta_vs_tri": 0.137,
+                "ci95": [
+                  -0.727,
+                  1.079
+                ],
+                "boot_p": 0.77108,
+                "boot_p_holm": 1.0
+              },
+              "Joint-Greedy": {
+                "mean_utility": 2.406,
+                "acc_pct": 76.41,
+                "ask_pct": 13.8,
+                "defer_pct": 61.7,
+                "mean_wait": 0.38,
+                "delta_vs_tri": -0.081,
+                "ci95": [
+                  -0.989,
+                  0.801
+                ],
+                "boot_p": 0.86171,
+                "boot_p_holm": 1.0
+              },
+              "Joint-Greedy+Naor": {
+                "mean_utility": 2.351,
+                "acc_pct": 75.94,
+                "ask_pct": 15.3,
+                "defer_pct": 60.6,
+                "mean_wait": 0.35,
+                "delta_vs_tri": -0.026,
+                "ci95": [
+                  -0.835,
+                  0.789
+                ],
+                "boot_p": 0.95068,
+                "boot_p_holm": 1.0
+              },
+              "Calibrated-Cascade": {
+                "mean_utility": 2.114,
+                "acc_pct": 74.53,
+                "ask_pct": 50.0,
+                "defer_pct": 48.0,
+                "mean_wait": 0.3,
+                "delta_vs_tri": 0.211,
+                "ci95": [
+                  -0.692,
+                  1.034
+                ],
+                "boot_p": 0.64745,
+                "boot_p_holm": 1.0
+              },
+              "Calibrated-Cascade+Naor": {
+                "mean_utility": 2.114,
+                "acc_pct": 74.53,
+                "ask_pct": 50.0,
+                "defer_pct": 48.0,
+                "mean_wait": 0.3,
+                "delta_vs_tri": 0.211,
+                "ci95": [
+                  -0.692,
+                  1.034
+                ],
+                "boot_p": 0.64745,
+                "boot_p_holm": 1.0
+              },
+              "w/o Queue-Externality": {
+                "mean_utility": 2.261,
+                "acc_pct": 76.09,
+                "ask_pct": 25.3,
+                "defer_pct": 60.0,
+                "mean_wait": 0.35,
+                "delta_vs_tri": 0.064,
+                "ci95": [
+                  -0.502,
+                  0.617
+                ],
+                "boot_p": 0.82872,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D": {
+                "mean_utility": 2.325,
+                "acc_pct": 76.25,
+                "ask_pct": 29.4,
+                "defer_pct": 58.1,
+                "mean_wait": 0.32
+              },
+              "Tri-VoI-L2D (2-Call)": {
+                "mean_utility": 2.48,
+                "acc_pct": 76.25,
+                "ask_pct": 30.0,
+                "defer_pct": 54.4,
+                "mean_wait": 0.31,
+                "delta_vs_tri": -0.155,
+                "ci95": [
+                  -0.786,
+                  0.478
+                ],
+                "boot_p": 0.63246,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D (Smooth-Naor)": {
+                "mean_utility": 2.518,
+                "acc_pct": 76.72,
+                "ask_pct": 29.7,
+                "defer_pct": 55.8,
+                "mean_wait": 0.31,
+                "delta_vs_tri": -0.193,
+                "ci95": [
+                  -0.676,
+                  0.273
+                ],
+                "boot_p": 0.43552,
+                "boot_p_holm": 1.0
+              },
+              "Oracle": {
+                "mean_utility": 3.384,
+                "acc_pct": 77.5,
+                "ask_pct": 37.5,
+                "defer_pct": 37.5,
+                "mean_wait": 0.17,
+                "delta_vs_tri": -1.059,
+                "ci95": [
+                  -1.823,
+                  -0.333
+                ],
+                "boot_p": 0.005998
+              }
+            },
+            "Cap=1/3, c=1.5": {
+              "Direct-ACT": {
+                "mean_utility": -1.406,
+                "acc_pct": 42.97,
+                "ask_pct": 0.0,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 2.331,
+                "ci95": [
+                  0.715,
+                  3.84
+                ],
+                "boot_p": 0.005998,
+                "boot_p_holm": 0.053982
+              },
+              "KL-PBD+ (Warm)": {
+                "mean_utility": 1.129,
+                "acc_pct": 59.69,
+                "ask_pct": 0.0,
+                "defer_pct": 33.6,
+                "mean_wait": 0.48,
+                "delta_vs_tri": -0.204,
+                "ci95": [
+                  -1.598,
+                  1.16
+                ],
+                "boot_p": 0.78141,
+                "boot_p_holm": 1.0
+              },
+              "ACL-2026-VoI (Live)": {
+                "mean_utility": -1.91,
+                "acc_pct": 42.97,
+                "ask_pct": 33.6,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 2.835,
+                "ci95": [
+                  1.359,
+                  4.439
+                ],
+                "boot_p": 0.00099967,
+                "boot_p_holm": 0.0099967
+              },
+              "ACL-2026-VoI (Live)+Full-Defer+Naor": {
+                "mean_utility": 0.46,
+                "acc_pct": 64.06,
+                "ask_pct": 33.6,
+                "defer_pct": 34.8,
+                "mean_wait": 3.89,
+                "delta_vs_tri": 0.464,
+                "ci95": [
+                  -0.029,
+                  1.001
+                ],
+                "boot_p": 0.076974,
+                "boot_p_holm": 0.46184
+              },
+              "Joint-Greedy": {
+                "mean_utility": 0.249,
+                "acc_pct": 67.5,
+                "ask_pct": 29.5,
+                "defer_pct": 36.9,
+                "mean_wait": 6.6,
+                "delta_vs_tri": 0.675,
+                "ci95": [
+                  0.077,
+                  1.297
+                ],
+                "boot_p": 0.029324,
+                "boot_p_holm": 0.23459
+              },
+              "Joint-Greedy+Naor": {
+                "mean_utility": 1.169,
+                "acc_pct": 65.94,
+                "ask_pct": 30.5,
+                "defer_pct": 34.5,
+                "mean_wait": 2.97,
+                "delta_vs_tri": -0.244,
+                "ci95": [
+                  -0.868,
+                  0.342
+                ],
+                "boot_p": 0.43685,
+                "boot_p_holm": 1.0
+              },
+              "Calibrated-Cascade": {
+                "mean_utility": 0.112,
+                "acc_pct": 71.09,
+                "ask_pct": 50.0,
+                "defer_pct": 39.2,
+                "mean_wait": 7.7,
+                "delta_vs_tri": 0.813,
+                "ci95": [
+                  0.054,
+                  1.63
+                ],
+                "boot_p": 0.045985,
+                "boot_p_holm": 0.32189
+              },
+              "Calibrated-Cascade+Naor": {
+                "mean_utility": 0.995,
+                "acc_pct": 68.28,
+                "ask_pct": 50.0,
+                "defer_pct": 34.8,
+                "mean_wait": 4.1,
+                "delta_vs_tri": -0.071,
+                "ci95": [
+                  -0.511,
+                  0.38
+                ],
+                "boot_p": 0.74642,
+                "boot_p_holm": 1.0
+              },
+              "w/o Queue-Externality": {
+                "mean_utility": -0.302,
+                "acc_pct": 69.38,
+                "ask_pct": 36.7,
+                "defer_pct": 39.5,
+                "mean_wait": 8.41,
+                "delta_vs_tri": 1.226,
+                "ci95": [
+                  0.716,
+                  1.714
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "Tri-VoI-L2D": {
+                "mean_utility": 0.924,
+                "acc_pct": 66.72,
+                "ask_pct": 36.9,
+                "defer_pct": 35.5,
+                "mean_wait": 3.84
+              },
+              "Tri-VoI-L2D (2-Call)": {
+                "mean_utility": 1.346,
+                "acc_pct": 68.91,
+                "ask_pct": 35.5,
+                "defer_pct": 35.5,
+                "mean_wait": 3.96,
+                "delta_vs_tri": -0.421,
+                "ci95": [
+                  -0.935,
+                  0.026
+                ],
+                "boot_p": 0.087637,
+                "boot_p_holm": 0.46184
+              },
+              "Tri-VoI-L2D (Smooth-Naor)": {
+                "mean_utility": 0.924,
+                "acc_pct": 66.72,
+                "ask_pct": 36.9,
+                "defer_pct": 35.5,
+                "mean_wait": 3.84,
+                "delta_vs_tri": 0.0,
+                "ci95": [
+                  0.0,
+                  0.0
+                ],
+                "boot_p": 1.0,
+                "boot_p_holm": 1.0
+              },
+              "Oracle": {
+                "mean_utility": 1.869,
+                "acc_pct": 76.72,
+                "ask_pct": 37.5,
+                "defer_pct": 36.7,
+                "mean_wait": 6.98,
+                "delta_vs_tri": -0.944,
+                "ci95": [
+                  -1.964,
+                  0.002
+                ],
+                "boot_p": 0.060646
+              }
+            }
+          },
+          "stratify_post_clear": {
+            "Cap=2, c=1.5": {
+              "Direct-ACT": {
+                "mean_utility": -1.406,
+                "acc_pct": 42.97,
+                "ask_pct": 0.0,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 5.153,
+                "ci95": [
+                  3.093,
+                  7.117
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "KL-PBD+ (Warm)": {
+                "mean_utility": 3.632,
+                "acc_pct": 76.88,
+                "ask_pct": 0.0,
+                "defer_pct": 74.5,
+                "mean_wait": 0.4,
+                "delta_vs_tri": 0.114,
+                "ci95": [
+                  -0.621,
+                  0.829
+                ],
+                "boot_p": 0.75608,
+                "boot_p_holm": 1.0
+              },
+              "ACL-2026-VoI (Live)": {
+                "mean_utility": -1.898,
+                "acc_pct": 42.97,
+                "ask_pct": 32.8,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 5.645,
+                "ci95": [
+                  3.506,
+                  7.762
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "ACL-2026-VoI (Live)+Full-Defer+Naor": {
+                "mean_utility": 3.145,
+                "acc_pct": 75.31,
+                "ask_pct": 32.8,
+                "defer_pct": 62.3,
+                "mean_wait": 0.34,
+                "delta_vs_tri": 0.601,
+                "ci95": [
+                  -0.418,
+                  1.627
+                ],
+                "boot_p": 0.23392,
+                "boot_p_holm": 1.0
+              },
+              "Joint-Greedy": {
+                "mean_utility": 3.809,
+                "acc_pct": 77.66,
+                "ask_pct": 10.5,
+                "defer_pct": 67.0,
+                "mean_wait": 0.39,
+                "delta_vs_tri": -0.063,
+                "ci95": [
+                  -0.587,
+                  0.497
+                ],
+                "boot_p": 0.82239,
+                "boot_p_holm": 1.0
+              },
+              "Joint-Greedy+Naor": {
+                "mean_utility": 3.875,
+                "acc_pct": 77.97,
+                "ask_pct": 11.1,
+                "defer_pct": 66.9,
+                "mean_wait": 0.38,
+                "delta_vs_tri": -0.128,
+                "ci95": [
+                  -0.586,
+                  0.317
+                ],
+                "boot_p": 0.58647,
+                "boot_p_holm": 1.0
+              },
+              "Calibrated-Cascade": {
+                "mean_utility": 3.435,
+                "acc_pct": 77.66,
+                "ask_pct": 50.0,
+                "defer_pct": 59.2,
+                "mean_wait": 0.32,
+                "delta_vs_tri": 0.311,
+                "ci95": [
+                  -0.644,
+                  1.228
+                ],
+                "boot_p": 0.50383,
+                "boot_p_holm": 1.0
+              },
+              "Calibrated-Cascade+Naor": {
+                "mean_utility": 3.39,
+                "acc_pct": 77.19,
+                "ask_pct": 50.0,
+                "defer_pct": 57.5,
+                "mean_wait": 0.3,
+                "delta_vs_tri": 0.356,
+                "ci95": [
+                  -0.664,
+                  1.267
+                ],
+                "boot_p": 0.45718,
+                "boot_p_holm": 1.0
+              },
+              "w/o Queue-Externality": {
+                "mean_utility": 3.793,
+                "acc_pct": 77.81,
+                "ask_pct": 14.8,
+                "defer_pct": 66.7,
+                "mean_wait": 0.37,
+                "delta_vs_tri": -0.047,
+                "ci95": [
+                  -0.336,
+                  0.21
+                ],
+                "boot_p": 0.72542,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D": {
+                "mean_utility": 3.746,
+                "acc_pct": 77.5,
+                "ask_pct": 16.2,
+                "defer_pct": 65.5,
+                "mean_wait": 0.36
+              },
+              "Tri-VoI-L2D (2-Call)": {
+                "mean_utility": 3.404,
+                "acc_pct": 75.62,
+                "ask_pct": 17.5,
+                "defer_pct": 63.4,
+                "mean_wait": 0.35,
+                "delta_vs_tri": 0.343,
+                "ci95": [
+                  -0.022,
+                  0.72
+                ],
+                "boot_p": 0.074309,
+                "boot_p_holm": 0.66878
+              },
+              "Tri-VoI-L2D (Smooth-Naor)": {
+                "mean_utility": 3.722,
+                "acc_pct": 77.34,
+                "ask_pct": 16.4,
+                "defer_pct": 65.0,
+                "mean_wait": 0.36,
+                "delta_vs_tri": 0.024,
+                "ci95": [
+                  -0.061,
+                  0.119
+                ],
+                "boot_p": 0.75541,
+                "boot_p_holm": 1.0
+              },
+              "Oracle": {
+                "mean_utility": 4.134,
+                "acc_pct": 77.5,
+                "ask_pct": 37.5,
+                "defer_pct": 37.5,
+                "mean_wait": 0.17,
+                "delta_vs_tri": -0.388,
+                "ci95": [
+                  -1.509,
+                  0.638
+                ],
+                "boot_p": 0.45618
+              }
+            },
+            "Cap=2, c_def=4.0, c=1.5": {
+              "Direct-ACT": {
+                "mean_utility": -1.406,
+                "acc_pct": 42.97,
+                "ask_pct": 0.0,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 3.823,
+                "ci95": [
+                  1.862,
+                  5.658
+                ],
+                "boot_p": 0.00066644,
+                "boot_p_holm": 0.0066644
+              },
+              "KL-PBD+ (Warm)": {
+                "mean_utility": 2.397,
+                "acc_pct": 77.19,
+                "ask_pct": 0.0,
+                "defer_pct": 70.2,
+                "mean_wait": 0.39,
+                "delta_vs_tri": 0.019,
+                "ci95": [
+                  -0.928,
+                  0.957
+                ],
+                "boot_p": 0.96968,
+                "boot_p_holm": 1.0
+              },
+              "ACL-2026-VoI (Live)": {
+                "mean_utility": -1.898,
+                "acc_pct": 42.97,
+                "ask_pct": 32.8,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 4.315,
+                "ci95": [
+                  2.494,
+                  6.103
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "ACL-2026-VoI (Live)+Full-Defer+Naor": {
+                "mean_utility": 2.247,
+                "acc_pct": 75.47,
+                "ask_pct": 32.8,
+                "defer_pct": 55.3,
+                "mean_wait": 0.3,
+                "delta_vs_tri": 0.17,
+                "ci95": [
+                  -0.56,
+                  0.925
+                ],
+                "boot_p": 0.66911,
+                "boot_p_holm": 1.0
+              },
+              "Joint-Greedy": {
+                "mean_utility": 2.43,
+                "acc_pct": 76.56,
+                "ask_pct": 13.3,
+                "defer_pct": 62.0,
+                "mean_wait": 0.38,
+                "delta_vs_tri": -0.013,
+                "ci95": [
+                  -0.942,
+                  0.902
+                ],
+                "boot_p": 0.97234,
+                "boot_p_holm": 1.0
+              },
+              "Joint-Greedy+Naor": {
+                "mean_utility": 2.32,
+                "acc_pct": 75.78,
+                "ask_pct": 15.3,
+                "defer_pct": 60.6,
+                "mean_wait": 0.35,
+                "delta_vs_tri": 0.097,
+                "ci95": [
+                  -0.852,
+                  1.043
+                ],
+                "boot_p": 0.84372,
+                "boot_p_holm": 1.0
+              },
+              "Calibrated-Cascade": {
+                "mean_utility": 2.209,
+                "acc_pct": 75.31,
+                "ask_pct": 50.0,
+                "defer_pct": 49.5,
+                "mean_wait": 0.29,
+                "delta_vs_tri": 0.208,
+                "ci95": [
+                  -0.601,
+                  0.919
+                ],
+                "boot_p": 0.59547,
+                "boot_p_holm": 1.0
+              },
+              "Calibrated-Cascade+Naor": {
+                "mean_utility": 2.239,
+                "acc_pct": 75.47,
+                "ask_pct": 50.0,
+                "defer_pct": 49.5,
+                "mean_wait": 0.29,
+                "delta_vs_tri": 0.178,
+                "ci95": [
+                  -0.652,
+                  0.911
+                ],
+                "boot_p": 0.66678,
+                "boot_p_holm": 1.0
+              },
+              "w/o Queue-Externality": {
+                "mean_utility": 2.287,
+                "acc_pct": 75.78,
+                "ask_pct": 23.1,
+                "defer_pct": 58.9,
+                "mean_wait": 0.33,
+                "delta_vs_tri": 0.13,
+                "ci95": [
+                  -0.377,
+                  0.63
+                ],
+                "boot_p": 0.62879,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D": {
+                "mean_utility": 2.417,
+                "acc_pct": 76.09,
+                "ask_pct": 24.7,
+                "defer_pct": 56.9,
+                "mean_wait": 0.32
+              },
+              "Tri-VoI-L2D (2-Call)": {
+                "mean_utility": 2.613,
+                "acc_pct": 76.41,
+                "ask_pct": 26.2,
+                "defer_pct": 53.3,
+                "mean_wait": 0.32,
+                "delta_vs_tri": -0.196,
+                "ci95": [
+                  -0.858,
+                  0.439
+                ],
+                "boot_p": 0.55148,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D (Smooth-Naor)": {
+                "mean_utility": 2.432,
+                "acc_pct": 75.78,
+                "ask_pct": 26.4,
+                "defer_pct": 54.7,
+                "mean_wait": 0.3,
+                "delta_vs_tri": -0.015,
+                "ci95": [
+                  -0.489,
+                  0.48
+                ],
+                "boot_p": 0.94568,
+                "boot_p_holm": 1.0
+              },
+              "Oracle": {
+                "mean_utility": 3.384,
+                "acc_pct": 77.5,
+                "ask_pct": 37.5,
+                "defer_pct": 37.5,
+                "mean_wait": 0.17,
+                "delta_vs_tri": -0.968,
+                "ci95": [
+                  -1.785,
+                  -0.166
+                ],
+                "boot_p": 0.01866
+              }
+            },
+            "Cap=1/3, c=1.5": {
+              "Direct-ACT": {
+                "mean_utility": -1.406,
+                "acc_pct": 42.97,
+                "ask_pct": 0.0,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 2.445,
+                "ci95": [
+                  0.913,
+                  3.889
+                ],
+                "boot_p": 0.0026658,
+                "boot_p_holm": 0.021326
+              },
+              "KL-PBD+ (Warm)": {
+                "mean_utility": 1.129,
+                "acc_pct": 59.69,
+                "ask_pct": 0.0,
+                "defer_pct": 33.6,
+                "mean_wait": 0.48,
+                "delta_vs_tri": -0.09,
+                "ci95": [
+                  -1.374,
+                  1.175
+                ],
+                "boot_p": 0.8897,
+                "boot_p_holm": 1.0
+              },
+              "ACL-2026-VoI (Live)": {
+                "mean_utility": -1.898,
+                "acc_pct": 42.97,
+                "ask_pct": 32.8,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 2.937,
+                "ci95": [
+                  1.528,
+                  4.486
+                ],
+                "boot_p": 0.00066644,
+                "boot_p_holm": 0.0066644
+              },
+              "ACL-2026-VoI (Live)+Full-Defer+Naor": {
+                "mean_utility": 0.55,
+                "acc_pct": 64.69,
+                "ask_pct": 32.8,
+                "defer_pct": 35.8,
+                "mean_wait": 3.88,
+                "delta_vs_tri": 0.488,
+                "ci95": [
+                  -0.019,
+                  0.996
+                ],
+                "boot_p": 0.05998,
+                "boot_p_holm": 0.35988
+              },
+              "Joint-Greedy": {
+                "mean_utility": 0.268,
+                "acc_pct": 67.5,
+                "ask_pct": 25.8,
+                "defer_pct": 37.0,
+                "mean_wait": 6.68,
+                "delta_vs_tri": 0.771,
+                "ci95": [
+                  0.25,
+                  1.328
+                ],
+                "boot_p": 0.0033322,
+                "boot_p_holm": 0.023325
+              },
+              "Joint-Greedy+Naor": {
+                "mean_utility": 1.232,
+                "acc_pct": 65.94,
+                "ask_pct": 26.6,
+                "defer_pct": 34.4,
+                "mean_wait": 2.98,
+                "delta_vs_tri": -0.193,
+                "ci95": [
+                  -0.713,
+                  0.295
+                ],
+                "boot_p": 0.45685,
+                "boot_p_holm": 1.0
+              },
+              "Calibrated-Cascade": {
+                "mean_utility": -0.234,
+                "acc_pct": 70.94,
+                "ask_pct": 50.0,
+                "defer_pct": 40.3,
+                "mean_wait": 8.32,
+                "delta_vs_tri": 1.272,
+                "ci95": [
+                  0.529,
+                  2.002
+                ],
+                "boot_p": 0.0013329,
+                "boot_p_holm": 0.011996
+              },
+              "Calibrated-Cascade+Naor": {
+                "mean_utility": 1.011,
+                "acc_pct": 68.59,
+                "ask_pct": 50.0,
+                "defer_pct": 35.9,
+                "mean_wait": 4.06,
+                "delta_vs_tri": 0.028,
+                "ci95": [
+                  -0.422,
+                  0.483
+                ],
+                "boot_p": 0.90337,
+                "boot_p_holm": 1.0
+              },
+              "w/o Queue-Externality": {
+                "mean_utility": -0.012,
+                "acc_pct": 69.84,
+                "ask_pct": 32.2,
+                "defer_pct": 39.4,
+                "mean_wait": 8.08,
+                "delta_vs_tri": 1.051,
+                "ci95": [
+                  0.544,
+                  1.527
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "Tri-VoI-L2D": {
+                "mean_utility": 1.039,
+                "acc_pct": 66.56,
+                "ask_pct": 30.9,
+                "defer_pct": 35.3,
+                "mean_wait": 3.68
+              },
+              "Tri-VoI-L2D (2-Call)": {
+                "mean_utility": 1.03,
+                "acc_pct": 66.56,
+                "ask_pct": 30.2,
+                "defer_pct": 34.7,
+                "mean_wait": 3.85,
+                "delta_vs_tri": 0.009,
+                "ci95": [
+                  -0.461,
+                  0.459
+                ],
+                "boot_p": 0.96601,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D (Smooth-Naor)": {
+                "mean_utility": 1.039,
+                "acc_pct": 66.56,
+                "ask_pct": 30.9,
+                "defer_pct": 35.3,
+                "mean_wait": 3.68,
+                "delta_vs_tri": 0.0,
+                "ci95": [
+                  0.0,
+                  0.0
+                ],
+                "boot_p": 1.0,
+                "boot_p_holm": 1.0
+              },
+              "Oracle": {
+                "mean_utility": 1.869,
+                "acc_pct": 76.72,
+                "ask_pct": 37.5,
+                "defer_pct": 36.7,
+                "mean_wait": 6.98,
+                "delta_vs_tri": -0.83,
+                "ci95": [
+                  -1.824,
+                  0.092
+                ],
+                "boot_p": 0.092303
+              }
+            }
+          }
+        }
+      },
+      "deepseek-ai/DeepSeek-V3.2": {
+        "diagnosis": {
+          "missing_f1": 0.7246,
+          "override_f1": 0.6715,
+          "entropy_collapse_pct": 70.31,
+          "underspec_acc_greedy_pct": 62.5
+        },
+        "raw_usmle_acc": {
+          "Q1_clear_easy": {
+            "n": 32,
+            "zero_turn_acc_pct": 81.25,
+            "post_ask_acc_pct": 84.38,
+            "oracle_revealed_pct": 0.0
+          },
+          "Q2_underspec_easy": {
+            "n": 32,
+            "zero_turn_acc_pct": 50.0,
+            "post_ask_acc_pct": 75.0,
+            "oracle_revealed_pct": 59.4
+          },
+          "Q3_clear_hard": {
+            "n": 32,
+            "zero_turn_acc_pct": 62.5,
+            "post_ask_acc_pct": 62.5,
+            "oracle_revealed_pct": 0.0
+          },
+          "Q4_resolvable": {
+            "n": 16,
+            "zero_turn_acc_pct": 75.0,
+            "post_ask_acc_pct": 75.0,
+            "oracle_revealed_pct": 81.2
+          },
+          "Q4_escalate": {
+            "n": 16,
+            "zero_turn_acc_pct": 75.0,
+            "post_ask_acc_pct": 93.75,
+            "oracle_revealed_pct": 87.5
+          }
+        },
+        "regimes_by_calibrator": {
+          "unified_default": {
+            "Cap=2, c=1.5": {
+              "Direct-ACT": {
+                "mean_utility": -1.562,
+                "acc_pct": 42.19,
+                "ask_pct": 0.0,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 5.626,
+                "ci95": [
+                  3.352,
+                  7.908
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "KL-PBD+ (Warm)": {
+                "mean_utility": 3.563,
+                "acc_pct": 77.34,
+                "ask_pct": 0.0,
+                "defer_pct": 80.5,
+                "mean_wait": 0.43,
+                "delta_vs_tri": 0.501,
+                "ci95": [
+                  -0.196,
+                  1.239
+                ],
+                "boot_p": 0.17061,
+                "boot_p_holm": 0.85305
+              },
+              "ACL-2026-VoI (Live)": {
+                "mean_utility": -1.246,
+                "acc_pct": 46.88,
+                "ask_pct": 41.4,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 5.31,
+                "ci95": [
+                  2.924,
+                  7.857
+                ],
+                "boot_p": 0.00066644,
+                "boot_p_holm": 0.0066644
+              },
+              "ACL-2026-VoI (Live)+Full-Defer+Naor": {
+                "mean_utility": 3.444,
+                "acc_pct": 77.81,
+                "ask_pct": 41.4,
+                "defer_pct": 64.7,
+                "mean_wait": 0.37,
+                "delta_vs_tri": 0.62,
+                "ci95": [
+                  -0.097,
+                  1.362
+                ],
+                "boot_p": 0.093969,
+                "boot_p_holm": 0.77974
+              },
+              "Joint-Greedy": {
+                "mean_utility": 3.672,
+                "acc_pct": 78.12,
+                "ask_pct": 16.1,
+                "defer_pct": 72.3,
+                "mean_wait": 0.43,
+                "delta_vs_tri": 0.392,
+                "ci95": [
+                  -0.303,
+                  1.107
+                ],
+                "boot_p": 0.29224,
+                "boot_p_holm": 1.0
+              },
+              "Joint-Greedy+Naor": {
+                "mean_utility": 3.728,
+                "acc_pct": 77.97,
+                "ask_pct": 17.5,
+                "defer_pct": 68.3,
+                "mean_wait": 0.41,
+                "delta_vs_tri": 0.336,
+                "ci95": [
+                  -0.063,
+                  0.815
+                ],
+                "boot_p": 0.12429,
+                "boot_p_holm": 0.77974
+              },
+              "Calibrated-Cascade": {
+                "mean_utility": 3.522,
+                "acc_pct": 80.0,
+                "ask_pct": 57.8,
+                "defer_pct": 68.6,
+                "mean_wait": 0.41,
+                "delta_vs_tri": 0.542,
+                "ci95": [
+                  -0.072,
+                  1.162
+                ],
+                "boot_p": 0.086638,
+                "boot_p_holm": 0.77974
+              },
+              "Calibrated-Cascade+Naor": {
+                "mean_utility": 3.32,
+                "acc_pct": 77.97,
+                "ask_pct": 57.8,
+                "defer_pct": 61.2,
+                "mean_wait": 0.35,
+                "delta_vs_tri": 0.744,
+                "ci95": [
+                  -0.105,
+                  1.655
+                ],
+                "boot_p": 0.091969,
+                "boot_p_holm": 0.77974
+              },
+              "w/o Queue-Externality": {
+                "mean_utility": 3.955,
+                "acc_pct": 80.16,
+                "ask_pct": 23.6,
+                "defer_pct": 72.5,
+                "mean_wait": 0.44,
+                "delta_vs_tri": 0.109,
+                "ci95": [
+                  -0.589,
+                  0.856
+                ],
+                "boot_p": 0.76275,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D": {
+                "mean_utility": 4.064,
+                "acc_pct": 80.31,
+                "ask_pct": 25.2,
+                "defer_pct": 68.9,
+                "mean_wait": 0.41
+              },
+              "Tri-VoI-L2D (2-Call)": {
+                "mean_utility": 4.007,
+                "acc_pct": 79.84,
+                "ask_pct": 24.4,
+                "defer_pct": 68.0,
+                "mean_wait": 0.41,
+                "delta_vs_tri": 0.057,
+                "ci95": [
+                  -0.308,
+                  0.445
+                ],
+                "boot_p": 0.77308,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D (Smooth-Naor)": {
+                "mean_utility": 4.089,
+                "acc_pct": 80.31,
+                "ask_pct": 24.4,
+                "defer_pct": 68.4,
+                "mean_wait": 0.41,
+                "delta_vs_tri": -0.025,
+                "ci95": [
+                  -0.304,
+                  0.255
+                ],
+                "boot_p": 0.86338,
+                "boot_p_holm": 1.0
+              },
+              "Oracle": {
+                "mean_utility": 4.603,
+                "acc_pct": 79.84,
+                "ask_pct": 37.5,
+                "defer_pct": 37.5,
+                "mean_wait": 0.17,
+                "delta_vs_tri": -0.539,
+                "ci95": [
+                  -1.445,
+                  0.441
+                ],
+                "boot_p": 0.26158
+              }
+            },
+            "Cap=2, c_def=4.0, c=1.5": {
+              "Direct-ACT": {
+                "mean_utility": -1.562,
+                "acc_pct": 42.19,
+                "ask_pct": 0.0,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 4.29,
+                "ci95": [
+                  2.603,
+                  6.025
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "KL-PBD+ (Warm)": {
+                "mean_utility": 2.201,
+                "acc_pct": 76.88,
+                "ask_pct": 0.0,
+                "defer_pct": 73.0,
+                "mean_wait": 0.41,
+                "delta_vs_tri": 0.526,
+                "ci95": [
+                  -0.553,
+                  1.61
+                ],
+                "boot_p": 0.33989,
+                "boot_p_holm": 1.0
+              },
+              "ACL-2026-VoI (Live)": {
+                "mean_utility": -1.246,
+                "acc_pct": 46.88,
+                "ask_pct": 41.4,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 3.974,
+                "ci95": [
+                  2.001,
+                  6.031
+                ],
+                "boot_p": 0.00066644,
+                "boot_p_holm": 0.0066644
+              },
+              "ACL-2026-VoI (Live)+Full-Defer+Naor": {
+                "mean_utility": 2.102,
+                "acc_pct": 74.38,
+                "ask_pct": 41.4,
+                "defer_pct": 50.3,
+                "mean_wait": 0.33,
+                "delta_vs_tri": 0.626,
+                "ci95": [
+                  -0.523,
+                  1.803
+                ],
+                "boot_p": 0.2969,
+                "boot_p_holm": 1.0
+              },
+              "Joint-Greedy": {
+                "mean_utility": 2.515,
+                "acc_pct": 77.19,
+                "ask_pct": 19.7,
+                "defer_pct": 60.9,
+                "mean_wait": 0.37,
+                "delta_vs_tri": 0.213,
+                "ci95": [
+                  -0.62,
+                  1.071
+                ],
+                "boot_p": 0.62712,
+                "boot_p_holm": 1.0
+              },
+              "Joint-Greedy+Naor": {
+                "mean_utility": 2.476,
+                "acc_pct": 76.41,
+                "ask_pct": 21.7,
+                "defer_pct": 57.8,
+                "mean_wait": 0.34,
+                "delta_vs_tri": 0.252,
+                "ci95": [
+                  -0.319,
+                  0.84
+                ],
+                "boot_p": 0.3872,
+                "boot_p_holm": 1.0
+              },
+              "Calibrated-Cascade": {
+                "mean_utility": 2.071,
+                "acc_pct": 74.22,
+                "ask_pct": 57.8,
+                "defer_pct": 44.8,
+                "mean_wait": 0.29,
+                "delta_vs_tri": 0.656,
+                "ci95": [
+                  -0.15,
+                  1.606
+                ],
+                "boot_p": 0.13729,
+                "boot_p_holm": 1.0
+              },
+              "Calibrated-Cascade+Naor": {
+                "mean_utility": 2.071,
+                "acc_pct": 74.22,
+                "ask_pct": 57.8,
+                "defer_pct": 44.8,
+                "mean_wait": 0.29,
+                "delta_vs_tri": 0.656,
+                "ci95": [
+                  -0.15,
+                  1.606
+                ],
+                "boot_p": 0.13762,
+                "boot_p_holm": 1.0
+              },
+              "w/o Queue-Externality": {
+                "mean_utility": 2.675,
+                "acc_pct": 78.91,
+                "ask_pct": 29.4,
+                "defer_pct": 61.7,
+                "mean_wait": 0.37,
+                "delta_vs_tri": 0.052,
+                "ci95": [
+                  -0.751,
+                  0.881
+                ],
+                "boot_p": 0.9037,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D": {
+                "mean_utility": 2.728,
+                "acc_pct": 78.59,
+                "ask_pct": 33.9,
+                "defer_pct": 57.8,
+                "mean_wait": 0.35
+              },
+              "Tri-VoI-L2D (2-Call)": {
+                "mean_utility": 2.785,
+                "acc_pct": 78.59,
+                "ask_pct": 34.1,
+                "defer_pct": 56.6,
+                "mean_wait": 0.33,
+                "delta_vs_tri": -0.057,
+                "ci95": [
+                  -0.383,
+                  0.266
+                ],
+                "boot_p": 0.72942,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D (Smooth-Naor)": {
+                "mean_utility": 2.847,
+                "acc_pct": 79.22,
+                "ask_pct": 35.0,
+                "defer_pct": 57.5,
+                "mean_wait": 0.35,
+                "delta_vs_tri": -0.12,
+                "ci95": [
+                  -0.344,
+                  0.07
+                ],
+                "boot_p": 0.25258,
+                "boot_p_holm": 1.0
+              },
+              "Oracle": {
+                "mean_utility": 3.853,
+                "acc_pct": 79.84,
+                "ask_pct": 37.5,
+                "defer_pct": 37.5,
+                "mean_wait": 0.17,
+                "delta_vs_tri": -1.125,
+                "ci95": [
+                  -2.029,
+                  -0.205
+                ],
+                "boot_p": 0.019327
+              }
+            },
+            "Cap=1/3, c=1.5": {
+              "Direct-ACT": {
+                "mean_utility": -1.562,
+                "acc_pct": 42.19,
+                "ask_pct": 0.0,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 3.376,
+                "ci95": [
+                  1.705,
+                  5.079
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "KL-PBD+ (Warm)": {
+                "mean_utility": 0.839,
+                "acc_pct": 58.28,
+                "ask_pct": 0.0,
+                "defer_pct": 33.0,
+                "mean_wait": 0.56,
+                "delta_vs_tri": 0.975,
+                "ci95": [
+                  -0.158,
+                  2.138
+                ],
+                "boot_p": 0.088637,
+                "boot_p_holm": 0.53182
+              },
+              "ACL-2026-VoI (Live)": {
+                "mean_utility": -1.246,
+                "acc_pct": 46.88,
+                "ask_pct": 41.4,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 3.06,
+                "ci95": [
+                  1.512,
+                  4.732
+                ],
+                "boot_p": 0.00066644,
+                "boot_p_holm": 0.0053315
+              },
+              "ACL-2026-VoI (Live)+Full-Defer+Naor": {
+                "mean_utility": 1.209,
+                "acc_pct": 67.66,
+                "ask_pct": 41.4,
+                "defer_pct": 34.4,
+                "mean_wait": 3.47,
+                "delta_vs_tri": 0.604,
+                "ci95": [
+                  -0.101,
+                  1.356
+                ],
+                "boot_p": 0.10263,
+                "boot_p_holm": 0.53182
+              },
+              "Joint-Greedy": {
+                "mean_utility": 0.454,
+                "acc_pct": 68.12,
+                "ask_pct": 42.2,
+                "defer_pct": 35.3,
+                "mean_wait": 6.11,
+                "delta_vs_tri": 1.359,
+                "ci95": [
+                  0.841,
+                  1.942
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "Joint-Greedy+Naor": {
+                "mean_utility": 1.662,
+                "acc_pct": 68.59,
+                "ask_pct": 43.6,
+                "defer_pct": 33.4,
+                "mean_wait": 2.58,
+                "delta_vs_tri": 0.152,
+                "ci95": [
+                  -0.412,
+                  0.717
+                ],
+                "boot_p": 0.5988,
+                "boot_p_holm": 1.0
+              },
+              "Calibrated-Cascade": {
+                "mean_utility": 0.958,
+                "acc_pct": 73.75,
+                "ask_pct": 57.8,
+                "defer_pct": 38.3,
+                "mean_wait": 6.62,
+                "delta_vs_tri": 0.856,
+                "ci95": [
+                  0.372,
+                  1.362
+                ],
+                "boot_p": 0.0019993,
+                "boot_p_holm": 0.013995
+              },
+              "Calibrated-Cascade+Naor": {
+                "mean_utility": 1.615,
+                "acc_pct": 70.94,
+                "ask_pct": 57.8,
+                "defer_pct": 34.7,
+                "mean_wait": 3.43,
+                "delta_vs_tri": 0.199,
+                "ci95": [
+                  0.005,
+                  0.561
+                ],
+                "boot_p": 0.12696,
+                "boot_p_holm": 0.53182
+              },
+              "w/o Queue-Externality": {
+                "mean_utility": 0.512,
+                "acc_pct": 73.28,
+                "ask_pct": 51.7,
+                "defer_pct": 38.9,
+                "mean_wait": 7.81,
+                "delta_vs_tri": 1.301,
+                "ci95": [
+                  0.821,
+                  1.773
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "Tri-VoI-L2D": {
+                "mean_utility": 1.814,
+                "acc_pct": 71.72,
+                "ask_pct": 54.1,
+                "defer_pct": 34.7,
+                "mean_wait": 3.48
+              },
+              "Tri-VoI-L2D (2-Call)": {
+                "mean_utility": 1.721,
+                "acc_pct": 71.09,
+                "ask_pct": 54.1,
+                "defer_pct": 34.7,
+                "mean_wait": 3.37,
+                "delta_vs_tri": 0.093,
+                "ci95": [
+                  -0.104,
+                  0.321
+                ],
+                "boot_p": 0.3982,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D (Smooth-Naor)": {
+                "mean_utility": 1.811,
+                "acc_pct": 71.72,
+                "ask_pct": 54.2,
+                "defer_pct": 34.7,
+                "mean_wait": 3.48,
+                "delta_vs_tri": 0.002,
+                "ci95": [
+                  0.0,
+                  0.007
+                ],
+                "boot_p": 0.61913,
+                "boot_p_holm": 1.0
+              },
+              "Oracle": {
+                "mean_utility": 2.338,
+                "acc_pct": 79.06,
+                "ask_pct": 37.5,
+                "defer_pct": 36.7,
+                "mean_wait": 6.98,
+                "delta_vs_tri": -0.524,
+                "ci95": [
+                  -1.49,
+                  0.416
+                ],
+                "boot_p": 0.26025
+              }
+            }
+          },
+          "stratify_post_clear": {
+            "Cap=2, c=1.5": {
+              "Direct-ACT": {
+                "mean_utility": -1.562,
+                "acc_pct": 42.19,
+                "ask_pct": 0.0,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 5.611,
+                "ci95": [
+                  3.312,
+                  7.899
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "KL-PBD+ (Warm)": {
+                "mean_utility": 3.563,
+                "acc_pct": 77.34,
+                "ask_pct": 0.0,
+                "defer_pct": 80.5,
+                "mean_wait": 0.43,
+                "delta_vs_tri": 0.485,
+                "ci95": [
+                  -0.277,
+                  1.233
+                ],
+                "boot_p": 0.21393,
+                "boot_p_holm": 1.0
+              },
+              "ACL-2026-VoI (Live)": {
+                "mean_utility": -1.246,
+                "acc_pct": 46.88,
+                "ask_pct": 41.4,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 5.294,
+                "ci95": [
+                  2.887,
+                  7.853
+                ],
+                "boot_p": 0.00066644,
+                "boot_p_holm": 0.0066644
+              },
+              "ACL-2026-VoI (Live)+Full-Defer+Naor": {
+                "mean_utility": 3.484,
+                "acc_pct": 78.12,
+                "ask_pct": 41.4,
+                "defer_pct": 65.6,
+                "mean_wait": 0.37,
+                "delta_vs_tri": 0.564,
+                "ci95": [
+                  -0.241,
+                  1.308
+                ],
+                "boot_p": 0.15228,
+                "boot_p_holm": 1.0
+              },
+              "Joint-Greedy": {
+                "mean_utility": 3.731,
+                "acc_pct": 78.44,
+                "ask_pct": 15.2,
+                "defer_pct": 73.1,
+                "mean_wait": 0.43,
+                "delta_vs_tri": 0.317,
+                "ci95": [
+                  -0.499,
+                  1.127
+                ],
+                "boot_p": 0.44485,
+                "boot_p_holm": 1.0
+              },
+              "Joint-Greedy+Naor": {
+                "mean_utility": 3.932,
+                "acc_pct": 79.06,
+                "ask_pct": 15.9,
+                "defer_pct": 70.0,
+                "mean_wait": 0.41,
+                "delta_vs_tri": 0.116,
+                "ci95": [
+                  -0.314,
+                  0.583
+                ],
+                "boot_p": 0.60247,
+                "boot_p_holm": 1.0
+              },
+              "Calibrated-Cascade": {
+                "mean_utility": 3.602,
+                "acc_pct": 80.31,
+                "ask_pct": 57.8,
+                "defer_pct": 68.0,
+                "mean_wait": 0.4,
+                "delta_vs_tri": 0.446,
+                "ci95": [
+                  -0.082,
+                  0.994
+                ],
+                "boot_p": 0.08997,
+                "boot_p_holm": 0.80973
+              },
+              "Calibrated-Cascade+Naor": {
+                "mean_utility": 3.45,
+                "acc_pct": 78.75,
+                "ask_pct": 57.8,
+                "defer_pct": 62.3,
+                "mean_wait": 0.35,
+                "delta_vs_tri": 0.598,
+                "ci95": [
+                  -0.366,
+                  1.596
+                ],
+                "boot_p": 0.22059,
+                "boot_p_holm": 1.0
+              },
+              "w/o Queue-Externality": {
+                "mean_utility": 3.967,
+                "acc_pct": 80.16,
+                "ask_pct": 22.8,
+                "defer_pct": 72.5,
+                "mean_wait": 0.44,
+                "delta_vs_tri": 0.081,
+                "ci95": [
+                  -0.629,
+                  0.855
+                ],
+                "boot_p": 0.83106,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D": {
+                "mean_utility": 4.048,
+                "acc_pct": 80.16,
+                "ask_pct": 24.2,
+                "defer_pct": 68.9,
+                "mean_wait": 0.41
+              },
+              "Tri-VoI-L2D (2-Call)": {
+                "mean_utility": 3.983,
+                "acc_pct": 79.69,
+                "ask_pct": 23.3,
+                "defer_pct": 68.4,
+                "mean_wait": 0.41,
+                "delta_vs_tri": 0.065,
+                "ci95": [
+                  -0.307,
+                  0.452
+                ],
+                "boot_p": 0.74808,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D (Smooth-Naor)": {
+                "mean_utility": 4.069,
+                "acc_pct": 80.16,
+                "ask_pct": 23.9,
+                "defer_pct": 68.3,
+                "mean_wait": 0.41,
+                "delta_vs_tri": -0.021,
+                "ci95": [
+                  -0.324,
+                  0.288
+                ],
+                "boot_p": 0.88271,
+                "boot_p_holm": 1.0
+              },
+              "Oracle": {
+                "mean_utility": 4.603,
+                "acc_pct": 79.84,
+                "ask_pct": 37.5,
+                "defer_pct": 37.5,
+                "mean_wait": 0.17,
+                "delta_vs_tri": -0.555,
+                "ci95": [
+                  -1.499,
+                  0.456
+                ],
+                "boot_p": 0.25958
+              }
+            },
+            "Cap=2, c_def=4.0, c=1.5": {
+              "Direct-ACT": {
+                "mean_utility": -1.562,
+                "acc_pct": 42.19,
+                "ask_pct": 0.0,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 4.513,
+                "ci95": [
+                  2.735,
+                  6.366
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "KL-PBD+ (Warm)": {
+                "mean_utility": 2.201,
+                "acc_pct": 76.88,
+                "ask_pct": 0.0,
+                "defer_pct": 73.0,
+                "mean_wait": 0.41,
+                "delta_vs_tri": 0.749,
+                "ci95": [
+                  -0.175,
+                  1.692
+                ],
+                "boot_p": 0.11363,
+                "boot_p_holm": 0.79541
+              },
+              "ACL-2026-VoI (Live)": {
+                "mean_utility": -1.246,
+                "acc_pct": 46.88,
+                "ask_pct": 41.4,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 4.196,
+                "ci95": [
+                  2.218,
+                  6.28
+                ],
+                "boot_p": 0.00066644,
+                "boot_p_holm": 0.0066644
+              },
+              "ACL-2026-VoI (Live)+Full-Defer+Naor": {
+                "mean_utility": 2.287,
+                "acc_pct": 75.62,
+                "ask_pct": 41.4,
+                "defer_pct": 51.9,
+                "mean_wait": 0.32,
+                "delta_vs_tri": 0.663,
+                "ci95": [
+                  -0.296,
+                  1.619
+                ],
+                "boot_p": 0.18261,
+                "boot_p_holm": 1.0
+              },
+              "Joint-Greedy": {
+                "mean_utility": 2.543,
+                "acc_pct": 77.34,
+                "ask_pct": 20.2,
+                "defer_pct": 60.8,
+                "mean_wait": 0.37,
+                "delta_vs_tri": 0.407,
+                "ci95": [
+                  -0.332,
+                  1.13
+                ],
+                "boot_p": 0.27291,
+                "boot_p_holm": 1.0
+              },
+              "Joint-Greedy+Naor": {
+                "mean_utility": 2.672,
+                "acc_pct": 77.5,
+                "ask_pct": 20.8,
+                "defer_pct": 58.6,
+                "mean_wait": 0.35,
+                "delta_vs_tri": 0.278,
+                "ci95": [
+                  -0.279,
+                  0.916
+                ],
+                "boot_p": 0.35322,
+                "boot_p_holm": 1.0
+              },
+              "Calibrated-Cascade": {
+                "mean_utility": 2.198,
+                "acc_pct": 75.62,
+                "ask_pct": 57.8,
+                "defer_pct": 48.4,
+                "mean_wait": 0.3,
+                "delta_vs_tri": 0.752,
+                "ci95": [
+                  0.039,
+                  1.515
+                ],
+                "boot_p": 0.046651,
+                "boot_p_holm": 0.37321
+              },
+              "Calibrated-Cascade+Naor": {
+                "mean_utility": 2.115,
+                "acc_pct": 74.84,
+                "ask_pct": 57.8,
+                "defer_pct": 46.7,
+                "mean_wait": 0.3,
+                "delta_vs_tri": 0.835,
+                "ci95": [
+                  0.119,
+                  1.487
+                ],
+                "boot_p": 0.017661,
+                "boot_p_holm": 0.15895
+              },
+              "w/o Queue-Externality": {
+                "mean_utility": 2.902,
+                "acc_pct": 79.69,
+                "ask_pct": 30.9,
+                "defer_pct": 59.5,
+                "mean_wait": 0.38,
+                "delta_vs_tri": 0.048,
+                "ci95": [
+                  -0.576,
+                  0.709
+                ],
+                "boot_p": 0.88837,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D": {
+                "mean_utility": 2.95,
+                "acc_pct": 79.22,
+                "ask_pct": 32.5,
+                "defer_pct": 55.9,
+                "mean_wait": 0.35
+              },
+              "Tri-VoI-L2D (2-Call)": {
+                "mean_utility": 3.048,
+                "acc_pct": 79.53,
+                "ask_pct": 32.3,
+                "defer_pct": 55.3,
+                "mean_wait": 0.34,
+                "delta_vs_tri": -0.098,
+                "ci95": [
+                  -0.469,
+                  0.267
+                ],
+                "boot_p": 0.60646,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D (Smooth-Naor)": {
+                "mean_utility": 2.778,
+                "acc_pct": 78.28,
+                "ask_pct": 33.9,
+                "defer_pct": 55.2,
+                "mean_wait": 0.35,
+                "delta_vs_tri": 0.172,
+                "ci95": [
+                  -0.159,
+                  0.508
+                ],
+                "boot_p": 0.33955,
+                "boot_p_holm": 1.0
+              },
+              "Oracle": {
+                "mean_utility": 3.853,
+                "acc_pct": 79.84,
+                "ask_pct": 37.5,
+                "defer_pct": 37.5,
+                "mean_wait": 0.17,
+                "delta_vs_tri": -0.903,
+                "ci95": [
+                  -1.667,
+                  -0.141
+                ],
+                "boot_p": 0.020327
+              }
+            },
+            "Cap=1/3, c=1.5": {
+              "Direct-ACT": {
+                "mean_utility": -1.562,
+                "acc_pct": 42.19,
+                "ask_pct": 0.0,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 3.383,
+                "ci95": [
+                  1.712,
+                  5.092
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "KL-PBD+ (Warm)": {
+                "mean_utility": 0.839,
+                "acc_pct": 58.28,
+                "ask_pct": 0.0,
+                "defer_pct": 33.0,
+                "mean_wait": 0.56,
+                "delta_vs_tri": 0.982,
+                "ci95": [
+                  -0.145,
+                  2.143
+                ],
+                "boot_p": 0.086638,
+                "boot_p_holm": 0.51983
+              },
+              "ACL-2026-VoI (Live)": {
+                "mean_utility": -1.246,
+                "acc_pct": 46.88,
+                "ask_pct": 41.4,
+                "defer_pct": 0.0,
+                "mean_wait": 0.0,
+                "delta_vs_tri": 3.067,
+                "ci95": [
+                  1.519,
+                  4.743
+                ],
+                "boot_p": 0.00066644,
+                "boot_p_holm": 0.0053315
+              },
+              "ACL-2026-VoI (Live)+Full-Defer+Naor": {
+                "mean_utility": 1.209,
+                "acc_pct": 67.66,
+                "ask_pct": 41.4,
+                "defer_pct": 34.4,
+                "mean_wait": 3.47,
+                "delta_vs_tri": 0.611,
+                "ci95": [
+                  -0.095,
+                  1.368
+                ],
+                "boot_p": 0.099633,
+                "boot_p_holm": 0.51983
+              },
+              "Joint-Greedy": {
+                "mean_utility": 0.267,
+                "acc_pct": 67.81,
+                "ask_pct": 41.7,
+                "defer_pct": 35.6,
+                "mean_wait": 6.46,
+                "delta_vs_tri": 1.554,
+                "ci95": [
+                  0.958,
+                  2.237
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "Joint-Greedy+Naor": {
+                "mean_utility": 1.591,
+                "acc_pct": 68.44,
+                "ask_pct": 43.4,
+                "defer_pct": 33.8,
+                "mean_wait": 2.68,
+                "delta_vs_tri": 0.23,
+                "ci95": [
+                  -0.354,
+                  0.787
+                ],
+                "boot_p": 0.43685,
+                "boot_p_holm": 1.0
+              },
+              "Calibrated-Cascade": {
+                "mean_utility": 0.958,
+                "acc_pct": 73.75,
+                "ask_pct": 57.8,
+                "defer_pct": 38.3,
+                "mean_wait": 6.62,
+                "delta_vs_tri": 0.863,
+                "ci95": [
+                  0.38,
+                  1.368
+                ],
+                "boot_p": 0.0016661,
+                "boot_p_holm": 0.011663
+              },
+              "Calibrated-Cascade+Naor": {
+                "mean_utility": 1.615,
+                "acc_pct": 70.94,
+                "ask_pct": 57.8,
+                "defer_pct": 34.7,
+                "mean_wait": 3.43,
+                "delta_vs_tri": 0.206,
+                "ci95": [
+                  0.007,
+                  0.57
+                ],
+                "boot_p": 0.12163,
+                "boot_p_holm": 0.51983
+              },
+              "w/o Queue-Externality": {
+                "mean_utility": 0.461,
+                "acc_pct": 72.97,
+                "ask_pct": 50.8,
+                "defer_pct": 38.9,
+                "mean_wait": 7.82,
+                "delta_vs_tri": 1.359,
+                "ci95": [
+                  0.876,
+                  1.835
+                ],
+                "boot_p": 0.00033322,
+                "boot_p_holm": 0.0036654
+              },
+              "Tri-VoI-L2D": {
+                "mean_utility": 1.821,
+                "acc_pct": 71.72,
+                "ask_pct": 53.6,
+                "defer_pct": 34.7,
+                "mean_wait": 3.48
+              },
+              "Tri-VoI-L2D (2-Call)": {
+                "mean_utility": 1.728,
+                "acc_pct": 71.09,
+                "ask_pct": 53.6,
+                "defer_pct": 34.7,
+                "mean_wait": 3.37,
+                "delta_vs_tri": 0.093,
+                "ci95": [
+                  -0.104,
+                  0.321
+                ],
+                "boot_p": 0.3982,
+                "boot_p_holm": 1.0
+              },
+              "Tri-VoI-L2D (Smooth-Naor)": {
+                "mean_utility": 1.821,
+                "acc_pct": 71.72,
+                "ask_pct": 53.6,
+                "defer_pct": 34.7,
+                "mean_wait": 3.48,
+                "delta_vs_tri": 0.0,
+                "ci95": [
+                  0.0,
+                  0.0
+                ],
+                "boot_p": 1.0,
+                "boot_p_holm": 1.0
+              },
+              "Oracle": {
+                "mean_utility": 2.338,
+                "acc_pct": 79.06,
+                "ask_pct": 37.5,
+                "defer_pct": 36.7,
+                "mean_wait": 6.98,
+                "delta_vs_tri": -0.517,
+                "ci95": [
+                  -1.482,
+                  0.424
+                ],
+                "boot_p": 0.26391
+              }
+            }
+          }
+        }
+      }
+    },
+    "real_llm_specialist_q35_to_ds": {
+      "Cap=2, c_def=2.0, c=1.5": {
+        "Direct-ACT": -1.406,
+        "KL-PBD+ (Warm)": 1.694,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 1.53,
+        "Calibrated-Cascade+Naor": 1.718,
+        "Joint-Greedy+Naor": 1.244,
+        "Tri-VoI-L2D": 1.676,
+        "Tri-VoI-L2D (Smooth-Naor)": 1.542
+      },
+      "Cap=2, c_def=4.0, c=1.5": {
+        "Direct-ACT": -1.406,
+        "KL-PBD+ (Warm)": -1.006,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 0.229,
+        "Calibrated-Cascade+Naor": 0.95,
+        "Joint-Greedy+Naor": -0.321,
+        "Tri-VoI-L2D": 0.817,
+        "Tri-VoI-L2D (Smooth-Naor)": 0.773
+      },
+      "Cap=1/3, c_def=2.0, c=1.5": {
+        "Direct-ACT": -1.406,
+        "KL-PBD+ (Warm)": 1.035,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 0.222,
+        "Calibrated-Cascade+Naor": 0.882,
+        "Joint-Greedy+Naor": 0.191,
+        "Tri-VoI-L2D": 0.434,
+        "Tri-VoI-L2D (Smooth-Naor)": 0.434
+      }
+    }
+  },
+  "v2_unseen_protocol_ids": {
+    "model": "Qwen/Qwen3.5-35B-A3B",
+    "n_cal": 40,
+    "n_test": 120,
+    "diagnosis": {
+      "missing_f1": 0.8381,
+      "override_f1": 0.9286,
+      "entropy_collapse_pct": 71.67,
+      "underspec_acc_greedy_pct": 38.33
+    },
+    "regimes": {
+      "Cap=2, c=1.5": {
+        "Direct-ACT": {
+          "mean_utility": -0.833,
+          "acc_pct": 45.83,
+          "ask_pct": 0.0,
+          "defer_pct": 0.0,
+          "mean_wait": 0.0,
+          "delta_vs_tri": 4.954,
+          "ci95": [
+            2.876,
+            6.995
+          ],
+          "boot_p": 0.00033322,
+          "boot_p_holm": 0.0023325
+        },
+        "KL-PBD+ (Warm)": {
+          "mean_utility": 2.711,
+          "acc_pct": 72.67,
+          "ask_pct": 0.0,
+          "defer_pct": 77.7,
+          "mean_wait": 0.41,
+          "delta_vs_tri": 1.41,
+          "ci95": [
+            0.188,
+            2.619
+          ],
+          "boot_p": 0.025991,
+          "boot_p_holm": 0.15595
+        },
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": {
+          "mean_utility": 4.418,
+          "acc_pct": 80.83,
+          "ask_pct": 35.8,
+          "defer_pct": 54.3,
+          "mean_wait": 0.27,
+          "delta_vs_tri": -0.297,
+          "ci95": [
+            -0.871,
+            0.291
+          ],
+          "boot_p": 0.32456,
+          "boot_p_holm": 1.0
+        },
+        "Joint-Greedy+Naor": {
+          "mean_utility": 4.193,
+          "acc_pct": 78.67,
+          "ask_pct": 11.7,
+          "defer_pct": 60.7,
+          "mean_wait": 0.29,
+          "delta_vs_tri": -0.073,
+          "ci95": [
+            -0.714,
+            0.454
+          ],
+          "boot_p": 0.79907,
+          "boot_p_holm": 1.0
+        },
+        "Calibrated-Cascade+Naor": {
+          "mean_utility": 4.434,
+          "acc_pct": 81.0,
+          "ask_pct": 37.5,
+          "defer_pct": 54.0,
+          "mean_wait": 0.27,
+          "delta_vs_tri": -0.314,
+          "ci95": [
+            -0.901,
+            0.308
+          ],
+          "boot_p": 0.31123,
+          "boot_p_holm": 1.0
+        },
+        "Tri-VoI-L2D": {
+          "mean_utility": 4.121,
+          "acc_pct": 78.83,
+          "ask_pct": 24.0,
+          "defer_pct": 57.0,
+          "mean_wait": 0.3
+        },
+        "Tri-VoI-L2D (2-Call)": {
+          "mean_utility": 3.989,
+          "acc_pct": 78.67,
+          "ask_pct": 26.2,
+          "defer_pct": 59.2,
+          "mean_wait": 0.33,
+          "delta_vs_tri": 0.132,
+          "ci95": [
+            -0.528,
+            0.798
+          ],
+          "boot_p": 0.6921,
+          "boot_p_holm": 1.0
+        },
+        "Tri-VoI-L2D (Smooth-Naor)": {
+          "mean_utility": 4.157,
+          "acc_pct": 78.83,
+          "ask_pct": 24.5,
+          "defer_pct": 55.5,
+          "mean_wait": 0.28,
+          "delta_vs_tri": -0.037,
+          "ci95": [
+            -0.456,
+            0.389
+          ],
+          "boot_p": 0.86571,
+          "boot_p_holm": 1.0
+        }
+      },
+      "Cap=1/3, c=1.5": {
+        "Direct-ACT": {
+          "mean_utility": -0.833,
+          "acc_pct": 45.83,
+          "ask_pct": 0.0,
+          "defer_pct": 0.0,
+          "mean_wait": 0.0,
+          "delta_vs_tri": 3.59,
+          "ci95": [
+            1.835,
+            5.178
+          ],
+          "boot_p": 0.00033322,
+          "boot_p_holm": 0.0023325
+        },
+        "KL-PBD+ (Warm)": {
+          "mean_utility": 1.286,
+          "acc_pct": 60.5,
+          "ask_pct": 0.0,
+          "defer_pct": 33.0,
+          "mean_wait": 0.55,
+          "delta_vs_tri": 1.471,
+          "ci95": [
+            0.431,
+            2.484
+          ],
+          "boot_p": 0.0049983,
+          "boot_p_holm": 0.02999
+        },
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": {
+          "mean_utility": 2.902,
+          "acc_pct": 73.67,
+          "ask_pct": 35.8,
+          "defer_pct": 33.7,
+          "mean_wait": 2.16,
+          "delta_vs_tri": -0.145,
+          "ci95": [
+            -0.61,
+            0.276
+          ],
+          "boot_p": 0.54082,
+          "boot_p_holm": 1.0
+        },
+        "Joint-Greedy+Naor": {
+          "mean_utility": 2.566,
+          "acc_pct": 70.33,
+          "ask_pct": 21.8,
+          "defer_pct": 32.3,
+          "mean_wait": 1.91,
+          "delta_vs_tri": 0.191,
+          "ci95": [
+            -0.277,
+            0.681
+          ],
+          "boot_p": 0.42186,
+          "boot_p_holm": 1.0
+        },
+        "Calibrated-Cascade+Naor": {
+          "mean_utility": 2.994,
+          "acc_pct": 74.17,
+          "ask_pct": 37.5,
+          "defer_pct": 33.7,
+          "mean_wait": 2.11,
+          "delta_vs_tri": -0.237,
+          "ci95": [
+            -0.672,
+            0.173
+          ],
+          "boot_p": 0.27657,
+          "boot_p_holm": 1.0
+        },
+        "Tri-VoI-L2D": {
+          "mean_utility": 2.757,
+          "acc_pct": 72.17,
+          "ask_pct": 30.0,
+          "defer_pct": 33.5,
+          "mean_wait": 1.95
+        },
+        "Tri-VoI-L2D (2-Call)": {
+          "mean_utility": 2.701,
+          "acc_pct": 72.5,
+          "ask_pct": 34.5,
+          "defer_pct": 34.2,
+          "mean_wait": 2.06,
+          "delta_vs_tri": 0.055,
+          "ci95": [
+            -0.438,
+            0.565
+          ],
+          "boot_p": 0.82473,
+          "boot_p_holm": 1.0
+        },
+        "Tri-VoI-L2D (Smooth-Naor)": {
+          "mean_utility": 2.757,
+          "acc_pct": 72.17,
+          "ask_pct": 30.0,
+          "defer_pct": 33.5,
+          "mean_wait": 1.95,
+          "delta_vs_tri": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ],
+          "boot_p": 1.0,
+          "boot_p_holm": 1.0
+        }
+      }
+    }
+  },
+  "budget": {
+    "max_budget_rmb": 10.0,
+    "estimated_rmb": 3.521,
+    "live_calls": 3259,
+    "cached_hits": 0,
+    "dry_calls": 0,
+    "prompt_tokens": 2077371,
+    "completion_tokens": 426204,
+    "elapsed_min": 68.91,
+    "by_model": {
+      "Qwen/Qwen3.5-35B-A3B": {
+        "live_calls": 2112,
+        "prompt_tokens": 1422692,
+        "completion_tokens": 314397,
+        "estimated_rmb": 1.8762
+      },
+      "deepseek-ai/DeepSeek-V3.2": {
+        "live_calls": 1147,
+        "prompt_tokens": 654679,
+        "completion_tokens": 111807,
+        "estimated_rmb": 1.6448
+      }
+    }
+  }
+}

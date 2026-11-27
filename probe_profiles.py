@@ -4,11 +4,18 @@ from typing import Any, Dict, List, Sequence, Tuple
 from benchmark import DOMAIN_RUBRIC, user_oracle
 from controller import extract_answer, parse_json_obj, shannon_entropy
 from external_baselines import build_acl_voi_belief_prompt
-from public_tri import PUBLIC_TRI_RUBRIC, mediq_fact_select_oracle
+from public_tri import PUBLIC_TRI_HOLDOUT_RUBRIC, PUBLIC_TRI_RUBRIC, mediq_fact_select_oracle
 
 
 def get_item_profile(item: Dict[str, Any]) -> Dict[str, Any]:
     """Return prompt rubric, valid choices, and requester oracle for Benchmark v1/v2 or Public-Tri."""
+    if item.get("domain") == "MediQHoldout":
+        return {
+            "rubric": item.get("custom_rubric") or PUBLIC_TRI_HOLDOUT_RUBRIC,
+            "choices": ("A", "B", "C", "D"),
+            "oracle_fn": mediq_fact_select_oracle,
+            "is_mediq": True,
+        }
     if item.get("domain") == "MediQClinical":
         return {
             "rubric": PUBLIC_TRI_RUBRIC,
@@ -17,7 +24,7 @@ def get_item_profile(item: Dict[str, Any]) -> Dict[str, Any]:
             "is_mediq": True,
         }
     return {
-        "rubric": DOMAIN_RUBRIC,
+        "rubric": item.get("custom_rubric") or DOMAIN_RUBRIC,
         "choices": ("A", "B", "C"),
         "oracle_fn": user_oracle,
         "is_mediq": False,
@@ -192,10 +199,14 @@ def assemble_probed_record(
     obs_conf_ovr = bool(diag_obj.get("override_confirmed", False))
     clarify_q = str(diag_obj.get("clarifying_question", "")).strip()
 
-    tokens = sum(
-        int(responses_by_tag[t].get("prompt_tokens", 0)) + int(responses_by_tag[t].get("completion_tokens", 0))
+    tag_tokens: Dict[str, int] = {
+        t: int(responses_by_tag[t].get("prompt_tokens", 0)) + int(responses_by_tag[t].get("completion_tokens", 0))
         for t in ("probe_s0", "probe_s1", "probe_s2", "greedy_act", "diag_init")
-    )
+    }
+    tag_tokens["post_ask_combined"] = 0
+    tag_tokens["post_ask_s1"] = 0
+    tag_tokens["acl_voi_belief"] = 0
+    tokens = sum(tag_tokens.values())
 
     r_post = responses_by_tag.get("post_ask_combined_v2") or responses_by_tag.get("post_ask_combined")
     if clarify_q and r_post is not None:
@@ -204,10 +215,11 @@ def assemble_probed_record(
         post_ovr_conf = bool(post_obj.get("override_confirmed", obs_conf_ovr))
         r_ps1 = responses_by_tag["post_ask_s1"]
         post_s1 = extract_answer(r_ps1["content"], choices)
-        tokens += (
-            int(r_post.get("prompt_tokens", 0)) + int(r_post.get("completion_tokens", 0))
-            + int(r_ps1.get("prompt_tokens", 0)) + int(r_ps1.get("completion_tokens", 0))
-        )
+        t_post = int(r_post.get("prompt_tokens", 0)) + int(r_post.get("completion_tokens", 0))
+        t_ps1 = int(r_ps1.get("prompt_tokens", 0)) + int(r_ps1.get("completion_tokens", 0))
+        tag_tokens["post_ask_combined"] = t_post
+        tag_tokens["post_ask_s1"] = t_ps1
+        tokens += t_post + t_ps1
     else:
         post_ans = greedy_ans
         post_s1 = samples[0]
@@ -215,7 +227,9 @@ def assemble_probed_record(
 
     acl_belief_raw = ""
     if clarify_q and "acl_voi_belief" in responses_by_tag:
-        acl_belief_raw = str(responses_by_tag["acl_voi_belief"].get("content", ""))
+        r_acl = responses_by_tag["acl_voi_belief"]
+        acl_belief_raw = str(r_acl.get("content", ""))
+        tag_tokens["acl_voi_belief"] = int(r_acl.get("prompt_tokens", 0)) + int(r_acl.get("completion_tokens", 0))
 
     return {
         "item": item,
@@ -236,4 +250,5 @@ def assemble_probed_record(
         "post_ovr_conf": post_ovr_conf,
         "acl_belief_raw": acl_belief_raw,
         "tokens": tokens,
+        "tag_tokens": tag_tokens,
     }

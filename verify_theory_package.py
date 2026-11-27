@@ -156,11 +156,10 @@ def verify_theorem_2() -> Dict[str, Any]:
     for r in glm_all:
         by_q[r["item"]["quadrant"]].append(r)
 
-    full_calib = HeldOutCalibrator(glm_all, k=0.0, k_fine=0.0)
     n_cal_grid = [32, 60, 100, 140, 180, 240]
     k_grid = [2.0, 5.0, 10.0]
 
-    # Constant-size N_test=180 per repetition eliminates stream-length confounding
+    # Constant-size N_test=180 per repetition; truth_calib fitted on disjoint test_s ONLY (zero sample overlap)
     glm_curves: Dict[str, List[Dict[str, Any]]] = {}
     for k_val in k_grid:
         rows = []
@@ -190,17 +189,20 @@ def verify_theorem_2() -> Dict[str, Any]:
                     cal_s.extend(bkt[:take])
 
                 eb = HeldOutCalibrator(cal_s, k=k_val, k_fine=k_val)
+                truth_calib = HeldOutCalibrator(test_s, k=0.0, k_fine=0.0)
 
-                # Estimate empirical calibration error vs full-pool truth on (True, True) & (True, False)
-                ep_max = max(
-                    abs(eb.p_post_clear - full_calib.p_post_clear),
-                    abs(eb.p_post_ovr - full_calib.p_post_ovr),
-                    abs(eb.get_p_act(True, False, True) - full_calib.get_p_act(True, False, True)),
-                    abs(eb.get_p_act(True, True, True) - full_calib.get_p_act(True, True, True)),
+                # Measure calibration error across ALL populated fine buckets + post-ASK outcomes on disjoint test_s
+                ep_cands = [
+                    abs(eb.p_post_clear - truth_calib.p_post_clear),
+                    abs(eb.p_post_ovr - truth_calib.p_post_ovr),
+                ]
+                for fk in truth_calib.p_act:
+                    ep_cands.append(abs(eb.get_p_act(fk[0], fk[1], fk[2]) - truth_calib.p_act[fk]))
+                ep_max = max(ep_cands)
+                epi = max(
+                    sum(abs(a - b) for a, b in zip(eb.get_post_ask_probs(True, pf), truth_calib.get_post_ask_probs(True, pf)))
+                    for pf in (False, True)
                 )
-                pi_hat = eb.get_post_ask_probs(True, True)
-                pi_true = full_calib.get_post_ask_probs(True, True)
-                epi = sum(abs(a - b) for a, b in zip(pi_hat, pi_true))
                 eps_p_list.append(ep_max)
                 eps_pi_list.append(epi)
                 gap_list.append(20.0 * (2.0 * ep_max + epi))
@@ -364,10 +366,31 @@ def verify_theorem_3() -> Dict[str, Any]:
             "evoi_theo_r1": round(evoi_theo_r1, 3),
         })
 
+    # Empirical simulate_stream queue-backlog & accuracy sweep across mu in {2.0, 1.0, 0.5, 0.33}
+    cal_v1, test_v1a = build_cscw_benchmark(15, 45, 2027)
+    test_v1 = test_v1a + build_cscw_expansion_batch(45, 2028, 240)
+    q35_cal = probe_dataset(cal_v1, "Qwen/Qwen3.5-35B-A3B", dry_run=False, workers=1)
+    q35_test = probe_dataset(test_v1, "Qwen/Qwen3.5-35B-A3B", dry_run=False, workers=1)
+    q35_eb = HeldOutCalibrator(q35_cal)
+    stream_mu_rows = []
+    for mu_lbl, cap, di in [("2.00", 2, 1), ("1.00", 2, 2), ("0.50", 1, 2), ("0.33", 1, 3)]:
+        r_l2d = [simulate_stream("Congested-L2D-Only", q35_test, q35_eb, capacity=cap, drain_interval=di, c_ask=1.5, seed=s) for s in range(5)]
+        r_tri = [simulate_stream("Tri-VoI-L2D", q35_test, q35_eb, capacity=cap, drain_interval=di, c_ask=1.5, seed=s) for s in range(5)]
+        stream_mu_rows.append({
+            "mu": mu_lbl,
+            "l2d_mean_q": round(float(np.mean([r["mean_queue_len"] for r in r_l2d])), 2),
+            "l2d_acc_pct": round(float(np.mean([r["acc_pct"] for r in r_l2d])), 2),
+            "l2d_util": round(float(np.mean([r["mean_utility"] for r in r_l2d])), 3),
+            "tri_mean_q": round(float(np.mean([r["mean_queue_len"] for r in r_tri])), 2),
+            "tri_acc_pct": round(float(np.mean([r["acc_pct"] for r in r_tri])), 2),
+            "tri_util": round(float(np.mean([r["mean_utility"] for r in r_tri])), 3),
+        })
+
     return {
         "lam_base_crit": round(lam_base_crit, 3),
         "lam_tri_crit": round(lam_tri_crit, 3),
         "stability_rows": stability_rows,
+        "stream_mu_rows": stream_mu_rows,
         "tau_max_theo": round(tau_max_theo, 2),
         "latency_rows": latency_rows,
     }
@@ -492,6 +515,18 @@ def main() -> None:
     ])
     for r in t3["latency_rows"]:
         lines.append(f"| {r['tau_ask']} | {r['evoi_mc']:.3f} | {r['evoi_theo_r1']:.3f} |")
+
+    lines.extend([
+        "",
+        "### Real `simulate_stream` Empirical Queue vs. Accuracy (`v1-Clean`, `Qwen3.5-35B-A3B`)",
+        "| Service Rate $\\mu$ | `Congested-L2D-Only` $\\bar{Q}$ (Acc%, Util) | `Tri-VoI-L2D` $\\bar{Q}$ (Acc%, Util) |",
+        "|---:|---:|---:|",
+    ])
+    for r in t3["stream_mu_rows"]:
+        lines.append(
+            f"| {r['mu']} | {r['l2d_mean_q']:.2f} ({r['l2d_acc_pct']:.2f}%, {r['l2d_util']:.3f}) | "
+            f"{r['tri_mean_q']:.2f} ({r['tri_acc_pct']:.2f}%, {r['tri_util']:.3f}) |"
+        )
 
     (THEORY_DIR / "theory_verification.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("Saved theory verification JSON, MD, and fig2_theory_verification.{pdf,png}")

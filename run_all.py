@@ -2,7 +2,7 @@ import argparse
 import json
 import random
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import matplotlib
 matplotlib.use("Agg")
@@ -343,6 +343,7 @@ def eval_independent_episodes(
     drain_interval: int = 2,
     drift_mode: str = "sudden",
     c_ask: float = 1.5,
+    cal_probed: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """Evaluate across N disjoint 60-ticket episodes (fresh queue & tracker per episode)."""
     n_eps = len(episodes)
@@ -366,6 +367,7 @@ def eval_independent_episodes(
                     drift_mode=drift_mode,
                     seed=ep_idx * 100 + s,
                     c_ask=c_ask,
+                    cal_probed=cal_probed,
                 )
                 for s in range(n_seeds)
             ]
