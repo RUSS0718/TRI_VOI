@@ -1,0 +1,24 @@
+{
+  "max_budget_rmb": 5.5,
+  "estimated_rmb": 3.6512,
+  "live_calls": 3854,
+  "cached_hits": 6826,
+  "dry_calls": 0,
+  "prompt_tokens": 2988510,
+  "completion_tokens": 479383,
+  "elapsed_min": 140.58,
+  "by_model": {
+    "Qwen/Qwen3.5-35B-A3B": {
+      "live_calls": 1454,
+      "prompt_tokens": 1156810,
+      "completion_tokens": 310234,
+      "estimated_rmb": 1.6784
+    },
+    "tencent/Hy4-preview": {
+      "live_calls": 2400,
+      "prompt_tokens": 1831700,
+      "completion_tokens": 169149,
+      "estimated_rmb": 1.9728
+    }
+  }
+}

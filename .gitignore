@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+.env
+*.key
+
+# Large raw API caches & call logs (reproducible via API / excluded from git)
+results/*.sqlite
+results/calls.jsonl
+
+# Dry-run & transient runtime logs
+results/dry_run_*
+results/overnight/dry_run_*
+results/overnight/figs/dry_run_*
+results/overnight/*.log
