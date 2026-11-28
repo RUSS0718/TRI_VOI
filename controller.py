@@ -237,6 +237,7 @@ class HeldOutCalibrator:
         post_clear = [0, 0]
         post_clear_by_ovr = {False: [0, 0], True: [0, 0]}
         post_ovr = [0, 0]
+        post_no_info = [0, 0]
         tri_stats = defaultdict(lambda: [0, 0, 0])  # [n_resolve, n_ovr_after, n_no_info]
 
         for r in cal_probed:
@@ -260,6 +261,10 @@ class HeldOutCalibrator:
                 if _is_self_act_correct(it_cal, r["post_ans"]):
                     post_clear[0] += 1
                     post_clear_by_ovr[p_flag][0] += 1
+            elif m_flag and (not r["oracle_revealed"]):
+                post_no_info[1] += 1
+                if _is_self_act_correct(it_cal, r["post_ans"]):
+                    post_no_info[0] += 1
 
             r_key = (m_flag, p_flag)
             if m_flag and r["oracle_revealed"] and (not r["post_ovr_conf"]):
@@ -285,6 +290,7 @@ class HeldOutCalibrator:
             for pf in (False, True)
         }
         self.p_post_ovr = (post_ovr[0] + k * 0.35) / (post_ovr[1] + k)
+        self.p_post_no_info = (post_no_info[0] + k * 0.65) / (post_no_info[1] + k)
 
         self.tri_probs: Dict[Tuple[bool, bool], Tuple[float, float, float]] = {}
         for rk, (n_res, n_ovr, n_no) in tri_stats.items():
@@ -381,6 +387,106 @@ def evaluate_diagnosis_metrics(probed: List[Dict[str, Any]]) -> Dict[str, float]
     }
 
 
+def solve_3action_mdp_shadow_prices(
+    omega_4: Tuple[float, float, float, float],
+    calibrator: Optional[HeldOutCalibrator],
+    p_e: float,
+    capacity: int,
+    drain_interval: int,
+    gamma_queue: float,
+    c_ask: float,
+    c_defer_base: float,
+    r_ok: float,
+    r_err: float,
+    rem_steps: int,
+    unclarified_spec_penalty: bool = False,
+    q_max: int = 22,
+    horizon_cap: int = 25,
+    return_all_horizons: bool = False,
+) -> Any:
+    """Exact finite-horizon periodic-drain 3-action Bellman DP value table V[phase][q_pre]."""
+    di = max(1, int(drain_interval))
+    H = min(int(horizon_cap), max(0, int(rem_steps)))
+    V_next: List[List[float]] = [[0.0] * (q_max + 1) for _ in range(di)]
+    hist: List[List[List[float]]] = [V_next]
+    if H <= 0:
+        return hist if return_all_horizons else V_next
+
+    s_w = float(sum(omega_4))
+    probs = [float(w) / s_w for w in omega_4] if s_w > 0.0 else [0.25, 0.25, 0.25, 0.25]
+    buckets = ((False, False), (False, True), (True, False), (True, True))
+
+    cap = max(0, int(capacity))
+    u_def_std_0 = p_e * r_ok + (1.0 - p_e) * r_err - c_defer_base
+    p_e_rw = min(p_e, 0.55)
+    u_def_rw_0 = p_e_rw * r_ok + (1.0 - p_e_rw) * r_err - c_defer_base - c_ask
+
+    b_params = []
+    for (om, op), w_b in zip(buckets, probs):
+        if calibrator is not None:
+            p_act = calibrator.coarse_p_act.get((om, op), 0.85 if (not om and not op) else 0.50)
+            p_res, p_ovra, p_no = calibrator.get_post_ask_probs(om, op)
+            p_clear = calibrator.get_p_post_clear(op)
+            p_ovr = calibrator.p_post_ovr
+            p_ni = calibrator.p_post_no_info
+        else:
+            p_act = 0.85 if (not om and not op) else (0.35 if op else 0.55)
+            p_res, p_ovra, p_no = ((0.45, 0.45, 0.10) if op else (0.85, 0.05, 0.10)) if om else (0.0, 0.0, 1.0)
+            p_clear, p_ovr, p_ni = 0.88, 0.40, 0.65
+        u_act = p_act * r_ok + (1.0 - p_act) * r_err
+        u_clear = p_clear * r_ok + (1.0 - p_clear) * r_err
+        u_ovr = p_ovr * r_ok + (1.0 - p_ovr) * r_err
+        u_no_act = (p_ni * r_ok + (1.0 - p_ni) * r_err) if om else u_act
+        p_rw = (p_res + p_ovra) if (om and unclarified_spec_penalty) else 0.0
+        u_def_pre_base = ((1.0 - p_rw) * u_def_std_0 + p_rw * u_def_rw_0) if p_rw > 0.0 else u_def_std_0
+        b_params.append((w_b, om, u_act, u_clear, u_ovr, u_no_act, p_res, p_ovra, p_no, u_def_pre_base))
+
+    for _ in range(H):
+        V_cur: List[List[float]] = [[0.0] * (q_max + 1) for _ in range(di)]
+        for ph in range(di):
+            nxt_ph = (ph + 1) % di
+            vn = V_next[nxt_ph]
+            vc = V_cur[ph]
+            q_start = min(cap, q_max) if (ph == 0 and cap > 0) else 0
+            for q_pre in range(q_start, q_max + 1):
+                q = (q_pre - cap) if (ph == 0 and cap > 0) else q_pre
+                v_stay = vn[q]
+                v_push = vn[min(q_max, q + 1)]
+                gq = gamma_queue * q
+                u_def_post = u_def_std_0 - gq + v_push
+                delta_v = -gq + v_push
+                total_v = 0.0
+                for (w_b, om, u_act, u_clear, u_ovr, u_no_act, p_res, p_ovra, p_no, u_def_pre_base) in b_params:
+                    val_act = u_act + v_stay
+                    u_def_pre = u_def_pre_base + delta_v
+                    if om:
+                        c_stay = u_clear + v_stay
+                        o_stay = u_ovr + v_stay
+                        n_stay = u_no_act + v_stay
+                        val_ask = (
+                            p_res * (c_stay if c_stay >= u_def_post else u_def_post)
+                            + p_ovra * (o_stay if o_stay >= u_def_post else u_def_post)
+                            + p_no * (n_stay if n_stay >= u_def_pre else u_def_pre)
+                            - c_ask
+                        )
+                        best_branch = val_act if val_act >= u_def_pre else u_def_pre
+                        if val_ask > best_branch:
+                            best_branch = val_ask
+                        total_v += w_b * best_branch
+                    else:
+                        total_v += w_b * (val_act if val_act >= u_def_pre else u_def_pre)
+                vc[q_pre] = total_v
+            if ph == 0 and cap > 0:
+                val0 = vc[q_start]
+                for q_z in range(q_start):
+                    vc[q_z] = val0
+        V_next = V_cur
+        if return_all_horizons:
+            hist.append(V_next)
+
+    return hist if return_all_horizons else V_next
+
+
 def simulate_stream(
     method: str,
     test_probed: List[Dict[str, Any]],
@@ -468,7 +574,15 @@ def simulate_stream(
     per_item_utils = np.zeros(n, dtype=float)
     per_item_tokens = np.zeros(n, dtype=float)
     smooth_naor = (method == "Tri-VoI-L2D (Smooth-Naor)")
+    mdp_q_max = 22
+    mdp_v_hist: Dict[str, Optional[List[List[List[float]]]]] = {m: None for m in queues}
+    mdp_last_pe: Dict[str, float] = {m: -1.0 for m in queues}
+    mdp_last_omega: Dict[str, Optional[Tuple[float, float, float, float]]] = {m: None for m in queues}
+    omega_counts = [1.0, 1.0, 1.0, 1.0]
     correct_cnt = 0
+    raw_correct_cnt = 0
+    mandatory_tot = 0
+    mandatory_defer = 0
     ask_cnt = 0
     defer_cnt = 0
     wait_sum = 0
@@ -719,6 +833,127 @@ def simulate_stream(
                 if u_def_true > (u_self_base * r_ok + (1.0 - u_self_base) * r_err):
                     did_defer = True
                     chosen_spec = m_best
+        elif method == "Tri-VoI-MDP":
+            b_idx = (2 if obs_m else 0) + (1 if obs_p else 0)
+            omega_counts[b_idx] += 1.0
+            s_om = omega_counts[0] + omega_counts[1] + omega_counts[2] + omega_counts[3]
+            omega_probs = (
+                omega_counts[0] / s_om,
+                omega_counts[1] / s_om,
+                omega_counts[2] / s_om,
+                omega_counts[3] / s_om,
+            )
+            rem_after = n - 1 - t
+            h_idx = 25 if rem_after >= 25 else rem_after
+            next_ph = (t + 1) % drain_interval
+
+            if calibrator is not None:
+                p_act = calibrator.coarse_p_act.get((obs_m, obs_p), 0.85 if (not obs_m and not obs_p) else 0.50)
+                p_res, p_ovra, p_no = calibrator.get_post_ask_probs(obs_m, obs_p)
+                p_clear = calibrator.get_p_post_clear(obs_p)
+                p_ovr = calibrator.p_post_ovr
+                p_ni = calibrator.p_post_no_info
+            else:
+                p_act = 0.85 if (not obs_m and not obs_p) else (0.35 if obs_p else 0.55)
+                p_res, p_ovra, p_no = ((0.45, 0.45, 0.10) if obs_p else (0.85, 0.05, 0.10)) if obs_m else (0.0, 0.0, 1.0)
+                p_clear, p_ovr, p_ni = 0.88, 0.40, 0.65
+
+            def best_spec_mdp(use_pre_rw: bool = False, p_rw_val: float = 0.0) -> Tuple[str, float]:
+                best_m = list(queues.keys())[0]
+                best_u = -1e9
+                for m in queues:
+                    p_e = trackers[m].mean()
+                    q_m = queues[m]
+                    if eff_gamma > 0.0 and rem_after > 0:
+                        lo = mdp_last_omega[m]
+                        need_solve = (
+                            mdp_v_hist[m] is None
+                            or abs(p_e - mdp_last_pe[m]) > 0.015
+                            or lo is None
+                            or (abs(omega_probs[0] - lo[0]) + abs(omega_probs[1] - lo[1]) + abs(omega_probs[2] - lo[2]) + abs(omega_probs[3] - lo[3])) > 0.035
+                        )
+                        if need_solve:
+                            mdp_v_hist[m] = solve_3action_mdp_shadow_prices(
+                                omega_4=omega_probs,
+                                calibrator=calibrator,
+                                p_e=p_e,
+                                capacity=caps[m],
+                                drain_interval=drain_interval,
+                                gamma_queue=eff_gamma,
+                                c_ask=c_ask,
+                                c_defer_base=costs[m],
+                                r_ok=r_ok,
+                                r_err=r_err,
+                                rem_steps=25,
+                                unclarified_spec_penalty=unclarified_spec_penalty,
+                                q_max=mdp_q_max,
+                                horizon_cap=25,
+                                return_all_horizons=True,
+                            )
+                            mdp_last_pe[m] = p_e
+                            mdp_last_omega[m] = omega_probs
+                        vt = mdp_v_hist[m][h_idx][next_ph]
+                        idx0 = min(mdp_q_max - 1, q_m)
+                        shadow_m = max(0.0, vt[idx0] - vt[idx0 + 1])
+                        cong_cost = eff_gamma * q_m + shadow_m
+                    else:
+                        cong_cost = eff_gamma * q_m
+                    u_std = p_e * r_ok + (1.0 - p_e) * r_err - costs[m] - cong_cost
+                    if use_pre_rw and unclarified_spec_penalty and p_rw_val > 0.0:
+                        p_e_rw = min(p_e, 0.55)
+                        u_rw = p_e_rw * r_ok + (1.0 - p_e_rw) * r_err - costs[m] - c_ask - cong_cost
+                        u_m = (1.0 - p_rw_val) * u_std + p_rw_val * u_rw
+                    else:
+                        u_m = u_std
+                    if u_m > best_u:
+                        best_u = u_m
+                        best_m = m
+                return best_m, best_u
+
+            u_act = p_act * r_ok + (1.0 - p_act) * r_err
+            u_clear = p_clear * r_ok + (1.0 - p_clear) * r_err
+            u_ovr = p_ovr * r_ok + (1.0 - p_ovr) * r_err
+            u_no_act = (p_ni * r_ok + (1.0 - p_ni) * r_err) if obs_m else u_act
+            p_rework = (p_res + p_ovra) if (obs_m and unclarified_spec_penalty) else 0.0
+            m_best, u_def_pre = best_spec_mdp(use_pre_rw=True, p_rw_val=p_rework)
+            _, u_def_post = best_spec_mdp(use_pre_rw=False, p_rw_val=0.0)
+            if ask_latency > 0:
+                mu_best = caps[m_best] / float(drain_interval)
+                delta_drift = max(0.0, lam_ema[m_best] - mu_best) * float(ask_latency)
+                lat_pen = beta_wait_ask * float(ask_latency) + (1.0 - p_res) * eff_gamma * delta_drift
+            else:
+                lat_pen = 0.0
+
+            u_ask = (
+                (
+                    p_res * max(u_clear, u_def_post)
+                    + p_ovra * max(u_ovr, u_def_post)
+                    + p_no * max(u_no_act, u_def_pre)
+                    - c_ask
+                    - lat_pen
+                )
+                if obs_m
+                else -1e9
+            )
+            if u_ask > max(u_act, u_def_pre):
+                did_ask = True
+                if not rec["oracle_revealed"]:
+                    u_act_post = p_ni * r_ok + (1.0 - p_ni) * r_err
+                    m_best2, u_def2 = best_spec_mdp(use_pre_rw=True, p_rw_val=p_rework)
+                elif rec["post_ovr_conf"]:
+                    u_act_post = p_ovr * r_ok + (1.0 - p_ovr) * r_err
+                    m_best2, u_def2 = best_spec_mdp(use_pre_rw=False, p_rw_val=0.0)
+                else:
+                    u_act_post = p_clear * r_ok + (1.0 - p_clear) * r_err
+                    m_best2, u_def2 = best_spec_mdp(use_pre_rw=False, p_rw_val=0.0)
+                if u_def2 > u_act_post:
+                    did_defer = True
+                    chosen_spec = m_best2
+                else:
+                    final_ans = rec["post_ans"]
+            elif u_def_pre > u_act:
+                did_defer = True
+                chosen_spec = m_best
         else:
             # Tri-VoI-L2D, Tri-VoI-L2D (2-Call), Tri-VoI-L2D (Latency-Aware), and ablation variants
             use_diag = (method != "w/o Disentangled-Diag")
@@ -814,7 +1049,8 @@ def simulate_stream(
             true_acc_now: Dict[str, float],
             extra_ask_wait: float = 0.0,
         ) -> None:
-            nonlocal correct_cnt, ask_cnt, defer_cnt, wait_sum, misroute_cnt
+            nonlocal correct_cnt, raw_correct_cnt, mandatory_tot, mandatory_defer
+            nonlocal ask_cnt, defer_cnt, wait_sum, misroute_cnt
             nonlocal q4_ask_cnt, q4_tot_cnt, q4_res_act_cnt, q4_res_tot_cnt
             item_it = item_rec["item"]
             item_q = item_it["quadrant"]
@@ -824,6 +1060,10 @@ def simulate_stream(
             if asked:
                 ask_cnt += 1
                 s_u -= c_ask
+            if item_it.get("require_defer_for_ok", False):
+                mandatory_tot += 1
+                if deferred:
+                    mandatory_defer += 1
             if deferred:
                 defer_cnt += 1
                 wait_sum += queues[spec_choice]
@@ -842,6 +1082,7 @@ def simulate_stream(
                     is_ok_i = bool(real_specialist_ok[item_it["qid"]])
                 else:
                     is_ok_i = rng.random() < eff_acc
+                raw_ok_i = is_ok_i
                 if kl_ctrl is not None:
                     mu_m = caps[spec_choice] / float(drain_interval)
                     ready_step_kl = step_now + max(1, math.ceil(queues[spec_choice] / max(1e-6, mu_m)))
@@ -854,6 +1095,7 @@ def simulate_stream(
                     trackers[spec_choice].update(is_ok_i)
             else:
                 is_ok_i = _is_self_act_correct(item_it, ans_final)
+                raw_ok_i = (ans_final == item_it["gold"])
 
             s_u += r_ok_i if is_ok_i else r_err_i
             per_item_utils[orig_t] = s_u
@@ -864,7 +1106,7 @@ def simulate_stream(
                 t_post = tt.get("post_ask_combined", 0) if asked else 0
                 if method == "Direct-ACT":
                     tok_i = tt.get("greedy_act", 0)
-                elif method == "Tri-VoI-L2D (2-Call)":
+                elif method in ("Tri-VoI-L2D (2-Call)", "Tri-VoI-MDP"):
                     tok_i = t1_gd + t_post
                 elif method == "KL-PBD+ (SC-Only)":
                     tok_i = t1_probes + tt.get("greedy_act", 0)
@@ -881,6 +1123,8 @@ def simulate_stream(
             per_item_tokens[orig_t] = float(tok_i)
             if is_ok_i:
                 correct_cnt += 1
+            if raw_ok_i:
+                raw_correct_cnt += 1
             rolling_acc[orig_t] = 1.0 if is_ok_i else 0.0
             if orig_t >= n // 2:
                 phase2_utils.append(s_u)
@@ -931,6 +1175,7 @@ def simulate_stream(
 
         if ask_latency > 0 and did_ask:
             can_pd = method in (
+                "Tri-VoI-MDP",
                 "Tri-VoI-L2D",
                 "Tri-VoI-L2D (2-Call)",
                 "Tri-VoI-L2D (Latency-Aware)",
@@ -957,7 +1202,11 @@ def simulate_stream(
             else:
                 p_cl = calibrator.get_p_post_clear(obs_p) if calibrator else 0.88
                 p_ov = calibrator.p_post_ovr if calibrator else 0.40
-                pp = p_ov if rec["post_ovr_conf"] else p_cl
+                p_ni_l = calibrator.p_post_no_info if calibrator else 0.65
+                if method == "Tri-VoI-MDP":
+                    pp = p_ni_l if (not rec["oracle_revealed"]) else (p_ov if rec["post_ovr_conf"] else p_cl)
+                else:
+                    pp = p_ov if rec["post_ovr_conf"] else p_cl
                 u_ap = pp * r_ok + (1.0 - pp) * r_err
             pending_ask.append({
                 "ready_t": t + ask_latency,
@@ -998,6 +1247,9 @@ def simulate_stream(
     return {
         "method": method,
         "acc_pct": 100.0 * correct_cnt / n,
+        "raw_answer_acc_pct": 100.0 * raw_correct_cnt / n,
+        "scope_escalation_recall_pct": round(100.0 * mandatory_defer / mandatory_tot, 2) if mandatory_tot > 0 else None,
+        "mandatory_escalate_n": mandatory_tot,
         "net_utility": float(np.sum(per_item_utils)),
         "mean_utility": float(np.mean(per_item_utils)),
         "mean_realized_tokens": float(np.mean(per_item_tokens)),

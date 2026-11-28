@@ -47,6 +47,7 @@ def run_2d_minimax_regret(
     calib: HeldOutCalibrator,
     methods: List[str],
     c_defer_base: float = 2.0,
+    calibrator_overrides: Dict[str, HeldOutCalibrator] | None = None,
 ) -> Dict[str, Any]:
     load_grid = [
         ("mu=4.00", 4, 1),
@@ -60,15 +61,17 @@ def run_2d_minimax_regret(
     cask_grid = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0]
     cells = []
     mat: Dict[str, List[float]] = {m: [] for m in methods}
+    ov_map = calibrator_overrides or {}
 
     for l_lbl, cap, di in load_grid:
         for ca in cask_grid:
             row_u = {}
             for m in methods:
+                cb_m = ov_map.get(m, calib)
                 u = float(
                     np.mean([
                         simulate_stream(
-                            m, test_p, calib, capacity=cap, drain_interval=di, drift_mode="sudden", c_ask=ca, c_defer_base=c_defer_base, seed=s, cal_probed=cal_p
+                            m, test_p, cb_m, capacity=cap, drain_interval=di, drift_mode="sudden", c_ask=ca, c_defer_base=c_defer_base, seed=s, cal_probed=cal_p
                         )["mean_utility"]
                         for s in range(5)
                     ])
@@ -80,6 +83,8 @@ def run_2d_minimax_regret(
     # Descriptive 56-cell summary ONLY (no i.i.d. Wilcoxon test across hyperparameter cells sharing the same items)
     best_per_cell = [max(c["utils"].values()) for c in cells]
     tri_vec = np.asarray(mat["Tri-VoI-L2D"], dtype=float)
+    mdp_key = "Tri-VoI-MDP" if "Tri-VoI-MDP" in mat else "Tri-VoI-L2D"
+    mdp_vec = np.asarray(mat[mdp_key], dtype=float)
     summary: Dict[str, Any] = {}
     for m in methods:
         v = np.asarray(mat[m], dtype=float)
@@ -88,16 +93,24 @@ def run_2d_minimax_regret(
         tri_wins = int(np.sum(tri_vec > v + 1e-4))
         tri_ties = int(np.sum(np.abs(tri_vec - v) <= 1e-4))
         tri_losses = int(np.sum(v > tri_vec + 1e-4))
+        mdp_wins = int(np.sum(mdp_vec > v + 1e-4))
+        mdp_ties = int(np.sum(np.abs(mdp_vec - v) <= 1e-4))
+        mdp_losses = int(np.sum(v > mdp_vec + 1e-4))
         delta_vs_tri = float(np.mean(v - tri_vec))  # >0 means baseline beats Tri-VoI-L2D
+        delta_vs_mdp = float(np.mean(v - mdp_vec))  # >0 means baseline beats Tri-VoI-MDP
         summary[m] = {
             "mean_util_56": round(float(np.mean(v)), 3),
             "mean_delta_vs_tri": round(delta_vs_tri, 3),
+            "mean_delta_vs_mdp": round(delta_vs_mdp, 3),
             "mean_regret_56": round(float(np.mean(regrets)), 3),
             "worst_case_regret_56": round(float(np.max(regrets)), 3),
             "best_cells": wins_or_ties,
             "tri_wins": tri_wins,
             "tri_ties": tri_ties,
             "tri_losses": tri_losses,
+            "mdp_wins": mdp_wins,
+            "mdp_ties": mdp_ties,
+            "mdp_losses": mdp_losses,
         }
 
     return {"suite": suite_name, "summary": summary, "cells": cells}
@@ -124,6 +137,7 @@ def eval_noisy_stage3_external(tracker: BudgetTracker) -> Dict[str, Any]:
         "Joint-Greedy+Naor",
         "Calibrated-Cascade+Naor",
         "Tri-VoI-L2D",
+        "Tri-VoI-MDP",
     ]
     out: Dict[str, Any] = {}
     for mid in ("Qwen/Qwen3.5-35B-A3B", "tencent/Hy4-preview"):
@@ -134,7 +148,8 @@ def eval_noisy_stage3_external(tracker: BudgetTracker) -> Dict[str, Any]:
         for r_lbl, cap, di, ca in [("Cap=2, c=1.5", 2, 2, 1.5), ("Cap=2, c=2.5", 2, 2, 2.5), ("Cap=1/3, c=1.5", 1, 3, 1.5)]:
             raw = {m: [simulate_stream(m, nt, eb, capacity=cap, drain_interval=di, c_ask=ca, seed=s, cal_probed=nc) for s in range(5)] for m in methods}
             tri_vec = np.mean([r["per_item_utils"] for r in raw["Tri-VoI-L2D"]], axis=0)
-            ps = {}
+            mdp_vec = np.mean([r["per_item_utils"] for r in raw["Tri-VoI-MDP"]], axis=0)
+            ps, ps_mdp = {}, {}
             rows = {}
             for m in methods:
                 rs = raw[m]
@@ -142,15 +157,22 @@ def eval_noisy_stage3_external(tracker: BudgetTracker) -> Dict[str, Any]:
                     "mean_utility": round(float(np.mean([r["mean_utility"] for r in rs])), 3),
                     "acc_pct": round(float(np.mean([r["acc_pct"] for r in rs])), 2),
                 }
+                b_vec = np.mean([r["per_item_utils"] for r in rs], axis=0)
                 if m != "Tri-VoI-L2D":
-                    b_vec = np.mean([r["per_item_utils"] for r in rs], axis=0)
                     bp = block_paired_bootstrap(tri_vec, b_vec, block_size=10, n_boot=3000, seed=42)
                     row["boot_p"] = bp["boot_p"]
                     ps[m] = float(bp["boot_p"])
+                if m != "Tri-VoI-MDP":
+                    bp_m = block_paired_bootstrap(mdp_vec, b_vec, block_size=10, n_boot=3000, seed=42)
+                    row["boot_p_mdp"] = bp_m["boot_p"]
+                    ps_mdp[m] = float(bp_m["boot_p"])
                 rows[m] = row
             hm = holm_bonferroni(ps)
+            hm_m = holm_bonferroni(ps_mdp)
             for m, pv in hm.items():
                 rows[m]["boot_p_holm"] = pv
+            for m, pv in hm_m.items():
+                rows[m]["boot_p_mdp_holm"] = pv
             regs[r_lbl] = rows
         out[mid] = regs
     return out
@@ -158,7 +180,7 @@ def eval_noisy_stage3_external(tracker: BudgetTracker) -> Dict[str, Any]:
 
 def eval_stream_ask_latency(cal_p: List[Dict[str, Any]], test_p: List[Dict[str, Any]], calib: HeldOutCalibrator) -> Dict[str, Any]:
     taus = [0, 1, 2, 4, 8]
-    methods = ["Tri-VoI-L2D", "Tri-VoI-L2D (Latency-Aware)", "Calibrated-Cascade+Naor", "KL-PBD+ (Warm)"]
+    methods = ["Tri-VoI-MDP", "Tri-VoI-L2D", "Tri-VoI-L2D (Latency-Aware)", "Calibrated-Cascade+Naor", "KL-PBD+ (Warm)"]
     out: Dict[str, Any] = {}
     for r_lbl, cap, di in [("Cap=2, c=1.5", 2, 2), ("Cap=1/3, c=1.5", 1, 3)]:
         rows = []
@@ -213,42 +235,78 @@ def eval_real_llm_specialist(tracker: BudgetTracker) -> Dict[str, Any]:
         "Calibrated-Cascade+Naor",
         "Joint-Greedy+Naor",
         "Tri-VoI-L2D",
+        "Tri-VoI-MDP",
     ]
     eb_q35_pt = HeldOutCalibrator(q35_cal_pt, stratify_post_clear=True)
+    eb_q35_pt_unif = HeldOutCalibrator(q35_cal_pt, stratify_post_clear=False)
     eb_q8_pt = HeldOutCalibrator(q8_cal_pt, stratify_post_clear=True)
+    eb_q8_pt_unif = HeldOutCalibrator(q8_cal_pt, stratify_post_clear=False)
 
     pt_q35_ds = {}
+    pt_q35_ds_split = {}
     pt_q35_shift = {}
     for r_lbl, cap, di, c_def in [
         ("Cap=2, c_def=2.0, c=1.5", 2, 2, 2.0),
         ("Cap=2, c_def=4.0, c=1.5", 2, 2, 4.0),
         ("Cap=1/3, c_def=2.0, c=1.5", 1, 3, 2.0),
     ]:
-        pt_q35_ds[r_lbl] = {
-            m: round(float(np.mean([
-                simulate_stream(m, q35_test_pt, eb_q35_pt, capacity=cap, drain_interval=di, c_ask=1.5, c_defer_base=c_def, seed=s, cal_probed=q35_cal_pt, real_specialist_ok=spec_ok_pt_ds)["mean_utility"]
+        pt_q35_ds[r_lbl] = {}
+        pt_q35_ds_split[r_lbl] = {}
+        pt_q35_shift[r_lbl] = {}
+        for m in pt_methods:
+            cb_u = eb_q35_pt_unif if m == "Tri-VoI-MDP" else eb_q35_pt
+            rs_ds = [
+                simulate_stream(m, q35_test_pt, cb_u, capacity=cap, drain_interval=di, c_ask=1.5, c_defer_base=c_def, seed=s, cal_probed=q35_cal_pt, real_specialist_ok=spec_ok_pt_ds)
                 for s in range(5)
-            ])), 3)
-            for m in pt_methods
-        }
-        pt_q35_shift[r_lbl] = {
-            m: round(float(np.mean([
-                simulate_stream(m, q35_test_pt, eb_q35_pt, capacity=cap, drain_interval=di, c_ask=1.5, c_defer_base=c_def, seed=s, cal_probed=q35_cal_pt, real_specialist_ok=spec_ok_pt_shift)["mean_utility"]
+            ]
+            rs_sh = [
+                simulate_stream(m, q35_test_pt, cb_u, capacity=cap, drain_interval=di, c_ask=1.5, c_defer_base=c_def, seed=s, cal_probed=q35_cal_pt, real_specialist_ok=spec_ok_pt_shift)
                 for s in range(5)
-            ])), 3)
-            for m in pt_methods
-        }
+            ]
+            pt_q35_ds[r_lbl][m] = round(float(np.mean([r["mean_utility"] for r in rs_ds])), 3)
+            pt_q35_shift[r_lbl][m] = round(float(np.mean([r["mean_utility"] for r in rs_sh])), 3)
+            pt_q35_ds_split[r_lbl][m] = {
+                "mean_utility": pt_q35_ds[r_lbl][m],
+                "policy_acc_pct": round(float(np.mean([r["acc_pct"] for r in rs_ds])), 2),
+                "raw_answer_acc_pct": round(float(np.mean([r["raw_answer_acc_pct"] for r in rs_ds])), 2),
+                "scope_escalation_recall_pct": round(float(np.mean([r["scope_escalation_recall_pct"] for r in rs_ds if r["scope_escalation_recall_pct"] is not None])), 2),
+            }
 
     pt_q8_ds = {
         r_lbl: {
             m: round(float(np.mean([
-                simulate_stream(m, q8_test_pt, eb_q8_pt, capacity=cap, drain_interval=di, c_ask=1.5, c_defer_base=c_def, seed=s, cal_probed=q8_cal_pt, real_specialist_ok=spec_ok_pt_ds)["mean_utility"]
+                simulate_stream(m, q8_test_pt, eb_q8_pt_unif if m == "Tri-VoI-MDP" else eb_q8_pt, capacity=cap, drain_interval=di, c_ask=1.5, c_defer_base=c_def, seed=s, cal_probed=q8_cal_pt, real_specialist_ok=spec_ok_pt_ds)["mean_utility"]
                 for s in range(5)
             ])), 3)
             for m in pt_methods
         }
         for r_lbl, cap, di, c_def in [("Cap=2, c_def=4.0, c=1.5", 2, 2, 4.0), ("Cap=1/3, c_def=2.0, c=1.5", 1, 3, 2.0)]
     }
+
+    # Pure Capability-Gap Real-LLM Specialist on Public-Tri (require_defer_for_ok=False everywhere; zero forced rules)
+    q35_by_qid = {
+        r["item"]["qid"]: ((r["post_ans"] if r["item"]["is_underspec"] else r["greedy_ans"]) == r["item"]["gold"])
+        for r in q35_test_pt
+    }
+    q8_cal_cap = [{**r, "item": {**r["item"], "require_defer_for_ok": False}} for r in q8_cal_pt]
+    q8_test_cap = [{**r, "item": {**r["item"], "require_defer_for_ok": False}} for r in q8_test_pt]
+    eb_q8_cap = HeldOutCalibrator(q8_cal_cap, stratify_post_clear=False)
+    cap_gap_q8_to_q35 = {}
+    cap_gap_q8_to_ds = {}
+    for r_lbl, cap, di, c_def in [("Cap=2, c_def=2.0, c=1.5", 2, 2, 2.0), ("Cap=1/3, c_def=2.0, c=1.5", 1, 3, 2.0)]:
+        cap_gap_q8_to_q35[r_lbl] = {}
+        cap_gap_q8_to_ds[r_lbl] = {}
+        for m in pt_methods:
+            rs_q35 = [simulate_stream(m, q8_test_cap, eb_q8_cap, capacity=cap, drain_interval=di, c_ask=1.5, c_defer_base=c_def, seed=s, cal_probed=q8_cal_cap, real_specialist_ok=q35_by_qid) for s in range(5)]
+            rs_ds2 = [simulate_stream(m, q8_test_cap, eb_q8_cap, capacity=cap, drain_interval=di, c_ask=1.5, c_defer_base=c_def, seed=s, cal_probed=q8_cal_cap, real_specialist_ok=ds_by_qid) for s in range(5)]
+            cap_gap_q8_to_q35[r_lbl][m] = {
+                "mean_utility": round(float(np.mean([r["mean_utility"] for r in rs_q35])), 3),
+                "acc_pct": round(float(np.mean([r["raw_answer_acc_pct"] for r in rs_q35])), 2),
+            }
+            cap_gap_q8_to_ds[r_lbl][m] = {
+                "mean_utility": round(float(np.mean([r["mean_utility"] for r in rs_ds2])), 3),
+                "acc_pct": round(float(np.mean([r["raw_answer_acc_pct"] for r in rs_ds2])), 2),
+            }
 
     # Semi-Synthetic v1/v2 Specialists: Real Hy4 full-info on public items, simulated 100%/65% on confidential overrides
     cal_v1, test_v1_a = build_cscw_benchmark(15, 45, 2027)
@@ -263,7 +321,7 @@ def eval_real_llm_specialist(tracker: BudgetTracker) -> Dict[str, Any]:
         else:
             spec_ok_v1[it["qid"]] = True if idx < (len(hy_test_v1) // 2) else ((idx % 20) < 13)
 
-    methods_v1 = ["Direct-ACT", "KL-PBD+ (Warm)", "ACL-2026-VoI+Full-Defer+Naor", "Calibrated-Cascade+Naor", "Joint-Greedy+Naor", "Tri-VoI-L2D"]
+    methods_v1 = ["Direct-ACT", "KL-PBD+ (Warm)", "ACL-2026-VoI+Full-Defer+Naor", "Calibrated-Cascade+Naor", "Joint-Greedy+Naor", "Tri-VoI-L2D", "Tri-VoI-MDP"]
     q8_cal_v1 = probe_dataset(cal_v1, "Qwen/Qwen3-8B", False, 1)
     q8_test_v1 = probe_dataset(test_v1, "Qwen/Qwen3-8B", False, 1)
     eb_q8_v1 = HeldOutCalibrator(q8_cal_v1)
@@ -306,7 +364,7 @@ def eval_real_llm_specialist(tracker: BudgetTracker) -> Dict[str, Any]:
             spec_ok_v2[it["qid"]] = True if idx < (len(hy_test_v2) // 2) else ((idx % 20) < 13)
 
     eb_q35_v2 = HeldOutCalibrator(q35_cal_v2)
-    methods_v2 = ["Direct-ACT", "KL-PBD+ (Warm)", "ACL-2026-VoI (Live)+Full-Defer+Naor", "Calibrated-Cascade+Naor", "Joint-Greedy+Naor", "Tri-VoI-L2D"]
+    methods_v2 = ["Direct-ACT", "KL-PBD+ (Warm)", "ACL-2026-VoI (Live)+Full-Defer+Naor", "Calibrated-Cascade+Naor", "Joint-Greedy+Naor", "Tri-VoI-L2D", "Tri-VoI-MDP"]
     v2_q35_res = {
         r_lbl: {
             m: round(float(np.mean([
@@ -320,8 +378,11 @@ def eval_real_llm_specialist(tracker: BudgetTracker) -> Dict[str, Any]:
 
     return {
         "real_public_tri_qwen35_to_deepseek_stationary": pt_q35_ds,
+        "real_public_tri_qwen35_split_metrics": pt_q35_ds_split,
         "real_public_tri_qwen35_to_ds_to_qwen8b_shift": pt_q35_shift,
         "real_public_tri_qwen8b_to_deepseek_stationary": pt_q8_ds,
+        "pure_cap_gap_qwen8b_to_qwen35": cap_gap_q8_to_q35,
+        "pure_cap_gap_qwen8b_to_deepseek": cap_gap_q8_to_ds,
         "semi_synthetic_v1_qwen35_to_hy4": v1_q35_res,
         "semi_synthetic_v2_qwen35_to_hy4": v2_q35_res,
         "semi_synthetic_v1_qwen8b_to_hy4": v1_q8_res,
@@ -345,6 +406,7 @@ def eval_two_call_and_sc_parity(tracker: BudgetTracker) -> Dict[str, Any]:
 
             r_full = [simulate_stream("Tri-VoI-L2D", tp, eb, capacity=2, drain_interval=2, c_ask=1.5, seed=s, cal_probed=cp) for s in range(5)]
             r_2c = [simulate_stream("Tri-VoI-L2D (2-Call)", tp, eb, capacity=2, drain_interval=2, c_ask=1.5, seed=s, cal_probed=cp) for s in range(5)]
+            r_mdp = [simulate_stream("Tri-VoI-MDP", tp, eb, capacity=2, drain_interval=2, c_ask=1.5, seed=s, cal_probed=cp) for s in range(5)]
             r_sc = [simulate_stream("KL-PBD+ (SC-Only)", tp, eb, capacity=2, drain_interval=2, c_ask=1.5, seed=s, cal_probed=cp) for s in range(5)]
             r_klw = [simulate_stream("KL-PBD+ (Warm)", tp, eb, capacity=2, drain_interval=2, c_ask=1.5, seed=s, cal_probed=cp) for s in range(5)]
 
@@ -356,6 +418,7 @@ def eval_two_call_and_sc_parity(tracker: BudgetTracker) -> Dict[str, Any]:
             t1_2c = float(np.mean([r["tag_tokens"]["greedy_act"] + r["tag_tokens"]["diag_init"] for r in tp]))
             real_tok_full = float(np.mean([x["mean_realized_tokens"] for x in r_full]))
             real_tok_2c = float(np.mean([x["mean_realized_tokens"] for x in r_2c]))
+            real_tok_mdp = float(np.mean([x["mean_realized_tokens"] for x in r_mdp]))
             real_tok_klw = float(np.mean([x["mean_realized_tokens"] for x in r_klw]))
             real_tok_sc = float(np.mean([x["mean_realized_tokens"] for x in r_sc]))
 
@@ -364,13 +427,17 @@ def eval_two_call_and_sc_parity(tracker: BudgetTracker) -> Dict[str, Any]:
                 "model": mid.split("/")[-1],
                 "tri_full_util": round(float(np.mean([x["mean_utility"] for x in r_full])), 3),
                 "tri_2call_util": round(float(np.mean([x["mean_utility"] for x in r_2c])), 3),
+                "tri_mdp_util": round(float(np.mean([x["mean_utility"] for x in r_mdp])), 3),
                 "tri_full_acc": round(float(np.mean([x["acc_pct"] for x in r_full])), 2),
                 "tri_2call_acc": round(float(np.mean([x["acc_pct"] for x in r_2c])), 2),
+                "tri_mdp_acc": round(float(np.mean([x["acc_pct"] for x in r_mdp])), 2),
                 "t1_tok_full": round(t1_full, 1),
                 "t1_tok_2call": round(t1_2c, 1),
                 "realized_tok_full": round(real_tok_full, 1),
                 "realized_tok_2call": round(real_tok_2c, 1),
+                "realized_tok_mdp": round(real_tok_mdp, 1),
                 "tok_reduction_pct": round(100.0 * (real_tok_full - real_tok_2c) / max(1.0, real_tok_full), 1),
+                "mdp_tok_reduction_pct": round(100.0 * (real_tok_full - real_tok_mdp) / max(1.0, real_tok_full), 1),
                 "realized_tok_klw": round(real_tok_klw, 1),
                 "realized_tok_sc": round(real_tok_sc, 1),
                 "kl_pbd_warm": round(float(np.mean([x["mean_utility"] for x in r_klw])), 3),
@@ -398,6 +465,7 @@ def eval_2x2_evoi_naor_decomposition(tracker: BudgetTracker) -> Dict[str, Any]:
     rows = []
     for lbl, mid, cp, tp, use_live_acl, c_def, strat in configs:
         eb = HeldOutCalibrator(cp, stratify_post_clear=strat)
+        eb_unif = HeldOutCalibrator(cp, stratify_post_clear=False)
         acl_fd = "ACL-2026-VoI (Live)+Full-Defer+Naor" if use_live_acl else "ACL-2026-VoI+Full-Defer+Naor"
         meths = [
             "Joint-Greedy",
@@ -408,11 +476,12 @@ def eval_2x2_evoi_naor_decomposition(tracker: BudgetTracker) -> Dict[str, Any]:
             "w/o Queue-Externality",
             "Tri-VoI-L2D",
             "Tri-VoI-L2D (Smooth-Naor)",
+            "Tri-VoI-MDP",
         ]
         for r_lbl, cap, di in [("Cap=2, c=1.5", 2, 2), ("Cap=1/3, c=1.5", 1, 3)]:
             vals = {
                 m: round(float(np.mean([
-                    simulate_stream(m, tp, eb, capacity=cap, drain_interval=di, c_ask=1.5, c_defer_base=c_def, seed=s, cal_probed=cp)["mean_utility"]
+                    simulate_stream(m, tp, eb_unif if m == "Tri-VoI-MDP" else eb, capacity=cap, drain_interval=di, c_ask=1.5, c_defer_base=c_def, seed=s, cal_probed=cp)["mean_utility"]
                     for s in range(5)
                 ])), 3)
                 for m in meths
@@ -427,6 +496,10 @@ def eval_2x2_evoi_naor_decomposition(tracker: BudgetTracker) -> Dict[str, Any]:
                 "evoi_gain_over_cc_naor": round(vals["Tri-VoI-L2D"] - vals["Calibrated-Cascade+Naor"], 3),
                 "evoi_gain_over_jg_naor": round(vals["Tri-VoI-L2D"] - vals["Joint-Greedy+Naor"], 3),
                 "evoi_gain_over_acl_fd": round(vals["Tri-VoI-L2D"] - vals[acl_fd], 3),
+                "mdp_gain_over_tri": round(vals["Tri-VoI-MDP"] - vals["Tri-VoI-L2D"], 3),
+                "mdp_gain_over_cc_naor": round(vals["Tri-VoI-MDP"] - vals["Calibrated-Cascade+Naor"], 3),
+                "mdp_gain_over_jg_naor": round(vals["Tri-VoI-MDP"] - vals["Joint-Greedy+Naor"], 3),
+                "mdp_gain_over_acl_fd": round(vals["Tri-VoI-MDP"] - vals[acl_fd], 3),
             })
     return {"rows": rows}
 
@@ -455,7 +528,7 @@ def eval_repeated_resplit_and_episodes(tracker: BudgetTracker) -> Dict[str, Any]
         for r in full_pool:
             by_q[r["item"]["quadrant"]].append(r)
         acl_fd = "ACL-2026-VoI (Live)+Full-Defer+Naor" if live_acl else "ACL-2026-VoI+Full-Defer+Naor"
-        comp_meths = ["KL-PBD+ (Warm)", acl_fd, "Joint-Greedy+Naor", "Calibrated-Cascade+Naor", "Tri-VoI-L2D"]
+        comp_meths = ["KL-PBD+ (Warm)", acl_fd, "Joint-Greedy+Naor", "Calibrated-Cascade+Naor", "Tri-VoI-L2D", "Tri-VoI-MDP"]
 
         for r_lbl, cap, di in [("Cap=2, c=1.5", 2, 2), ("Cap=1/3, c=1.5", 1, 3)]:
             per_m: Dict[str, List[float]] = {m: [] for m in comp_meths}
@@ -471,34 +544,37 @@ def eval_repeated_resplit_and_episodes(tracker: BudgetTracker) -> Dict[str, Any]
                 rr.shuffle(cal_s)
                 rr.shuffle(test_s)
                 eb = HeldOutCalibrator(cal_s, stratify_post_clear=strat)
+                eb_unif = HeldOutCalibrator(cal_s, stratify_post_clear=False)
                 for m in comp_meths:
-                    res = simulate_stream(m, test_s, eb, capacity=cap, drain_interval=di, c_ask=1.5, c_defer_base=c_def, seed=rep, cal_probed=cal_s)
+                    res = simulate_stream(m, test_s, eb_unif if m == "Tri-VoI-MDP" else eb, capacity=cap, drain_interval=di, c_ask=1.5, c_defer_base=c_def, seed=rep, cal_probed=cal_s)
                     per_m[m].append(res["mean_utility"])
 
             tri_arr = np.asarray(per_m["Tri-VoI-L2D"], dtype=float)
+            mdp_arr = np.asarray(per_m["Tri-VoI-MDP"], dtype=float)
             m_stats = {}
             for m in comp_meths:
                 arr = np.asarray(per_m[m], dtype=float)
                 diff = tri_arr - arr
+                diff_mdp = mdp_arr - arr
                 m_stats[m] = {
                     "mean": round(float(np.mean(arr)), 3),
                     "std": round(float(np.std(arr, ddof=1)), 3),
                     "delta_tri_minus_base": round(float(np.mean(diff)), 3),
+                    "delta_mdp_minus_base": round(float(np.mean(diff_mdp)), 3),
                     "delta_p5_p95": [round(float(np.percentile(diff, 5)), 3), round(float(np.percentile(diff, 95)), 3)],
+                    "delta_mdp_p5_p95": [round(float(np.percentile(diff_mdp, 5)), 3), round(float(np.percentile(diff_mdp, 95)), 3)],
                     "tri_wins_of_20": int(np.sum(diff > 1e-4)),
+                    "mdp_wins_of_20": int(np.sum(diff_mdp > 1e-4)),
                 }
             resplit_out.append({"suite": s_lbl, "regime": r_lbl, "stats": m_stats})
 
     # Fixed 6-episode evaluation (with cal_probed warm-start properly passed)
-    q35_cal_v1 = pool_v1[:60]
-    q35_test_v1 = pool_v1[60:]
-    # Re-fetch canonical fixed splits so episodes match standard calibration
     c1, t1a = build_cscw_benchmark(15, 45, 2027)
     t1 = t1a + build_cscw_expansion_batch(45, 2028, 240)
     c1_p = probe_dataset(c1, "Qwen/Qwen3.5-35B-A3B", False, 1)
     t1_p = probe_dataset(t1, "Qwen/Qwen3.5-35B-A3B", False, 1)
     ep_v1 = eval_independent_episodes(
-        ["Direct-ACT", "KL-PBD+ (Warm)", "ACL-2026-VoI+Full-Defer+Naor", "Calibrated-Cascade+Naor", "Joint-Greedy+Naor", "Tri-VoI-L2D"],
+        ["Direct-ACT", "KL-PBD+ (Warm)", "ACL-2026-VoI+Full-Defer+Naor", "Calibrated-Cascade+Naor", "Joint-Greedy+Naor", "Tri-VoI-L2D", "Tri-VoI-MDP"],
         split_stratified_episodes(t1_p, n_episodes=6, seed=2029),
         HeldOutCalibrator(c1_p),
         n_seeds=5, capacity=2, drain_interval=2, c_ask=1.5, cal_probed=c1_p,
@@ -510,7 +586,7 @@ def plot_2d_minimax_regret(res_v1: Dict[str, Any], res_v2_ds: Dict[str, Any], re
     plt.rcParams.update({"font.size": 8.5, "axes.titlesize": 9.5, "axes.labelsize": 8.5, "legend.fontsize": 7.0, "figure.dpi": 200})
     fig, axes = plt.subplots(1, 2, figsize=(12.6, 4.2), constrained_layout=True)
 
-    # Panel A: 2D Margin Heatmap (Tri-VoI-L2D minus Calibrated-Cascade+Naor) on Benchmark v2 DeepSeek-V3.2
+    # Panel A: 2D Margin Heatmap (Tri-VoI-MDP minus Calibrated-Cascade+Naor) on Benchmark v2 DeepSeek-V3.2
     ax = axes[0]
     loads = ["mu=4.00", "mu=2.00", "mu=1.00", "mu=0.75", "mu=0.50", "mu=0.33", "mu=0.25"]
     casks = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0]
@@ -518,7 +594,7 @@ def plot_2d_minimax_regret(res_v1: Dict[str, Any], res_v2_ds: Dict[str, Any], re
     for c in res_v2_ds["cells"]:
         i = loads.index(c["load"])
         j = casks.index(c["c_ask"])
-        grid[i, j] = c["utils"]["Tri-VoI-L2D"] - c["utils"]["Calibrated-Cascade+Naor"]
+        grid[i, j] = c["utils"]["Tri-VoI-MDP"] - c["utils"]["Calibrated-Cascade+Naor"]
     im = ax.imshow(grid, cmap="RdBu", vmin=-1.5, vmax=1.5, aspect="auto")
     for i in range(len(loads)):
         for j in range(len(casks)):
@@ -529,12 +605,12 @@ def plot_2d_minimax_regret(res_v1: Dict[str, Any], res_v2_ds: Dict[str, Any], re
     ax.set_yticklabels(loads)
     ax.set_xlabel("Clarification Cost $c_{ask}$")
     ax.set_ylabel("Specialist Service Rate $\\mu$")
-    ax.set_title("Benchmark v2 (DeepSeek-V3.2): $\\Delta$Util (Tri-VoI $-$ Calib-Casc+Naor)")
+    ax.set_title("Benchmark v2 (DeepSeek-V3.2): $\\Delta$Util (Tri-VoI-MDP $-$ Calib-Casc+Naor)")
     fig.colorbar(im, ax=ax, shrink=0.85)
 
     # Panel B: Worst-Case Regret across 56 Operating Cells
     ax = axes[1]
-    meths = ["Tri-VoI-L2D", "Calibrated-Cascade+Naor", "Joint-Greedy+Naor", "KL-PBD+ (Warm)", "Congested-L2D-Only"]
+    meths = ["Tri-VoI-MDP", "Tri-VoI-L2D", "Calibrated-Cascade+Naor", "Joint-Greedy+Naor", "KL-PBD+ (Warm)", "Congested-L2D-Only"]
     x = np.arange(len(meths))
     w = 0.25
     w_v1 = [res_v1["summary"][m]["worst_case_regret_56"] for m in meths]
@@ -544,7 +620,7 @@ def plot_2d_minimax_regret(res_v1: Dict[str, Any], res_v2_ds: Dict[str, Any], re
     ax.bar(x, w_ds, width=w, color="#2ca02c", label="v2 (DeepSeek-V3.2)")
     ax.bar(x + w, w_pt, width=w, color="#ff7f0e", label="Public-Tri (Qwen3.5, c_def=4)")
     ax.set_xticks(x)
-    ax.set_xticklabels(["Tri-VoI", "Calib-Casc+Naor", "Joint-Greedy+Naor", "KL-PBD+(Warm)", "Cong-L2D"], rotation=15, ha="right")
+    ax.set_xticklabels(["Tri-VoI-MDP", "Tri-VoI-L2D", "Calib-Casc+Naor", "Joint-Greedy+Naor", "KL-PBD+(Warm)", "Cong-L2D"], rotation=15, ha="right")
     ax.set_ylabel("Worst-Case Regret Across 56 Cells (Lower is Better)")
     ax.set_title("2D Minimax Regret Across Operating Envelope")
     ax.grid(axis="y", alpha=0.25)
@@ -565,6 +641,7 @@ def main() -> None:
     q35_eb_v1 = HeldOutCalibrator(q35_cal_v1)
 
     m2d_v1 = [
+        "Tri-VoI-MDP",
         "Tri-VoI-L2D",
         "Calibrated-Cascade+Naor",
         "Joint-Greedy+Naor",
@@ -578,6 +655,7 @@ def main() -> None:
 
     cal_v2, test_v2 = build_cscw_benchmark_v2(15, 45, 2027)
     m2d_v2 = [
+        "Tri-VoI-MDP",
         "Tri-VoI-L2D",
         "Calibrated-Cascade+Naor",
         "Joint-Greedy+Naor",
@@ -599,9 +677,10 @@ def main() -> None:
         cp = probe_dataset_profiled(cal_pt, mid, tracker, dry_run=False, workers=1)
         tp = probe_dataset_profiled(test_pt, mid, tracker, dry_run=False, workers=1)
         eb_pt = HeldOutCalibrator(cp, stratify_post_clear=True)
+        eb_pt_unif = HeldOutCalibrator(cp, stratify_post_clear=False)
         for c_def in (2.0, 4.0):
             key = f"{mid} (c_def={c_def:.1f})"
-            res_2d_pt[key] = run_2d_minimax_regret(f"Public-Tri ({mid}, c_def={c_def:.1f})", cp, tp, eb_pt, m2d_v2, c_defer_base=c_def)
+            res_2d_pt[key] = run_2d_minimax_regret(f"Public-Tri ({mid}, c_def={c_def:.1f})", cp, tp, eb_pt, m2d_v2, c_defer_base=c_def, calibrator_overrides={"Tri-VoI-MDP": eb_pt_unif})
 
     plot_2d_minimax_regret(res_2d_v1, res_2d_v2["deepseek-ai/DeepSeek-V3.2"], res_2d_pt["Qwen/Qwen3.5-35B-A3B (c_def=4.0)"])
 
@@ -635,11 +714,11 @@ def main() -> None:
     for lbl, r2d in phase2d_items:
         lbl_clean = lbl.replace("))", ")")
         md.append(f"### {lbl_clean}")
-        md.append("| Method | Mean Util (56) | $\\Delta$ vs Tri | Mean Regret | Worst-Case Regret | Best Cells | Tri W / T / L |")
+        md.append("| Method | Mean Util (56) | $\\Delta$ vs MDP | Mean Regret | Worst-Case Regret | Best Cells | MDP W / T / L |")
         md.append("|:---|---:|---:|---:|---:|---:|---:|")
         for m, row in r2d["summary"].items():
-            d_str = "—" if m == "Tri-VoI-L2D" else f"{row['mean_delta_vs_tri']:+.3f}"
-            wtl = "—" if m == "Tri-VoI-L2D" else f"{row['tri_wins']} / {row['tri_ties']} / {row['tri_losses']}"
+            d_str = "—" if m == "Tri-VoI-MDP" else f"{row['mean_delta_vs_mdp']:+.3f}"
+            wtl = "—" if m == "Tri-VoI-MDP" else f"{row['mdp_wins']} / {row['mdp_ties']} / {row['mdp_losses']}"
             md.append(
                 f"| `{m}` | {row['mean_util_56']:.3f} | {d_str} | {row['mean_regret_56']:.3f} | "
                 f"**{row['worst_case_regret_56']:.3f}** | {row['best_cells']} | {wtl} |"
@@ -661,37 +740,42 @@ def main() -> None:
     md.append("## 3. End-to-End Stream `ASK` Latency Sweep ($\\tau_{\\text{ask}} \\in \\{0..8\\}$)")
     for reg, rows in stream_lat.items():
         md.append(f"### {reg}")
-        md.append("| $\\tau_{\\text{ask}}$ | `Tri-VoI-L2D` | `Tri-VoI (Lat-Aware)` | `Calib-Casc+Naor` | `KL-PBD+ (Warm)` |")
-        md.append("|---:|---:|---:|---:|---:|")
+        md.append("| $\\tau_{\\text{ask}}$ | `Tri-VoI-MDP` | `Tri-VoI-L2D` | `Tri-VoI (Lat-Aware)` | `Calib-Casc+Naor` | `KL-PBD+ (Warm)` |")
+        md.append("|---:|---:|---:|---:|---:|---:|")
         for r in rows:
             md.append(
-                f"| {r['tau_ask']} | {r['Tri-VoI-L2D']['mean_utility']:.3f} ({r['Tri-VoI-L2D']['ask_pct']}%) | "
+                f"| {r['tau_ask']} | {r['Tri-VoI-MDP']['mean_utility']:.3f} ({r['Tri-VoI-MDP']['ask_pct']}%) | "
+                f"{r['Tri-VoI-L2D']['mean_utility']:.3f} ({r['Tri-VoI-L2D']['ask_pct']}%) | "
                 f"{r['Tri-VoI-L2D (Latency-Aware)']['mean_utility']:.3f} ({r['Tri-VoI-L2D (Latency-Aware)']['ask_pct']}%) | "
                 f"{r['Calibrated-Cascade+Naor']['mean_utility']:.3f} | {r['KL-PBD+ (Warm)']['mean_utility']:.3f} |"
             )
         md.append("")
 
-    md.append("## 4. Real-LLM Clinical Specialist (`Public-Tri`, Full-Quadrant) vs. Semi-Synthetic Specialist (`v1/v2`)")
+    md.append("## 4. Real-LLM Clinical Specialist (`Public-Tri`, Full-Quadrant + Pure Capability-Gap) vs. Semi-Synthetic (`v1/v2`)")
     for s_lbl, s_map in real_spec.items():
         md.append(f"### {s_lbl}")
         for r_lbl, r_map in s_map.items():
-            md.append(f"- **{r_lbl}**: " + ", ".join(f"`{k}`={v:.3f}" for k, v in r_map.items()))
+            md.append(f"- **{r_lbl}**: " + ", ".join(
+                f"`{k}`={v['mean_utility']:.3f} (acc={v.get('raw_answer_acc_pct', v.get('acc_pct', 0)):.1f}%)"
+                if isinstance(v, dict) else f"`{k}`={v:.3f}"
+                for k, v in r_map.items()
+            ))
         md.append("")
 
     md.append("## 5. 2-Call Measured SQLite Token Cost & `KL-PBD+ (SC-Only)` Signal Parity")
-    md.append("| Suite | Model | `Tri-VoI` (Full) | `Tri-VoI` (2-Call) | T1 Tok (Full->2C) | Realized Tok (Full->2C, Δ%) | `KL-PBD+ (Warm)` | `KL-PBD+ (SC-Only)` |")
+    md.append("| Suite | Model | `Tri-VoI` (Full) | `Tri-VoI-MDP` | T1 Tok (Full->2C) | Realized Tok (Full->MDP, Δ%) | `KL-PBD+ (Warm)` | `KL-PBD+ (SC-Only)` |")
     md.append("|:---|:---|---:|---:|---:|---:|---:|---:|")
     for r in two_call_sc["rows"]:
         md.append(
             f"| {r['suite']} | {r['model']} | {r['tri_full_util']:.3f} ({r['tri_full_acc']}%) | "
-            f"**{r['tri_2call_util']:.3f}** ({r['tri_2call_acc']}%) | {r['t1_tok_full']:.0f} -> {r['t1_tok_2call']:.0f} | "
-            f"{r['realized_tok_full']:.0f} -> {r['realized_tok_2call']:.0f} (-{r['tok_reduction_pct']:.1f}%) | "
+            f"**{r['tri_mdp_util']:.3f}** ({r['tri_mdp_acc']}%) | {r['t1_tok_full']:.0f} -> {r['t1_tok_2call']:.0f} | "
+            f"{r['realized_tok_full']:.0f} -> {r['realized_tok_mdp']:.0f} (-{r['mdp_tok_reduction_pct']:.1f}%) | "
             f"{r['kl_pbd_warm']:.3f} | {r['kl_pbd_sc_only']:.3f} |"
         )
     md.append("")
 
-    md.append("## 6. Explicit 2x2 Decomposition (`±EVOI × ±Naor`) & Fair `ACL-2026-VoI+Full-Defer+Naor`")
-    md.append("| Suite / Model | Regime | `JG` | `JG+N` | `CC` | `CC+N` | `ACL+FD+N` | `w/o Ext` | `Tri-VoI` | `Smooth-Naor` | Naor Δ | EVOI vs CC+N |")
+    md.append("## 6. Explicit 2x2 Decomposition (`±EVOI × ±Naor` & Exact MDP Shadow Pricing)")
+    md.append("| Suite / Model | Regime | `JG` | `JG+N` | `CC` | `CC+N` | `ACL+FD+N` | `w/o Ext` | `Tri-VoI` | `Tri-VoI-MDP` | MDP vs Tri | MDP vs CC+N |")
     md.append("|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
     for r in decomp_2x2["rows"]:
         v = r["vals"]
@@ -699,21 +783,21 @@ def main() -> None:
         md.append(
             f"| {r['suite_model']} | {r['regime']} | {v['Joint-Greedy']:.3f} | {v['Joint-Greedy+Naor']:.3f} | "
             f"{v['Calibrated-Cascade']:.3f} | {v['Calibrated-Cascade+Naor']:.3f} | {v[acl_k]:.3f} | "
-            f"{v['w/o Queue-Externality']:.3f} | {v['Tri-VoI-L2D']:.3f} | {v['Tri-VoI-L2D (Smooth-Naor)']:.3f} | "
-            f"{r['naor_gain_tri']:+.3f} | {r['evoi_gain_over_cc_naor']:+.3f} |"
+            f"{v['w/o Queue-Externality']:.3f} | {v['Tri-VoI-L2D']:.3f} | **{v['Tri-VoI-MDP']:.3f}** | "
+            f"{r['mdp_gain_over_tri']:+.3f} | {r['mdp_gain_over_cc_naor']:+.3f} |"
         )
     md.append("")
 
     md.append("## 7. 20 Stratified Random `(cal, test)` Resplits & 6 Disjoint-Episode Check")
-    md.append("| Suite | Regime | `Tri-VoI` (mean±sd) | `KL-PBD+(W)` | `ACL+FD+N` | `JG+Naor` | `CC+Naor` | Tri Wins/20 vs (KL, ACL, JG+N, CC+N) |")
-    md.append("|:---|:---|---:|---:|---:|---:|---:|:---:|")
+    md.append("| Suite | Regime | `Tri-VoI-MDP` (mean±sd) | `Tri-VoI-L2D` | `KL-PBD+(W)` | `ACL+FD+N` | `JG+Naor` | `CC+Naor` | MDP Wins/20 vs (Tri, KL, ACL, JG+N, CC+N) |")
+    md.append("|:---|:---|---:|---:|---:|---:|---:|---:|:---:|")
     for row in resplits_eps["resplits_20"]:
         st = row["stats"]
         acl_k = [k for k in st if "ACL-2026-VoI" in k][0]
-        w_str = f"{st['KL-PBD+ (Warm)']['tri_wins_of_20']}/{st[acl_k]['tri_wins_of_20']}/{st['Joint-Greedy+Naor']['tri_wins_of_20']}/{st['Calibrated-Cascade+Naor']['tri_wins_of_20']}"
+        w_str = f"{st['Tri-VoI-L2D']['mdp_wins_of_20']}/{st['KL-PBD+ (Warm)']['mdp_wins_of_20']}/{st[acl_k]['mdp_wins_of_20']}/{st['Joint-Greedy+Naor']['mdp_wins_of_20']}/{st['Calibrated-Cascade+Naor']['mdp_wins_of_20']}"
         md.append(
-            f"| {row['suite']} | {row['regime']} | {st['Tri-VoI-L2D']['mean']:.3f}±{st['Tri-VoI-L2D']['std']:.2f} | "
-            f"{st['KL-PBD+ (Warm)']['mean']:.3f} | {st[acl_k]['mean']:.3f} | {st['Joint-Greedy+Naor']['mean']:.3f} | "
+            f"| {row['suite']} | {row['regime']} | **{st['Tri-VoI-MDP']['mean']:.3f}±{st['Tri-VoI-MDP']['std']:.2f}** | "
+            f"{st['Tri-VoI-L2D']['mean']:.3f} | {st['KL-PBD+ (Warm)']['mean']:.3f} | {st[acl_k]['mean']:.3f} | {st['Joint-Greedy+Naor']['mean']:.3f} | "
             f"{st['Calibrated-Cascade+Naor']['mean']:.3f} | {w_str} |"
         )
 

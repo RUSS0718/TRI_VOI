@@ -2,6 +2,7 @@ from collections import Counter
 from typing import Any, Dict, List, Sequence, Tuple
 
 from benchmark import DOMAIN_RUBRIC, user_oracle
+from benchmark_v3 import DOMAIN_RUBRIC_V3, DOMAINS_V3, user_oracle_v3
 from controller import extract_answer, parse_json_obj, shannon_entropy
 from external_baselines import build_acl_voi_belief_prompt
 from public_tri import PUBLIC_TRI_HOLDOUT_RUBRIC, PUBLIC_TRI_RUBRIC, mediq_fact_select_oracle
@@ -23,11 +24,20 @@ def get_item_profile(item: Dict[str, Any]) -> Dict[str, Any]:
             "oracle_fn": mediq_fact_select_oracle,
             "is_mediq": True,
         }
+    if item.get("domain") in DOMAINS_V3:
+        return {
+            "rubric": item.get("custom_rubric") or DOMAIN_RUBRIC_V3,
+            "choices": ("A", "B", "C"),
+            "oracle_fn": user_oracle_v3,
+            "is_mediq": False,
+            "is_v3": True,
+        }
     return {
         "rubric": item.get("custom_rubric") or DOMAIN_RUBRIC,
         "choices": ("A", "B", "C"),
         "oracle_fn": user_oracle,
         "is_mediq": False,
+        "is_v3": False,
     }
 
 
@@ -54,6 +64,17 @@ def build_wave_a_specs(item: Dict[str, Any], dry_run: bool = False) -> List[Dict
             "2. potential_override: true if the case could fall under Specialist Escalation Scope (high-acuity subspecialty, multi-specialty complexity, or clinical red flags) either upfront or pending withheld findings.\n"
             "3. override_confirmed: true ONLY if a Specialist Escalation trigger is ALREADY confirmed present in the Presenting Vignette.\n"
             "4. clarifying_question: if missing_user_info is true, write one specific clinical question asking the patient/requester for missing history/exam/lab details; else empty string.\n"
+            "Respond in JSON ONLY: "
+            "{\"missing_user_info\": true|false, \"potential_override\": true|false, \"override_confirmed\": true|false, \"clarifying_question\": \"...\"}."
+        )
+    elif prof.get("is_v3"):
+        diag_prompt = (
+            f"{rubric}\nTicket:\n{item['prose']}{dry_meta}\n\n"
+            "Audit the ticket against the domain's Required Intake Fields and Internal Specialist Advisory Notes:\n"
+            "1. missing_user_info: true if ANY Required Intake Field for this domain is omitted/unstated in the Ticket.\n"
+            "2. potential_override: true if the Ticket triggers or conditionally mentions an Internal Specialist Advisory rule.\n"
+            "3. override_confirmed: true ONLY if an unconditional or confirmed conditional Internal Specialist Advisory rule applies in the Ticket.\n"
+            "4. clarifying_question: if missing_user_info is true, write one short specific question asking for that missing field; else empty string.\n"
             "Respond in JSON ONLY: "
             "{\"missing_user_info\": true|false, \"potential_override\": true|false, \"override_confirmed\": true|false, \"clarifying_question\": \"...\"}."
         )

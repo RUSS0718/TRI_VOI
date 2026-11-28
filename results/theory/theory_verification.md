@@ -36,9 +36,13 @@
 | 8 | -2.660 | -2.640 |
 
 ### Real `simulate_stream` Empirical Queue vs. Accuracy (`v1-Clean`, `Qwen3.5-35B-A3B`)
-| Service Rate $\mu$ | `Congested-L2D-Only` $\bar{Q}$ (Acc%, Util) | `Tri-VoI-L2D` $\bar{Q}$ (Acc%, Util) |
-|---:|---:|---:|
-| 2.00 | 0.00 (80.72%, 4.870) | 0.00 (83.83%, 5.367) |
-| 1.00 | 0.32 (80.44%, 4.646) | 0.28 (83.67%, 5.220) |
-| 0.50 | 5.21 (77.06%, 2.321) | 0.99 (81.50%, 4.610) |
-| 0.33 | 8.19 (71.83%, 1.447) | 3.38 (79.56%, 3.792) |
+| Service Rate $\mu$ | `Congested-L2D-Only` $\bar{Q}$ (Acc%, Util) | `Tri-VoI-L2D` $\bar{Q}$ (Acc%, Util) | `Tri-VoI-MDP` $\bar{Q}$ (Acc%, Util) |
+|---:|---:|---:|---:|
+| 2.00 | 0.00 (80.72%, 4.870) | 0.00 (83.83%, 5.367) | 0.00 (84.28%, 5.429) |
+| 1.00 | 0.32 (80.44%, 4.646) | 0.28 (83.67%, 5.220) | 0.25 (84.11%, 5.341) |
+| 0.50 | 5.21 (77.06%, 2.321) | 0.99 (81.50%, 4.610) | 0.67 (81.61%, 4.781) |
+| 0.33 | 8.19 (71.83%, 1.447) | 3.38 (79.56%, 3.792) | 2.37 (79.33%, 4.048) |
+
+## Theorem 4 (Exact 3-Action Periodic-Drain Bellman Optimality & Shadow-Price Monotonicity)
+- Phase-1 shadow prices $\Delta V_{25}(1, q)$ for $q=0..9$: `[0.4911, 0.8071, 1.4934, 1.9007, 2.4293, 2.9016, 3.4, 3.8862, 4.2466, 4.4452]` (sub-capacity $q=1 < C$: `0.8071` > 0).
+- Non-negativity min $\Delta V$: `0.0`, Coupling bound ($h=4$): `1.3401 <= 3.4`, Abandonment limit ($q=65 > Q_{\max}+25C$): `0.0`, Operating-queue truncation diff ($q\le 7$, $H=25$ vs $100$): `9e-05`.

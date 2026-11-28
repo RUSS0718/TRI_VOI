@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from benchmark import build_cscw_benchmark, build_cscw_expansion_batch
-from controller import HeldOutCalibrator, probe_dataset, simulate_stream
+from controller import HeldOutCalibrator, probe_dataset, simulate_stream, solve_3action_mdp_shadow_prices
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -376,6 +376,7 @@ def verify_theorem_3() -> Dict[str, Any]:
     for mu_lbl, cap, di in [("2.00", 2, 1), ("1.00", 2, 2), ("0.50", 1, 2), ("0.33", 1, 3)]:
         r_l2d = [simulate_stream("Congested-L2D-Only", q35_test, q35_eb, capacity=cap, drain_interval=di, c_ask=1.5, seed=s) for s in range(5)]
         r_tri = [simulate_stream("Tri-VoI-L2D", q35_test, q35_eb, capacity=cap, drain_interval=di, c_ask=1.5, seed=s) for s in range(5)]
+        r_mdp = [simulate_stream("Tri-VoI-MDP", q35_test, q35_eb, capacity=cap, drain_interval=di, c_ask=1.5, seed=s) for s in range(5)]
         stream_mu_rows.append({
             "mu": mu_lbl,
             "l2d_mean_q": round(float(np.mean([r["mean_queue_len"] for r in r_l2d])), 2),
@@ -384,6 +385,9 @@ def verify_theorem_3() -> Dict[str, Any]:
             "tri_mean_q": round(float(np.mean([r["mean_queue_len"] for r in r_tri])), 2),
             "tri_acc_pct": round(float(np.mean([r["acc_pct"] for r in r_tri])), 2),
             "tri_util": round(float(np.mean([r["mean_utility"] for r in r_tri])), 3),
+            "mdp_mean_q": round(float(np.mean([r["mean_queue_len"] for r in r_mdp])), 2),
+            "mdp_acc_pct": round(float(np.mean([r["acc_pct"] for r in r_mdp])), 2),
+            "mdp_util": round(float(np.mean([r["mean_utility"] for r in r_mdp])), 3),
         })
 
     return {
@@ -393,6 +397,43 @@ def verify_theorem_3() -> Dict[str, Any]:
         "stream_mu_rows": stream_mu_rows,
         "tau_max_theo": round(tau_max_theo, 2),
         "latency_rows": latency_rows,
+    }
+
+
+def verify_theorem_4() -> Dict[str, Any]:
+    """Verify Theorem 4: shadow-price non-negativity, coupling upper bound, high-q limit, and horizon truncation."""
+    cal_v1, _ = build_cscw_benchmark(n_cal_per_quad=15, n_test_per_quad=45, seed=2027)
+    q35_cal = probe_dataset(cal_v1, "Qwen/Qwen3.5-35B-A3B", dry_run=False, workers=1)
+    calib = HeldOutCalibrator(q35_cal)
+    omega = (0.25, 0.25, 0.25, 0.25)
+    gamma = 0.85
+    p_e = 0.90
+    cap, di = 2, 2
+
+    V25 = solve_3action_mdp_shadow_prices(omega, calib, p_e, cap, di, gamma, 1.5, 2.0, 10.0, -10.0, 25, q_max=70, horizon_cap=25)
+    V100 = solve_3action_mdp_shadow_prices(omega, calib, p_e, cap, di, gamma, 1.5, 2.0, 10.0, -10.0, 100, q_max=70, horizon_cap=100)
+    sh_ph1 = [round(V25[1][q] - V25[1][q + 1], 5) for q in range(69)]
+    min_sh = float(min(sh_ph1))
+    max_sh = float(max(sh_ph1))
+    trunc_diff = float(max(abs((V25[1][q] - V25[1][q + 1]) - (V100[1][q] - V100[1][q + 1])) for q in range(8)))
+
+    # Abandonment limit at q > Q_max^defer + 25*1 (every future step stays strictly above Q_max^defer)
+    sh_high = float(V25[1][65] - V25[1][66])
+    # Check finite horizon bound 0 <= Delta V_h <= gamma * h at h=4
+    V4 = solve_3action_mdp_shadow_prices(omega, calib, p_e, cap, di, gamma, 1.5, 2.0, 10.0, -10.0, 4, q_max=20, horizon_cap=10)
+    max_sh_4 = float(max(V4[1][q] - V4[1][q + 1] for q in range(19)))
+    assert min_sh >= -1e-9, f"Negative shadow price: {min_sh}"
+    assert max_sh_4 <= gamma * 4.0 + 1e-6, f"Coupling upper bound violated: {max_sh_4}"
+
+    return {
+        "shadow_phase1_q0_to_q9": [round(x, 4) for x in sh_ph1[:10]],
+        "subcap_phase1_q1": round(sh_ph1[1], 4),
+        "min_shadow": round(min_sh, 6),
+        "max_shadow_h25": round(max_sh, 4),
+        "max_shadow_h4": round(max_sh_4, 4),
+        "coupling_bound_h4": round(gamma * 4.0, 4),
+        "high_q65_shadow": round(sh_high, 6),
+        "horizon_25_vs_100_max_diff_q0_7": round(trunc_diff, 5),
     }
 
 
@@ -467,9 +508,10 @@ def main() -> None:
     t1 = verify_theorem_1_and_corollary_1()
     t2 = verify_theorem_2()
     t3 = verify_theorem_3()
+    t4 = verify_theorem_4()
     plot_fig2(t1, t2, t3)
 
-    payload = {"theorem_1": t1, "theorem_2": t2, "theorem_3": t3}
+    payload = {"theorem_1": t1, "theorem_2": t2, "theorem_3": t3, "theorem_4": t4}
     (THEORY_DIR / "theory_verification.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     lines = [
@@ -519,14 +561,22 @@ def main() -> None:
     lines.extend([
         "",
         "### Real `simulate_stream` Empirical Queue vs. Accuracy (`v1-Clean`, `Qwen3.5-35B-A3B`)",
-        "| Service Rate $\\mu$ | `Congested-L2D-Only` $\\bar{Q}$ (Acc%, Util) | `Tri-VoI-L2D` $\\bar{Q}$ (Acc%, Util) |",
-        "|---:|---:|---:|",
+        "| Service Rate $\\mu$ | `Congested-L2D-Only` $\\bar{Q}$ (Acc%, Util) | `Tri-VoI-L2D` $\\bar{Q}$ (Acc%, Util) | `Tri-VoI-MDP` $\\bar{Q}$ (Acc%, Util) |",
+        "|---:|---:|---:|---:|",
     ])
     for r in t3["stream_mu_rows"]:
         lines.append(
             f"| {r['mu']} | {r['l2d_mean_q']:.2f} ({r['l2d_acc_pct']:.2f}%, {r['l2d_util']:.3f}) | "
-            f"{r['tri_mean_q']:.2f} ({r['tri_acc_pct']:.2f}%, {r['tri_util']:.3f}) |"
+            f"{r['tri_mean_q']:.2f} ({r['tri_acc_pct']:.2f}%, {r['tri_util']:.3f}) | "
+            f"{r['mdp_mean_q']:.2f} ({r['mdp_acc_pct']:.2f}%, {r['mdp_util']:.3f}) |"
         )
+
+    lines.extend([
+        "",
+        "## Theorem 4 (Exact 3-Action Periodic-Drain Bellman Optimality & Shadow-Price Monotonicity)",
+        f"- Phase-1 shadow prices $\\Delta V_{{25}}(1, q)$ for $q=0..9$: `{t4['shadow_phase1_q0_to_q9']}` (sub-capacity $q=1 < C$: `{t4['subcap_phase1_q1']}` > 0).",
+        f"- Non-negativity min $\\Delta V$: `{t4['min_shadow']}`, Coupling bound ($h=4$): `{t4['max_shadow_h4']} <= {t4['coupling_bound_h4']}`, Abandonment limit ($q=65 > Q_{{\\max}}+25C$): `{t4['high_q65_shadow']}`, Operating-queue truncation diff ($q\\le 7$, $H=25$ vs $100$): `{t4['horizon_25_vs_100_max_diff_q0_7']}`.",
+    ])
 
     (THEORY_DIR / "theory_verification.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("Saved theory verification JSON, MD, and fig2_theory_verification.{pdf,png}")
