@@ -1,5 +1,7 @@
 # Tri-VoI-MDP: Two-Stage Value-of-Information Control and Bellman Congestion Pricing for Three-Party Collaborative Decision Making
 
+**English** | [简体中文](./README_zh.md)
+
 **Unified Primary Method (IJCAI 2027)**: **`Tri-VoI-MDP` (`Deploy-Self`, 100% Zero-Oracle)** — a deployable two-stage sequential control and queueing framework coordinating a **User**, a fast LLM **Generalist**, and a capacity-constrained **Specialist** (`LLM Specialist` or simulated override model).
 
 Compared with its pre-registered 5-call static predecessor (`Tri-VoI-L2D`, preserved intact for lineage comparison), `Tri-VoI-MDP`:
@@ -11,7 +13,7 @@ Compared with its pre-registered 5-call static predecessor (`Tri-VoI-L2D`, prese
 
 ## Method Lineage & Theoretical Guarantees
 
-Full formal statements and machine-checked numerical companions are maintained in [ijcai2027_three_theorem_proofs.md](file:///d:/research/cscwd_tri_voi/docs/theory/ijcai2027_three_theorem_proofs.md) and [GLOSSARY.md](file:///d:/research/cscwd_tri_voi/GLOSSARY.md).
+Full formal statements and machine-checked numerical companions are maintained in [ijcai2027_three_theorem_proofs.md](./docs/theory/ijcai2027_three_theorem_proofs.md) and [GLOSSARY.md](./GLOSSARY.md).
 
 | Component | Role in Paper | Scope & Guarantees |
 |:---|:---|:---|
@@ -23,7 +25,7 @@ Full formal statements and machine-checked numerical companions are maintained i
 
 ## Key Empirical Findings (100% Zero-Oracle Single Source of Truth)
 
-All headline figures are automatically compiled into [ijcai2027_canonical_tables.md](file:///d:/research/cscwd_tri_voi/results/ijcai2027_canonical_tables.md) and [ijcai2027_canonical_tables.tex](file:///d:/research/cscwd_tri_voi/results/ijcai2027_canonical_tables.tex):
+All headline figures are automatically compiled into [ijcai2027_canonical_tables.md](./results/ijcai2027_canonical_tables.md) and [ijcai2027_canonical_tables.tex](./results/ijcai2027_canonical_tables.tex):
 
 1. **Universal Severe-Congestion `+MDP` Mechanism Gains (`Section 0A`, `Cap=1/3, c=1.5`, 13 Suites)**:
    Upgrading static Naor thresholds to Bellman DP shadow pricing yields strictly positive gains across **13/13** suites for `CC+Naor -> CC+MDP` (`mean +0.355`) and `ACL+FD+Naor -> ACL+FD+MDP` (`mean +0.443`), and **12/13** suites for `Tri-VoI-L2D -> Tri-VoI-MDP` (`mean +0.429`) and `JG+Naor -> JG+MDP` (`mean +0.429`).
@@ -81,4 +83,4 @@ python run_attribution_and_dedup_audit.py --offline-only
 python generate_ijcai_tables.py
 ```
 
-For environment setup and API execution details (when re-running `MediQ-Test-Disjoint` live against SiliconFlow), see [mediq_test_disjoint_eval.md](file:///d:/research/cscwd_tri_voi/results/mediq_test_disjoint_eval.md).
+For environment setup and API execution details (when re-running `MediQ-Test-Disjoint` live against SiliconFlow), see [mediq_test_disjoint_eval.md](./results/mediq_test_disjoint_eval.md).
