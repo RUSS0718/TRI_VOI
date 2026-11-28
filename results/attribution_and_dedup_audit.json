@@ -7,8 +7,92 @@
     "dry_calls": 0,
     "prompt_tokens": 0,
     "completion_tokens": 0,
-    "elapsed_min": 3.33,
+    "elapsed_min": 8.26,
     "by_model": {}
+  },
+  "sqlite_post_missing_fallback_audit": {
+    "total_post_ask_combined_rows": 4974,
+    "total_missing_key_fallbacks": 5,
+    "per_db": [
+      {
+        "db": "cache_deepseek-ai_DeepSeek-V3.2.sqlite",
+        "total": 1093,
+        "missing_key": 0,
+        "by_tag": {
+          "post_ask_combined": {
+            "total": 857,
+            "missing_key": 0
+          },
+          "post_ask_combined_v2": {
+            "total": 236,
+            "missing_key": 0
+          }
+        }
+      },
+      {
+        "db": "cache_inclusionAI_Ling-flash-2.0.sqlite",
+        "total": 5,
+        "missing_key": 1,
+        "by_tag": {
+          "post_ask_combined": {
+            "total": 5,
+            "missing_key": 1
+          }
+        }
+      },
+      {
+        "db": "cache_Qwen_Qwen3-8B.sqlite",
+        "total": 983,
+        "missing_key": 0,
+        "by_tag": {
+          "post_ask_combined": {
+            "total": 719,
+            "missing_key": 0
+          },
+          "post_ask_combined_v2": {
+            "total": 264,
+            "missing_key": 0
+          }
+        }
+      },
+      {
+        "db": "cache_Qwen_Qwen3.5-35B-A3B.sqlite",
+        "total": 1552,
+        "missing_key": 4,
+        "by_tag": {
+          "post_ask_combined": {
+            "total": 1326,
+            "missing_key": 0
+          },
+          "post_ask_combined_v2": {
+            "total": 226,
+            "missing_key": 4
+          }
+        }
+      },
+      {
+        "db": "cache_tencent_Hy4-preview.sqlite",
+        "total": 921,
+        "missing_key": 0,
+        "by_tag": {
+          "post_ask_combined": {
+            "total": 921,
+            "missing_key": 0
+          }
+        }
+      },
+      {
+        "db": "cache_zai-org_GLM-4.5-Air.sqlite",
+        "total": 420,
+        "missing_key": 0,
+        "by_tag": {
+          "post_ask_combined": {
+            "total": 420,
+            "missing_key": 0
+          }
+        }
+      }
+    ]
   },
   "part_a_stepwise_ablation": [
     {
@@ -745,6 +829,7 @@
       "n_obs_missing": 143,
       "true_no_info": 6,
       "pred_post_missing": 0,
+      "unparsed_fallback_to_obs": 0,
       "agreement_pct": 95.8,
       "precision": 0.0,
       "recall": 0.0,
@@ -754,6 +839,7 @@
       "n_obs_missing": 166,
       "true_no_info": 32,
       "pred_post_missing": 24,
+      "unparsed_fallback_to_obs": 0,
       "agreement_pct": 95.18,
       "precision": 1.0,
       "recall": 0.75,
@@ -763,6 +849,7 @@
       "n_obs_missing": 71,
       "true_no_info": 1,
       "pred_post_missing": 0,
+      "unparsed_fallback_to_obs": 0,
       "agreement_pct": 98.59,
       "precision": 0.0,
       "recall": 0.0,
@@ -772,6 +859,7 @@
       "n_obs_missing": 94,
       "true_no_info": 8,
       "pred_post_missing": 0,
+      "unparsed_fallback_to_obs": 0,
       "agreement_pct": 91.49,
       "precision": 0.0,
       "recall": 0.0,
@@ -781,6 +869,7 @@
       "n_obs_missing": 90,
       "true_no_info": 0,
       "pred_post_missing": 0,
+      "unparsed_fallback_to_obs": 0,
       "agreement_pct": 100.0,
       "precision": 0.0,
       "recall": 0.0,
@@ -789,16 +878,18 @@
     "Public-Tri / Qwen3.5 (strat=False)": {
       "n_obs_missing": 116,
       "true_no_info": 10,
-      "pred_post_missing": 15,
-      "agreement_pct": 85.34,
-      "precision": 0.267,
+      "pred_post_missing": 18,
+      "unparsed_fallback_to_obs": 3,
+      "agreement_pct": 82.76,
+      "precision": 0.222,
       "recall": 0.4,
-      "f1": 0.32
+      "f1": 0.286
     },
     "v3 / Qwen3.5": {
       "n_obs_missing": 63,
       "true_no_info": 1,
       "pred_post_missing": 0,
+      "unparsed_fallback_to_obs": 0,
       "agreement_pct": 98.41,
       "precision": 0.0,
       "recall": 0.0,
@@ -808,6 +899,7 @@
       "n_obs_missing": 72,
       "true_no_info": 0,
       "pred_post_missing": 0,
+      "unparsed_fallback_to_obs": 0,
       "agreement_pct": 100.0,
       "precision": 0.0,
       "recall": 0.0,
@@ -817,6 +909,7 @@
       "n_obs_missing": 64,
       "true_no_info": 16,
       "pred_post_missing": 14,
+      "unparsed_fallback_to_obs": 0,
       "agreement_pct": 65.62,
       "precision": 0.286,
       "recall": 0.25,
@@ -840,16 +933,21 @@
         "KL-PBD+ (Warm)": 3.401,
         "ACL-2026-VoI (Live)+Full-Defer+Naor": 4.599,
         "ACL-2026-VoI (Live)+Full-Defer+MDP": 4.619,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 4.607,
         "Joint-Greedy+Naor": 4.416,
         "Joint-Greedy+MDP": 4.478,
+        "Joint-Greedy+MDP (2C-Self)": 4.398,
         "Calibrated-Cascade+Naor": 4.599,
         "Calibrated-Cascade+MDP": 4.619,
+        "Calibrated-Cascade+MDP (2C-Self)": 4.607,
         "Tri-VoI-L2D": 4.364,
         "Tri-VoI-MDP": 4.47,
         "Tri-VoI-MDP (Deploy-Self)": 4.47
       },
       "best_base_mdp_name": "Calibrated-Cascade+MDP",
-      "boot_p_deploy_vs_best_base_mdp": 0.7061
+      "boot_p_deploy_vs_best_base_mdp": 0.7061,
+      "best_2c_self_base_mdp_name": "Calibrated-Cascade+MDP (2C-Self)",
+      "boot_p_deploy_vs_best_2c_self_base_mdp": 0.73409
     },
     {
       "model": "Qwen3.5-35B-A3B",
@@ -859,16 +957,21 @@
         "KL-PBD+ (Warm)": 2.657,
         "ACL-2026-VoI (Live)+Full-Defer+Naor": 3.458,
         "ACL-2026-VoI (Live)+Full-Defer+MDP": 3.907,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 3.334,
         "Joint-Greedy+Naor": 3.417,
         "Joint-Greedy+MDP": 4.117,
+        "Joint-Greedy+MDP (2C-Self)": 3.528,
         "Calibrated-Cascade+Naor": 3.458,
         "Calibrated-Cascade+MDP": 3.907,
+        "Calibrated-Cascade+MDP (2C-Self)": 3.334,
         "Tri-VoI-L2D": 3.458,
         "Tri-VoI-MDP": 3.334,
         "Tri-VoI-MDP (Deploy-Self)": 3.334
       },
       "best_base_mdp_name": "Joint-Greedy+MDP",
-      "boot_p_deploy_vs_best_base_mdp": 0.005998
+      "boot_p_deploy_vs_best_base_mdp": 0.005998,
+      "best_2c_self_base_mdp_name": "Joint-Greedy+MDP (2C-Self)",
+      "boot_p_deploy_vs_best_2c_self_base_mdp": 0.31356
     },
     {
       "model": "Qwen3.5-35B-A3B",
@@ -878,16 +981,21 @@
         "KL-PBD+ (Warm)": 4.159,
         "ACL-2026-VoI (Live)+Full-Defer+Naor": 5.404,
         "ACL-2026-VoI (Live)+Full-Defer+MDP": 5.404,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 5.404,
         "Joint-Greedy+Naor": 5.302,
         "Joint-Greedy+MDP": 5.119,
+        "Joint-Greedy+MDP (2C-Self)": 5.123,
         "Calibrated-Cascade+Naor": 5.404,
         "Calibrated-Cascade+MDP": 5.404,
+        "Calibrated-Cascade+MDP (2C-Self)": 5.404,
         "Tri-VoI-L2D": 5.519,
         "Tri-VoI-MDP": 5.552,
         "Tri-VoI-MDP (Deploy-Self)": 5.559
       },
       "best_base_mdp_name": "Calibrated-Cascade+MDP",
-      "boot_p_deploy_vs_best_base_mdp": 0.58014
+      "boot_p_deploy_vs_best_base_mdp": 0.58014,
+      "best_2c_self_base_mdp_name": "Calibrated-Cascade+MDP (2C-Self)",
+      "boot_p_deploy_vs_best_2c_self_base_mdp": 0.58014
     },
     {
       "model": "Qwen3.5-35B-A3B",
@@ -897,16 +1005,21 @@
         "KL-PBD+ (Warm)": 3.189,
         "ACL-2026-VoI (Live)+Full-Defer+Naor": 4.318,
         "ACL-2026-VoI (Live)+Full-Defer+MDP": 4.023,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 3.825,
         "Joint-Greedy+Naor": 4.218,
         "Joint-Greedy+MDP": 4.167,
+        "Joint-Greedy+MDP (2C-Self)": 3.761,
         "Calibrated-Cascade+Naor": 4.318,
         "Calibrated-Cascade+MDP": 4.023,
+        "Calibrated-Cascade+MDP (2C-Self)": 3.825,
         "Tri-VoI-L2D": 4.318,
         "Tri-VoI-MDP": 3.937,
         "Tri-VoI-MDP (Deploy-Self)": 3.937
       },
       "best_base_mdp_name": "Joint-Greedy+MDP",
-      "boot_p_deploy_vs_best_base_mdp": 0.64045
+      "boot_p_deploy_vs_best_base_mdp": 0.64045,
+      "best_2c_self_base_mdp_name": "Calibrated-Cascade+MDP (2C-Self)",
+      "boot_p_deploy_vs_best_2c_self_base_mdp": 0.57181
     },
     {
       "model": "Qwen3.5-35B-A3B",
@@ -916,16 +1029,21 @@
         "KL-PBD+ (Warm)": 4.055,
         "ACL-2026-VoI (Live)+Full-Defer+Naor": 4.839,
         "ACL-2026-VoI (Live)+Full-Defer+MDP": 4.949,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 4.935,
         "Joint-Greedy+Naor": 4.778,
         "Joint-Greedy+MDP": 4.659,
+        "Joint-Greedy+MDP (2C-Self)": 4.644,
         "Calibrated-Cascade+Naor": 4.839,
         "Calibrated-Cascade+MDP": 4.949,
+        "Calibrated-Cascade+MDP (2C-Self)": 4.935,
         "Tri-VoI-L2D": 4.786,
         "Tri-VoI-MDP": 4.897,
         "Tri-VoI-MDP (Deploy-Self)": 4.897
       },
       "best_base_mdp_name": "Calibrated-Cascade+MDP",
-      "boot_p_deploy_vs_best_base_mdp": 0.79873
+      "boot_p_deploy_vs_best_base_mdp": 0.79873,
+      "best_2c_self_base_mdp_name": "Calibrated-Cascade+MDP (2C-Self)",
+      "boot_p_deploy_vs_best_2c_self_base_mdp": 0.81773
     },
     {
       "model": "Qwen3.5-35B-A3B",
@@ -935,16 +1053,21 @@
         "KL-PBD+ (Warm)": 2.022,
         "ACL-2026-VoI (Live)+Full-Defer+Naor": 2.488,
         "ACL-2026-VoI (Live)+Full-Defer+MDP": 3.023,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2.751,
         "Joint-Greedy+Naor": 2.814,
         "Joint-Greedy+MDP": 3.192,
+        "Joint-Greedy+MDP (2C-Self)": 2.941,
         "Calibrated-Cascade+Naor": 2.488,
         "Calibrated-Cascade+MDP": 3.023,
+        "Calibrated-Cascade+MDP (2C-Self)": 2.751,
         "Tri-VoI-L2D": 2.488,
         "Tri-VoI-MDP": 2.751,
         "Tri-VoI-MDP (Deploy-Self)": 2.751
       },
       "best_base_mdp_name": "Joint-Greedy+MDP",
-      "boot_p_deploy_vs_best_base_mdp": 0.52982
+      "boot_p_deploy_vs_best_base_mdp": 0.52982,
+      "best_2c_self_base_mdp_name": "Joint-Greedy+MDP (2C-Self)",
+      "boot_p_deploy_vs_best_2c_self_base_mdp": 0.68277
     },
     {
       "model": "DeepSeek-V3.2",
@@ -954,16 +1077,21 @@
         "KL-PBD+ (Warm)": 3.216,
         "ACL-2026-VoI (Live)+Full-Defer+Naor": 4.411,
         "ACL-2026-VoI (Live)+Full-Defer+MDP": 4.487,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 4.458,
         "Joint-Greedy+Naor": 4.204,
         "Joint-Greedy+MDP": 4.178,
+        "Joint-Greedy+MDP (2C-Self)": 4.283,
         "Calibrated-Cascade+Naor": 4.528,
         "Calibrated-Cascade+MDP": 4.626,
+        "Calibrated-Cascade+MDP (2C-Self)": 4.591,
         "Tri-VoI-L2D": 4.558,
         "Tri-VoI-MDP": 4.582,
         "Tri-VoI-MDP (Deploy-Self)": 4.582
       },
       "best_base_mdp_name": "Calibrated-Cascade+MDP",
-      "boot_p_deploy_vs_best_base_mdp": 0.88737
+      "boot_p_deploy_vs_best_base_mdp": 0.88737,
+      "best_2c_self_base_mdp_name": "Calibrated-Cascade+MDP (2C-Self)",
+      "boot_p_deploy_vs_best_2c_self_base_mdp": 0.98101
     },
     {
       "model": "DeepSeek-V3.2",
@@ -973,16 +1101,21 @@
         "KL-PBD+ (Warm)": 1.413,
         "ACL-2026-VoI (Live)+Full-Defer+Naor": 2.612,
         "ACL-2026-VoI (Live)+Full-Defer+MDP": 3.385,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 3.265,
         "Joint-Greedy+Naor": 3.469,
         "Joint-Greedy+MDP": 3.682,
+        "Joint-Greedy+MDP (2C-Self)": 3.948,
         "Calibrated-Cascade+Naor": 2.695,
         "Calibrated-Cascade+MDP": 3.499,
+        "Calibrated-Cascade+MDP (2C-Self)": 3.484,
         "Tri-VoI-L2D": 2.695,
         "Tri-VoI-MDP": 3.484,
         "Tri-VoI-MDP (Deploy-Self)": 3.484
       },
       "best_base_mdp_name": "Joint-Greedy+MDP",
-      "boot_p_deploy_vs_best_base_mdp": 0.65178
+      "boot_p_deploy_vs_best_base_mdp": 0.65178,
+      "best_2c_self_base_mdp_name": "Joint-Greedy+MDP (2C-Self)",
+      "boot_p_deploy_vs_best_2c_self_base_mdp": 0.26358
     },
     {
       "model": "DeepSeek-V3.2",
@@ -992,16 +1125,21 @@
         "KL-PBD+ (Warm)": 3.961,
         "ACL-2026-VoI (Live)+Full-Defer+Naor": 5.024,
         "ACL-2026-VoI (Live)+Full-Defer+MDP": 5.014,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 5.114,
         "Joint-Greedy+Naor": 5.028,
         "Joint-Greedy+MDP": 4.95,
+        "Joint-Greedy+MDP (2C-Self)": 4.833,
         "Calibrated-Cascade+Naor": 5.327,
         "Calibrated-Cascade+MDP": 5.327,
+        "Calibrated-Cascade+MDP (2C-Self)": 5.373,
         "Tri-VoI-L2D": 5.398,
         "Tri-VoI-MDP": 5.222,
         "Tri-VoI-MDP (Deploy-Self)": 5.222
       },
       "best_base_mdp_name": "Calibrated-Cascade+MDP",
-      "boot_p_deploy_vs_best_base_mdp": 0.75775
+      "boot_p_deploy_vs_best_base_mdp": 0.75775,
+      "best_2c_self_base_mdp_name": "Calibrated-Cascade+MDP (2C-Self)",
+      "boot_p_deploy_vs_best_2c_self_base_mdp": 0.67078
     },
     {
       "model": "DeepSeek-V3.2",
@@ -1011,16 +1149,21 @@
         "KL-PBD+ (Warm)": 2.577,
         "ACL-2026-VoI (Live)+Full-Defer+Naor": 2.944,
         "ACL-2026-VoI (Live)+Full-Defer+MDP": 2.651,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 3.127,
         "Joint-Greedy+Naor": 3.903,
         "Joint-Greedy+MDP": 2.48,
+        "Joint-Greedy+MDP (2C-Self)": 3.257,
         "Calibrated-Cascade+Naor": 3.115,
         "Calibrated-Cascade+MDP": 2.711,
+        "Calibrated-Cascade+MDP (2C-Self)": 3.261,
         "Tri-VoI-L2D": 3.115,
         "Tri-VoI-MDP": 3.261,
         "Tri-VoI-MDP (Deploy-Self)": 3.261
       },
       "best_base_mdp_name": "Calibrated-Cascade+MDP",
-      "boot_p_deploy_vs_best_base_mdp": 0.16794
+      "boot_p_deploy_vs_best_base_mdp": 0.16794,
+      "best_2c_self_base_mdp_name": "Calibrated-Cascade+MDP (2C-Self)",
+      "boot_p_deploy_vs_best_2c_self_base_mdp": 1.0
     },
     {
       "model": "DeepSeek-V3.2",
@@ -1030,16 +1173,21 @@
         "KL-PBD+ (Warm)": 3.994,
         "ACL-2026-VoI (Live)+Full-Defer+Naor": 4.491,
         "ACL-2026-VoI (Live)+Full-Defer+MDP": 4.483,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 4.473,
         "Joint-Greedy+Naor": 4.689,
         "Joint-Greedy+MDP": 4.467,
+        "Joint-Greedy+MDP (2C-Self)": 4.535,
         "Calibrated-Cascade+Naor": 4.845,
         "Calibrated-Cascade+MDP": 4.841,
+        "Calibrated-Cascade+MDP (2C-Self)": 4.83,
         "Tri-VoI-L2D": 4.765,
         "Tri-VoI-MDP": 4.793,
         "Tri-VoI-MDP (Deploy-Self)": 4.793
       },
       "best_base_mdp_name": "Calibrated-Cascade+MDP",
-      "boot_p_deploy_vs_best_base_mdp": 0.88237
+      "boot_p_deploy_vs_best_base_mdp": 0.88237,
+      "best_2c_self_base_mdp_name": "Calibrated-Cascade+MDP (2C-Self)",
+      "boot_p_deploy_vs_best_2c_self_base_mdp": 0.88204
     },
     {
       "model": "DeepSeek-V3.2",
@@ -1049,16 +1197,1139 @@
         "KL-PBD+ (Warm)": 0.137,
         "ACL-2026-VoI (Live)+Full-Defer+Naor": 1.061,
         "ACL-2026-VoI (Live)+Full-Defer+MDP": 1.349,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 1.86,
         "Joint-Greedy+Naor": 2.064,
         "Joint-Greedy+MDP": 2.849,
+        "Joint-Greedy+MDP (2C-Self)": 3.016,
         "Calibrated-Cascade+Naor": 1.113,
         "Calibrated-Cascade+MDP": 1.664,
+        "Calibrated-Cascade+MDP (2C-Self)": 2.197,
         "Tri-VoI-L2D": 1.113,
         "Tri-VoI-MDP": 2.197,
         "Tri-VoI-MDP (Deploy-Self)": 2.197
       },
       "best_base_mdp_name": "Joint-Greedy+MDP",
-      "boot_p_deploy_vs_best_base_mdp": 0.21659
+      "boot_p_deploy_vs_best_base_mdp": 0.21659,
+      "best_2c_self_base_mdp_name": "Joint-Greedy+MDP (2C-Self)",
+      "boot_p_deploy_vs_best_2c_self_base_mdp": 0.15462
+    }
+  ],
+  "part_e_matched_2c_self_attribution": [
+    {
+      "suite": "v1-Clean / Qwen3.5",
+      "regime": "Cap=2, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 4.933,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 4.921,
+        "Joint-Greedy+MDP (2C-Self)": 5.217,
+        "Joint-Greedy+OwnDP (2C-Self)": 5.205,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 4.933,
+        "Tri-VoI-MDP (Deploy-Self)": 5.343
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2250.0,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 2250.0,
+        "Joint-Greedy+MDP (2C-Self)": 2025.4,
+        "Joint-Greedy+OwnDP (2C-Self)": 2025.3,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 2250.0,
+        "Tri-VoI-MDP (Deploy-Self)": 2111.0
+      },
+      "best_shared_2c_key": "Joint-Greedy+MDP (2C-Self)",
+      "best_own_2c_key": "Joint-Greedy+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": 0.126,
+      "evoi_net_vs_best_own_2c": 0.138,
+      "boot_p_vs_best_shared_2c": 0.5105,
+      "boot_p_vs_best_own_2c": 0.47984
+    },
+    {
+      "suite": "v1-Clean / Qwen3.5",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 4.121,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 4.097,
+        "Joint-Greedy+MDP (2C-Self)": 3.588,
+        "Joint-Greedy+OwnDP (2C-Self)": 3.533,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 4.121,
+        "Tri-VoI-MDP (Deploy-Self)": 4.048
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2250.0,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 2250.0,
+        "Joint-Greedy+MDP (2C-Self)": 2215.6,
+        "Joint-Greedy+OwnDP (2C-Self)": 2215.7,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 2250.0,
+        "Tri-VoI-MDP (Deploy-Self)": 2245.0
+      },
+      "best_shared_2c_key": "Calibrated-Cascade+MDP (2C-Self)",
+      "best_own_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": -0.073,
+      "evoi_net_vs_best_own_2c": -0.073,
+      "boot_p_vs_best_shared_2c": 0.46684,
+      "boot_p_vs_best_own_2c": 0.46684
+    },
+    {
+      "suite": "v1-Noisy / Qwen3.5",
+      "regime": "Cap=2, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 3.558,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 3.588,
+        "Joint-Greedy+MDP (2C-Self)": 3.654,
+        "Joint-Greedy+OwnDP (2C-Self)": 3.735,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 3.558,
+        "Tri-VoI-MDP (Deploy-Self)": 3.696
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 6777.1,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 6777.1,
+        "Joint-Greedy+MDP (2C-Self)": 6777.1,
+        "Joint-Greedy+OwnDP (2C-Self)": 6777.1,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 6777.1,
+        "Tri-VoI-MDP (Deploy-Self)": 6777.1
+      },
+      "best_shared_2c_key": "Joint-Greedy+MDP (2C-Self)",
+      "best_own_2c_key": "Joint-Greedy+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": 0.042,
+      "evoi_net_vs_best_own_2c": -0.039,
+      "boot_p_vs_best_shared_2c": 0.86238,
+      "boot_p_vs_best_own_2c": 0.86971
+    },
+    {
+      "suite": "v1-Noisy / Qwen3.5",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2.324,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 2.306,
+        "Joint-Greedy+MDP (2C-Self)": 2.092,
+        "Joint-Greedy+OwnDP (2C-Self)": 1.976,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 2.324,
+        "Tri-VoI-MDP (Deploy-Self)": 2.319
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 6777.1,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 6777.1,
+        "Joint-Greedy+MDP (2C-Self)": 6777.1,
+        "Joint-Greedy+OwnDP (2C-Self)": 6777.1,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 6777.1,
+        "Tri-VoI-MDP (Deploy-Self)": 6777.1
+      },
+      "best_shared_2c_key": "Calibrated-Cascade+MDP (2C-Self)",
+      "best_own_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": -0.005,
+      "evoi_net_vs_best_own_2c": -0.005,
+      "boot_p_vs_best_shared_2c": 0.85871,
+      "boot_p_vs_best_own_2c": 0.85871
+    },
+    {
+      "suite": "v2 / Qwen3.5",
+      "regime": "Cap=2, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 4.993,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 4.928,
+        "Joint-Greedy+MDP (2C-Self)": 4.31,
+        "Joint-Greedy+OwnDP (2C-Self)": 4.31,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 5.01,
+        "Tri-VoI-MDP (Deploy-Self)": 4.699
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2248.8,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 2248.8,
+        "Joint-Greedy+MDP (2C-Self)": 2020.0,
+        "Joint-Greedy+OwnDP (2C-Self)": 2020.0,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2682.0,
+        "Tri-VoI-MDP (Deploy-Self)": 2096.9
+      },
+      "best_shared_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "best_own_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": -0.311,
+      "evoi_net_vs_best_own_2c": -0.311,
+      "boot_p_vs_best_shared_2c": 0.2036,
+      "boot_p_vs_best_own_2c": 0.2036
+    },
+    {
+      "suite": "v2 / Qwen3.5",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 4.003,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 4.003,
+        "Joint-Greedy+MDP (2C-Self)": 3.491,
+        "Joint-Greedy+OwnDP (2C-Self)": 3.558,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 3.992,
+        "Tri-VoI-MDP (Deploy-Self)": 4.041
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2248.8,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 2248.8,
+        "Joint-Greedy+MDP (2C-Self)": 2197.6,
+        "Joint-Greedy+OwnDP (2C-Self)": 2205.6,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2682.0,
+        "Tri-VoI-MDP (Deploy-Self)": 2243.9
+      },
+      "best_shared_2c_key": "Calibrated-Cascade+MDP (2C-Self)",
+      "best_own_2c_key": "Calibrated-Cascade+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": 0.038,
+      "evoi_net_vs_best_own_2c": 0.038,
+      "boot_p_vs_best_shared_2c": 0.82506,
+      "boot_p_vs_best_own_2c": 0.82506
+    },
+    {
+      "suite": "v2 / DeepSeek-V3.2",
+      "regime": "Cap=2, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 4.754,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 4.754,
+        "Joint-Greedy+MDP (2C-Self)": 4.898,
+        "Joint-Greedy+OwnDP (2C-Self)": 4.898,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 4.754,
+        "Tri-VoI-MDP (Deploy-Self)": 5.138
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2136.8,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 2136.8,
+        "Joint-Greedy+MDP (2C-Self)": 1933.2,
+        "Joint-Greedy+OwnDP (2C-Self)": 1933.2,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2666.0,
+        "Tri-VoI-MDP (Deploy-Self)": 2014.2
+      },
+      "best_shared_2c_key": "Joint-Greedy+MDP (2C-Self)",
+      "best_own_2c_key": "Joint-Greedy+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": 0.24,
+      "evoi_net_vs_best_own_2c": 0.24,
+      "boot_p_vs_best_shared_2c": 0.47451,
+      "boot_p_vs_best_own_2c": 0.47451
+    },
+    {
+      "suite": "v2 / DeepSeek-V3.2",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 4.483,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 4.483,
+        "Joint-Greedy+MDP (2C-Self)": 4.095,
+        "Joint-Greedy+OwnDP (2C-Self)": 4.12,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 4.483,
+        "Tri-VoI-MDP (Deploy-Self)": 4.492
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2136.8,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 2136.8,
+        "Joint-Greedy+MDP (2C-Self)": 2073.8,
+        "Joint-Greedy+OwnDP (2C-Self)": 2083.3,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2666.0,
+        "Tri-VoI-MDP (Deploy-Self)": 2132.1
+      },
+      "best_shared_2c_key": "Calibrated-Cascade+MDP (2C-Self)",
+      "best_own_2c_key": "Calibrated-Cascade+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": 0.009,
+      "evoi_net_vs_best_own_2c": 0.009,
+      "boot_p_vs_best_shared_2c": 0.61613,
+      "boot_p_vs_best_own_2c": 0.61613
+    },
+    {
+      "suite": "v2 / Hy4-preview",
+      "regime": "Cap=2, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 6.271,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 6.271,
+        "Joint-Greedy+MDP (2C-Self)": 5.451,
+        "Joint-Greedy+OwnDP (2C-Self)": 5.451,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 5.986,
+        "Tri-VoI-MDP (Deploy-Self)": 6.085
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2180.8,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 2180.8,
+        "Joint-Greedy+MDP (2C-Self)": 1958.2,
+        "Joint-Greedy+OwnDP (2C-Self)": 1958.2,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2571.3,
+        "Tri-VoI-MDP (Deploy-Self)": 2076.3
+      },
+      "best_shared_2c_key": "Calibrated-Cascade+MDP (2C-Self)",
+      "best_own_2c_key": "Calibrated-Cascade+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": -0.186,
+      "evoi_net_vs_best_own_2c": -0.186,
+      "boot_p_vs_best_shared_2c": 0.46951,
+      "boot_p_vs_best_own_2c": 0.46951
+    },
+    {
+      "suite": "v2 / Hy4-preview",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 5.554,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 5.554,
+        "Joint-Greedy+MDP (2C-Self)": 4.984,
+        "Joint-Greedy+OwnDP (2C-Self)": 5.185,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 5.386,
+        "Tri-VoI-MDP (Deploy-Self)": 5.551
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2180.8,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 2180.8,
+        "Joint-Greedy+MDP (2C-Self)": 1964.7,
+        "Joint-Greedy+OwnDP (2C-Self)": 1961.0,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2571.3,
+        "Tri-VoI-MDP (Deploy-Self)": 2140.5
+      },
+      "best_shared_2c_key": "Calibrated-Cascade+MDP (2C-Self)",
+      "best_own_2c_key": "Calibrated-Cascade+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": -0.003,
+      "evoi_net_vs_best_own_2c": -0.003,
+      "boot_p_vs_best_shared_2c": 0.96368,
+      "boot_p_vs_best_own_2c": 0.96368
+    },
+    {
+      "suite": "Public-Tri / Qwen3.5 (strat=False)",
+      "regime": "Cap=2, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 3.182,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 3.19,
+        "Joint-Greedy+MDP (2C-Self)": 3.513,
+        "Joint-Greedy+OwnDP (2C-Self)": 3.513,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 3.256,
+        "Tri-VoI-MDP (Deploy-Self)": 3.446
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1959.4,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 1959.4,
+        "Joint-Greedy+MDP (2C-Self)": 1564.3,
+        "Joint-Greedy+OwnDP (2C-Self)": 1564.3,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2393.8,
+        "Tri-VoI-MDP (Deploy-Self)": 1588.3
+      },
+      "best_shared_2c_key": "Joint-Greedy+MDP (2C-Self)",
+      "best_own_2c_key": "Joint-Greedy+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": -0.067,
+      "evoi_net_vs_best_own_2c": -0.067,
+      "boot_p_vs_best_shared_2c": 0.57181,
+      "boot_p_vs_best_own_2c": 0.57181
+    },
+    {
+      "suite": "Public-Tri / Qwen3.5 (strat=False)",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1.713,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 1.721,
+        "Joint-Greedy+MDP (2C-Self)": 2.121,
+        "Joint-Greedy+OwnDP (2C-Self)": 2.068,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 1.69,
+        "Tri-VoI-MDP (Deploy-Self)": 1.718
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1959.4,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 1959.4,
+        "Joint-Greedy+MDP (2C-Self)": 1880.3,
+        "Joint-Greedy+OwnDP (2C-Self)": 1884.9,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2393.8,
+        "Tri-VoI-MDP (Deploy-Self)": 1927.4
+      },
+      "best_shared_2c_key": "Joint-Greedy+MDP (2C-Self)",
+      "best_own_2c_key": "Joint-Greedy+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": -0.403,
+      "evoi_net_vs_best_own_2c": -0.35,
+      "boot_p_vs_best_shared_2c": 0.21559,
+      "boot_p_vs_best_own_2c": 0.31623
+    },
+    {
+      "suite": "Public-Tri / Qwen3.5 (strat=True)",
+      "regime": "Cap=2, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 3.117,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 3.104,
+        "Joint-Greedy+MDP (2C-Self)": 3.644,
+        "Joint-Greedy+OwnDP (2C-Self)": 3.644,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 3.193,
+        "Tri-VoI-MDP (Deploy-Self)": 3.544
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1959.4,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 1959.4,
+        "Joint-Greedy+MDP (2C-Self)": 1575.9,
+        "Joint-Greedy+OwnDP (2C-Self)": 1575.9,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2393.8,
+        "Tri-VoI-MDP (Deploy-Self)": 1593.2
+      },
+      "best_shared_2c_key": "Joint-Greedy+MDP (2C-Self)",
+      "best_own_2c_key": "Joint-Greedy+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": -0.1,
+      "evoi_net_vs_best_own_2c": -0.1,
+      "boot_p_vs_best_shared_2c": 0.45018,
+      "boot_p_vs_best_own_2c": 0.45018
+    },
+    {
+      "suite": "Public-Tri / Qwen3.5 (strat=True)",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1.718,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 1.68,
+        "Joint-Greedy+MDP (2C-Self)": 1.913,
+        "Joint-Greedy+OwnDP (2C-Self)": 1.951,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 1.691,
+        "Tri-VoI-MDP (Deploy-Self)": 1.711
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1959.4,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 1959.4,
+        "Joint-Greedy+MDP (2C-Self)": 1872.2,
+        "Joint-Greedy+OwnDP (2C-Self)": 1875.9,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2393.8,
+        "Tri-VoI-MDP (Deploy-Self)": 1916.6
+      },
+      "best_shared_2c_key": "Joint-Greedy+MDP (2C-Self)",
+      "best_own_2c_key": "Joint-Greedy+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": -0.202,
+      "evoi_net_vs_best_own_2c": -0.24,
+      "boot_p_vs_best_shared_2c": 0.4122,
+      "boot_p_vs_best_own_2c": 0.36421
+    },
+    {
+      "suite": "Public-Tri / DS (RealSpec, strat=False)",
+      "regime": "Cap=2, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2.467,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 2.499,
+        "Joint-Greedy+MDP (2C-Self)": 3.092,
+        "Joint-Greedy+OwnDP (2C-Self)": 3.092,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2.663,
+        "Tri-VoI-MDP (Deploy-Self)": 2.961
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1959.4,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 1959.4,
+        "Joint-Greedy+MDP (2C-Self)": 1502.4,
+        "Joint-Greedy+OwnDP (2C-Self)": 1502.4,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2393.8,
+        "Tri-VoI-MDP (Deploy-Self)": 1548.2
+      },
+      "best_shared_2c_key": "Joint-Greedy+MDP (2C-Self)",
+      "best_own_2c_key": "Joint-Greedy+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": -0.131,
+      "evoi_net_vs_best_own_2c": -0.131,
+      "boot_p_vs_best_shared_2c": 0.46085,
+      "boot_p_vs_best_own_2c": 0.46085
+    },
+    {
+      "suite": "Public-Tri / DS (RealSpec, strat=False)",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1.63,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 1.572,
+        "Joint-Greedy+MDP (2C-Self)": 1.798,
+        "Joint-Greedy+OwnDP (2C-Self)": 1.798,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 1.608,
+        "Tri-VoI-MDP (Deploy-Self)": 1.671
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1959.4,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 1959.4,
+        "Joint-Greedy+MDP (2C-Self)": 1875.3,
+        "Joint-Greedy+OwnDP (2C-Self)": 1875.3,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2393.8,
+        "Tri-VoI-MDP (Deploy-Self)": 1921.1
+      },
+      "best_shared_2c_key": "Joint-Greedy+MDP (2C-Self)",
+      "best_own_2c_key": "Joint-Greedy+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": -0.127,
+      "evoi_net_vs_best_own_2c": -0.127,
+      "boot_p_vs_best_shared_2c": 0.57481,
+      "boot_p_vs_best_own_2c": 0.57481
+    },
+    {
+      "suite": "v3 / Qwen3.5",
+      "regime": "Cap=2, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 4.607,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 4.607,
+        "Joint-Greedy+MDP (2C-Self)": 4.398,
+        "Joint-Greedy+OwnDP (2C-Self)": 4.398,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 4.607,
+        "Tri-VoI-MDP (Deploy-Self)": 4.47
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2186.7,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 2186.7,
+        "Joint-Greedy+MDP (2C-Self)": 1982.8,
+        "Joint-Greedy+OwnDP (2C-Self)": 1982.8,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2674.7,
+        "Tri-VoI-MDP (Deploy-Self)": 2091.3
+      },
+      "best_shared_2c_key": "Calibrated-Cascade+MDP (2C-Self)",
+      "best_own_2c_key": "Calibrated-Cascade+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": -0.137,
+      "evoi_net_vs_best_own_2c": -0.137,
+      "boot_p_vs_best_shared_2c": 0.73409,
+      "boot_p_vs_best_own_2c": 0.73409
+    },
+    {
+      "suite": "v3 / Qwen3.5",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 3.334,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 3.334,
+        "Joint-Greedy+MDP (2C-Self)": 3.528,
+        "Joint-Greedy+OwnDP (2C-Self)": 3.496,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 3.334,
+        "Tri-VoI-MDP (Deploy-Self)": 3.334
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2186.7,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 2186.7,
+        "Joint-Greedy+MDP (2C-Self)": 2172.1,
+        "Joint-Greedy+OwnDP (2C-Self)": 2169.5,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2674.7,
+        "Tri-VoI-MDP (Deploy-Self)": 2186.7
+      },
+      "best_shared_2c_key": "Joint-Greedy+MDP (2C-Self)",
+      "best_own_2c_key": "Joint-Greedy+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": -0.194,
+      "evoi_net_vs_best_own_2c": -0.162,
+      "boot_p_vs_best_shared_2c": 0.31356,
+      "boot_p_vs_best_own_2c": 0.30423
+    },
+    {
+      "suite": "v3 / DeepSeek-V3.2",
+      "regime": "Cap=2, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 4.591,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 4.591,
+        "Joint-Greedy+MDP (2C-Self)": 4.283,
+        "Joint-Greedy+OwnDP (2C-Self)": 4.283,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 4.458,
+        "Tri-VoI-MDP (Deploy-Self)": 4.582
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2139.4,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 2139.4,
+        "Joint-Greedy+MDP (2C-Self)": 1915.4,
+        "Joint-Greedy+OwnDP (2C-Self)": 1915.4,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2633.6,
+        "Tri-VoI-MDP (Deploy-Self)": 2036.1
+      },
+      "best_shared_2c_key": "Calibrated-Cascade+MDP (2C-Self)",
+      "best_own_2c_key": "Calibrated-Cascade+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": -0.009,
+      "evoi_net_vs_best_own_2c": -0.009,
+      "boot_p_vs_best_shared_2c": 0.98101,
+      "boot_p_vs_best_own_2c": 0.98101
+    },
+    {
+      "suite": "v3 / DeepSeek-V3.2",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 3.484,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 3.484,
+        "Joint-Greedy+MDP (2C-Self)": 3.948,
+        "Joint-Greedy+OwnDP (2C-Self)": 4.066,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 3.265,
+        "Tri-VoI-MDP (Deploy-Self)": 3.484
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2139.4,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 2139.4,
+        "Joint-Greedy+MDP (2C-Self)": 2103.8,
+        "Joint-Greedy+OwnDP (2C-Self)": 2112.0,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2633.6,
+        "Tri-VoI-MDP (Deploy-Self)": 2139.4
+      },
+      "best_shared_2c_key": "Joint-Greedy+MDP (2C-Self)",
+      "best_own_2c_key": "Joint-Greedy+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": -0.464,
+      "evoi_net_vs_best_own_2c": -0.582,
+      "boot_p_vs_best_shared_2c": 0.26358,
+      "boot_p_vs_best_own_2c": 0.23192
+    },
+    {
+      "suite": "MediQ-Holdout / Q3.5->RealDS",
+      "regime": "Cap=2, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1.907,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 1.907,
+        "Joint-Greedy+MDP (2C-Self)": 1.9,
+        "Joint-Greedy+OwnDP (2C-Self)": 1.9,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 1.589,
+        "Tri-VoI-MDP (Deploy-Self)": 2.072
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1968.9,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 1968.9,
+        "Joint-Greedy+MDP (2C-Self)": 1720.9,
+        "Joint-Greedy+OwnDP (2C-Self)": 1720.9,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2334.2,
+        "Tri-VoI-MDP (Deploy-Self)": 1894.3
+      },
+      "best_shared_2c_key": "Calibrated-Cascade+MDP (2C-Self)",
+      "best_own_2c_key": "Calibrated-Cascade+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": 0.165,
+      "evoi_net_vs_best_own_2c": 0.165,
+      "boot_p_vs_best_shared_2c": 0.27991,
+      "boot_p_vs_best_own_2c": 0.27991
+    },
+    {
+      "suite": "MediQ-Holdout / Q3.5->RealDS",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1.32,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 1.393,
+        "Joint-Greedy+MDP (2C-Self)": 0.761,
+        "Joint-Greedy+OwnDP (2C-Self)": 0.902,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 0.584,
+        "Tri-VoI-MDP (Deploy-Self)": 1.348
+      },
+      "tokens": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1968.9,
+        "Calibrated-Cascade+OwnDP (2C-Self)": 1968.9,
+        "Joint-Greedy+MDP (2C-Self)": 1764.7,
+        "Joint-Greedy+OwnDP (2C-Self)": 1764.7,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2334.2,
+        "Tri-VoI-MDP (Deploy-Self)": 1840.2
+      },
+      "best_shared_2c_key": "Calibrated-Cascade+MDP (2C-Self)",
+      "best_own_2c_key": "Calibrated-Cascade+OwnDP (2C-Self)",
+      "evoi_net_vs_best_shared_2c": 0.028,
+      "evoi_net_vs_best_own_2c": -0.045,
+      "boot_p_vs_best_shared_2c": 0.92203,
+      "boot_p_vs_best_own_2c": 0.9017
+    }
+  ],
+  "part_f_c_ask_regime_map": [
+    {
+      "suite": "v1-Clean / Qwen3.5",
+      "cap_regime": "Cap=2",
+      "c_ask": 0.5,
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 5.33,
+        "Joint-Greedy+MDP (2C-Self)": 5.285,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 5.33,
+        "Tri-VoI-MDP (Deploy-Self)": 5.401
+      },
+      "evoi_net_vs_best_2c": 0.071
+    },
+    {
+      "suite": "v1-Clean / Qwen3.5",
+      "cap_regime": "Cap=2",
+      "c_ask": 1.5,
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 4.933,
+        "Joint-Greedy+MDP (2C-Self)": 5.217,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 4.933,
+        "Tri-VoI-MDP (Deploy-Self)": 5.343
+      },
+      "evoi_net_vs_best_2c": 0.126
+    },
+    {
+      "suite": "v1-Clean / Qwen3.5",
+      "cap_regime": "Cap=2",
+      "c_ask": 3.0,
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 4.337,
+        "Joint-Greedy+MDP (2C-Self)": 5.151,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 4.871,
+        "Tri-VoI-MDP (Deploy-Self)": 5.107
+      },
+      "evoi_net_vs_best_2c": -0.044
+    },
+    {
+      "suite": "v1-Clean / Qwen3.5",
+      "cap_regime": "Cap=2",
+      "c_ask": 4.5,
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 3.741,
+        "Joint-Greedy+MDP (2C-Self)": 4.908,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 4.588,
+        "Tri-VoI-MDP (Deploy-Self)": 4.893
+      },
+      "evoi_net_vs_best_2c": -0.015
+    },
+    {
+      "suite": "v1-Clean / Qwen3.5",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 0.5,
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 4.494,
+        "Joint-Greedy+MDP (2C-Self)": 3.948,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 4.494,
+        "Tri-VoI-MDP (Deploy-Self)": 4.494
+      },
+      "evoi_net_vs_best_2c": 0.0
+    },
+    {
+      "suite": "v1-Clean / Qwen3.5",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 1.5,
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 4.121,
+        "Joint-Greedy+MDP (2C-Self)": 3.588,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 4.121,
+        "Tri-VoI-MDP (Deploy-Self)": 4.048
+      },
+      "evoi_net_vs_best_2c": -0.073
+    },
+    {
+      "suite": "v1-Clean / Qwen3.5",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 3.0,
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 3.549,
+        "Joint-Greedy+MDP (2C-Self)": 3.856,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 3.856,
+        "Tri-VoI-MDP (Deploy-Self)": 3.451
+      },
+      "evoi_net_vs_best_2c": -0.405
+    },
+    {
+      "suite": "v1-Clean / Qwen3.5",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 4.5,
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2.971,
+        "Joint-Greedy+MDP (2C-Self)": 3.534,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 3.597,
+        "Tri-VoI-MDP (Deploy-Self)": 3.257
+      },
+      "evoi_net_vs_best_2c": -0.34
+    },
+    {
+      "suite": "v1-Noisy / Qwen3.5",
+      "cap_regime": "Cap=2",
+      "c_ask": 0.5,
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 4.049,
+        "Joint-Greedy+MDP (2C-Self)": 4.02,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 4.049,
+        "Tri-VoI-MDP (Deploy-Self)": 4.049
+      },
+      "evoi_net_vs_best_2c": 0.0
+    },
+    {
+      "suite": "v1-Noisy / Qwen3.5",
+      "cap_regime": "Cap=2",
+      "c_ask": 1.5,
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 3.558,
+        "Joint-Greedy+MDP (2C-Self)": 3.654,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 3.558,
+        "Tri-VoI-MDP (Deploy-Self)": 3.696
+      },
+      "evoi_net_vs_best_2c": 0.042
+    },
+    {
+      "suite": "v1-Noisy / Qwen3.5",
+      "cap_regime": "Cap=2",
+      "c_ask": 3.0,
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2.902,
+        "Joint-Greedy+MDP (2C-Self)": 3.541,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 3.485,
+        "Tri-VoI-MDP (Deploy-Self)": 3.409
+      },
+      "evoi_net_vs_best_2c": -0.132
+    },
+    {
+      "suite": "v1-Noisy / Qwen3.5",
+      "cap_regime": "Cap=2",
+      "c_ask": 4.5,
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2.211,
+        "Joint-Greedy+MDP (2C-Self)": 3.541,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 3.439,
+        "Tri-VoI-MDP (Deploy-Self)": 3.444
+      },
+      "evoi_net_vs_best_2c": -0.097
+    },
+    {
+      "suite": "v1-Noisy / Qwen3.5",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 0.5,
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2.767,
+        "Joint-Greedy+MDP (2C-Self)": 2.554,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 2.767,
+        "Tri-VoI-MDP (Deploy-Self)": 2.767
+      },
+      "evoi_net_vs_best_2c": 0.0
+    },
+    {
+      "suite": "v1-Noisy / Qwen3.5",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 1.5,
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2.324,
+        "Joint-Greedy+MDP (2C-Self)": 2.092,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 2.324,
+        "Tri-VoI-MDP (Deploy-Self)": 2.319
+      },
+      "evoi_net_vs_best_2c": -0.005
+    },
+    {
+      "suite": "v1-Noisy / Qwen3.5",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 3.0,
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1.669,
+        "Joint-Greedy+MDP (2C-Self)": 1.506,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 1.472,
+        "Tri-VoI-MDP (Deploy-Self)": 1.662
+      },
+      "evoi_net_vs_best_2c": -0.007
+    },
+    {
+      "suite": "v1-Noisy / Qwen3.5",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 4.5,
+      "acl_2c_key": "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 0.73,
+        "Joint-Greedy+MDP (2C-Self)": 1.326,
+        "ACL-2026-VoI+Full-Defer+MDP (2C-Self)": 1.326,
+        "Tri-VoI-MDP (Deploy-Self)": 1.383
+      },
+      "evoi_net_vs_best_2c": 0.057
+    },
+    {
+      "suite": "v2 / DeepSeek-V3.2",
+      "cap_regime": "Cap=2",
+      "c_ask": 0.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 5.276,
+        "Joint-Greedy+MDP (2C-Self)": 5.31,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 5.276,
+        "Tri-VoI-MDP (Deploy-Self)": 5.42
+      },
+      "evoi_net_vs_best_2c": 0.11
+    },
+    {
+      "suite": "v2 / DeepSeek-V3.2",
+      "cap_regime": "Cap=2",
+      "c_ask": 1.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 4.754,
+        "Joint-Greedy+MDP (2C-Self)": 4.898,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 4.754,
+        "Tri-VoI-MDP (Deploy-Self)": 5.138
+      },
+      "evoi_net_vs_best_2c": 0.24
+    },
+    {
+      "suite": "v2 / DeepSeek-V3.2",
+      "cap_regime": "Cap=2",
+      "c_ask": 3.0,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 3.97,
+        "Joint-Greedy+MDP (2C-Self)": 4.481,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 4.109,
+        "Tri-VoI-MDP (Deploy-Self)": 4.343
+      },
+      "evoi_net_vs_best_2c": -0.138
+    },
+    {
+      "suite": "v2 / DeepSeek-V3.2",
+      "cap_regime": "Cap=2",
+      "c_ask": 4.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 3.187,
+        "Joint-Greedy+MDP (2C-Self)": 4.285,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 3.567,
+        "Tri-VoI-MDP (Deploy-Self)": 4.235
+      },
+      "evoi_net_vs_best_2c": -0.05
+    },
+    {
+      "suite": "v2 / DeepSeek-V3.2",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 0.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 5.006,
+        "Joint-Greedy+MDP (2C-Self)": 4.65,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 5.006,
+        "Tri-VoI-MDP (Deploy-Self)": 5.006
+      },
+      "evoi_net_vs_best_2c": 0.0
+    },
+    {
+      "suite": "v2 / DeepSeek-V3.2",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 1.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 4.483,
+        "Joint-Greedy+MDP (2C-Self)": 4.095,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 4.483,
+        "Tri-VoI-MDP (Deploy-Self)": 4.492
+      },
+      "evoi_net_vs_best_2c": 0.009
+    },
+    {
+      "suite": "v2 / DeepSeek-V3.2",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 3.0,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 3.654,
+        "Joint-Greedy+MDP (2C-Self)": 4.089,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 3.515,
+        "Tri-VoI-MDP (Deploy-Self)": 3.563
+      },
+      "evoi_net_vs_best_2c": -0.526
+    },
+    {
+      "suite": "v2 / DeepSeek-V3.2",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 4.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2.838,
+        "Joint-Greedy+MDP (2C-Self)": 3.738,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2.908,
+        "Tri-VoI-MDP (Deploy-Self)": 3.472
+      },
+      "evoi_net_vs_best_2c": -0.266
+    },
+    {
+      "suite": "v3 / DeepSeek-V3.2",
+      "cap_regime": "Cap=2",
+      "c_ask": 0.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 5.091,
+        "Joint-Greedy+MDP (2C-Self)": 4.605,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 4.93,
+        "Tri-VoI-MDP (Deploy-Self)": 5.091
+      },
+      "evoi_net_vs_best_2c": 0.0
+    },
+    {
+      "suite": "v3 / DeepSeek-V3.2",
+      "cap_regime": "Cap=2",
+      "c_ask": 1.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 4.591,
+        "Joint-Greedy+MDP (2C-Self)": 4.283,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 4.458,
+        "Tri-VoI-MDP (Deploy-Self)": 4.582
+      },
+      "evoi_net_vs_best_2c": -0.009
+    },
+    {
+      "suite": "v3 / DeepSeek-V3.2",
+      "cap_regime": "Cap=2",
+      "c_ask": 3.0,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 3.841,
+        "Joint-Greedy+MDP (2C-Self)": 4.033,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 3.75,
+        "Tri-VoI-MDP (Deploy-Self)": 4.044
+      },
+      "evoi_net_vs_best_2c": 0.011
+    },
+    {
+      "suite": "v3 / DeepSeek-V3.2",
+      "cap_regime": "Cap=2",
+      "c_ask": 4.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 3.118,
+        "Joint-Greedy+MDP (2C-Self)": 3.726,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 3.104,
+        "Tri-VoI-MDP (Deploy-Self)": 3.59
+      },
+      "evoi_net_vs_best_2c": -0.136
+    },
+    {
+      "suite": "v3 / DeepSeek-V3.2",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 0.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 3.984,
+        "Joint-Greedy+MDP (2C-Self)": 4.393,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 3.737,
+        "Tri-VoI-MDP (Deploy-Self)": 3.984
+      },
+      "evoi_net_vs_best_2c": -0.409
+    },
+    {
+      "suite": "v3 / DeepSeek-V3.2",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 1.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 3.484,
+        "Joint-Greedy+MDP (2C-Self)": 3.948,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 3.265,
+        "Tri-VoI-MDP (Deploy-Self)": 3.484
+      },
+      "evoi_net_vs_best_2c": -0.464
+    },
+    {
+      "suite": "v3 / DeepSeek-V3.2",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 3.0,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2.734,
+        "Joint-Greedy+MDP (2C-Self)": 3.126,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2.556,
+        "Tri-VoI-MDP (Deploy-Self)": 2.734
+      },
+      "evoi_net_vs_best_2c": -0.392
+    },
+    {
+      "suite": "v3 / DeepSeek-V3.2",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 4.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2.095,
+        "Joint-Greedy+MDP (2C-Self)": 2.521,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2.175,
+        "Tri-VoI-MDP (Deploy-Self)": 2.073
+      },
+      "evoi_net_vs_best_2c": -0.448
+    },
+    {
+      "suite": "MediQ-Holdout / Q3.5->RealDS",
+      "cap_regime": "Cap=2",
+      "c_ask": 0.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 2.407,
+        "Joint-Greedy+MDP (2C-Self)": 2.084,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 2.088,
+        "Tri-VoI-MDP (Deploy-Self)": 2.411
+      },
+      "evoi_net_vs_best_2c": 0.004
+    },
+    {
+      "suite": "MediQ-Holdout / Q3.5->RealDS",
+      "cap_regime": "Cap=2",
+      "c_ask": 1.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1.907,
+        "Joint-Greedy+MDP (2C-Self)": 1.9,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 1.589,
+        "Tri-VoI-MDP (Deploy-Self)": 2.072
+      },
+      "evoi_net_vs_best_2c": 0.165
+    },
+    {
+      "suite": "MediQ-Holdout / Q3.5->RealDS",
+      "cap_regime": "Cap=2",
+      "c_ask": 3.0,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1.173,
+        "Joint-Greedy+MDP (2C-Self)": 1.384,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 1.011,
+        "Tri-VoI-MDP (Deploy-Self)": 1.277
+      },
+      "evoi_net_vs_best_2c": -0.107
+    },
+    {
+      "suite": "MediQ-Holdout / Q3.5->RealDS",
+      "cap_regime": "Cap=2",
+      "c_ask": 4.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 0.423,
+        "Joint-Greedy+MDP (2C-Self)": 1.345,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 0.873,
+        "Tri-VoI-MDP (Deploy-Self)": 1.345
+      },
+      "evoi_net_vs_best_2c": 0.0
+    },
+    {
+      "suite": "MediQ-Holdout / Q3.5->RealDS",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 0.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1.893,
+        "Joint-Greedy+MDP (2C-Self)": 0.966,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 1.315,
+        "Tri-VoI-MDP (Deploy-Self)": 1.882
+      },
+      "evoi_net_vs_best_2c": -0.011
+    },
+    {
+      "suite": "MediQ-Holdout / Q3.5->RealDS",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 1.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 1.32,
+        "Joint-Greedy+MDP (2C-Self)": 0.761,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 0.584,
+        "Tri-VoI-MDP (Deploy-Self)": 1.348
+      },
+      "evoi_net_vs_best_2c": 0.028
+    },
+    {
+      "suite": "MediQ-Holdout / Q3.5->RealDS",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 3.0,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": 0.401,
+        "Joint-Greedy+MDP (2C-Self)": 0.244,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": 0.147,
+        "Tri-VoI-MDP (Deploy-Self)": 0.528
+      },
+      "evoi_net_vs_best_2c": 0.127
+    },
+    {
+      "suite": "MediQ-Holdout / Q3.5->RealDS",
+      "cap_regime": "Cap=1/3",
+      "c_ask": 4.5,
+      "acl_2c_key": "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+      "vals": {
+        "Calibrated-Cascade+MDP (2C-Self)": -0.516,
+        "Joint-Greedy+MDP (2C-Self)": 0.369,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)": -0.243,
+        "Tri-VoI-MDP (Deploy-Self)": 0.369
+      },
+      "evoi_net_vs_best_2c": 0.0
     }
   ]
 }

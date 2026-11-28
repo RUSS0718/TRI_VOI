@@ -401,7 +401,7 @@ def verify_theorem_3() -> Dict[str, Any]:
 
 
 def verify_theorem_4() -> Dict[str, Any]:
-    """Verify Theorem 4: shadow-price non-negativity, coupling upper bound, high-q limit, and horizon truncation."""
+    """Verify Theorem 4: shadow-price non-negativity, coupling bound, gamma=0, 4-branch abandonment, and horizon truncation."""
     cal_v1, _ = build_cscw_benchmark(n_cal_per_quad=15, n_test_per_quad=45, seed=2027)
     q35_cal = probe_dataset(cal_v1, "Qwen/Qwen3.5-35B-A3B", dry_run=False, workers=1)
     calib = HeldOutCalibrator(q35_cal)
@@ -409,24 +409,53 @@ def verify_theorem_4() -> Dict[str, Any]:
     gamma = 0.85
     p_e = 0.90
     cap, di = 2, 2
+    r_ok, r_err, c_ask, c_def = 10.0, -10.0, 1.5, 2.0
 
-    V25 = solve_3action_mdp_shadow_prices(omega, calib, p_e, cap, di, gamma, 1.5, 2.0, 10.0, -10.0, 25, q_max=70, horizon_cap=25)
-    V100 = solve_3action_mdp_shadow_prices(omega, calib, p_e, cap, di, gamma, 1.5, 2.0, 10.0, -10.0, 100, q_max=70, horizon_cap=100)
+    V25 = solve_3action_mdp_shadow_prices(omega, calib, p_e, cap, di, gamma, c_ask, c_def, r_ok, r_err, 25, q_max=70, horizon_cap=25)
+    V100 = solve_3action_mdp_shadow_prices(omega, calib, p_e, cap, di, gamma, c_ask, c_def, r_ok, r_err, 100, q_max=70, horizon_cap=100)
     sh_ph1 = [round(V25[1][q] - V25[1][q + 1], 5) for q in range(69)]
     min_sh = float(min(sh_ph1))
     max_sh = float(max(sh_ph1))
     trunc_diff = float(max(abs((V25[1][q] - V25[1][q + 1]) - (V100[1][q] - V100[1][q + 1])) for q in range(8)))
 
-    # Abandonment limit at q > Q_max^defer + 25*1 (every future step stays strictly above Q_max^defer)
-    sh_high = float(V25[1][65] - V25[1][66])
+    # Compute exact 4-branch abandonment threshold Q_max^defer + (h-1)*C
+    u_def_post0 = p_e * r_ok + (1.0 - p_e) * r_err - c_def
+    u_act_vals = [
+        (calib.coarse_p_act.get((om, op), 0.85 if (not om and not op) else 0.50) * r_ok
+         + (1.0 - calib.coarse_p_act.get((om, op), 0.85 if (not om and not op) else 0.50)) * r_err)
+        for om in (False, True) for op in (False, True)
+    ]
+    u_clear_vals = [calib.get_p_post_clear(op) * r_ok + (1.0 - calib.get_p_post_clear(op)) * r_err for op in (False, True)]
+    u_ovr_val = calib.p_post_ovr * r_ok + (1.0 - calib.p_post_ovr) * r_err
+    u_ni_val = calib.p_post_no_info * r_ok + (1.0 - calib.p_post_no_info) * r_err
+    u_min_self = min(u_act_vals + u_clear_vals + [u_ovr_val, u_ni_val])
+    q_act_only = max(0.0, (u_def_post0 - min(u_act_vals)) / gamma)
+    q_max_4branch = max(0.0, (u_def_post0 - u_min_self) / gamma)
+    q_aband_test = int(math.ceil(q_max_4branch)) + 25 * cap + 2
+    sh_high = float(V25[1][q_aband_test] - V25[1][q_aband_test + 1])
+    assert abs(sh_high) < 1e-9, f"Expected exact zero shadow price above 4-branch threshold q={q_aband_test}, got {sh_high}"
+
+    # Witness why 4-branch u_min^self is necessary (with cap=0, di=1, q strictly between q_act and q_ovr):
+    # Stage-1 DEFER is dominated by ACT, yet Stage-2 ovr_after->DEFER inside ASK still yields Delta V > 0.
+    q_witness = int(math.floor(q_act_only)) + 1
+    assert q_witness < q_max_4branch, f"Expected gap between u_act ({min(u_act_vals):.2f}) and u_min_self ({u_min_self:.2f})"
+    V_wit = solve_3action_mdp_shadow_prices((0.0, 0.0, 0.5, 0.5), calib, p_e, 0, 1, gamma, 0.1, c_def, r_ok, r_err, 3, q_max=40, horizon_cap=10)
+    sh_witness_gap = float(V_wit[0][q_witness] - V_wit[0][q_witness + 1])
+    assert sh_witness_gap > 1e-4, f"Expected Stage-2 ovr_after shadow price > 0 in gap q={q_witness}, got {sh_witness_gap}"
+
+    # gamma = 0 -> shadow price must vanish identically
+    V_g0 = solve_3action_mdp_shadow_prices(omega, calib, p_e, cap, di, 0.0, c_ask, c_def, r_ok, r_err, 10, q_max=10, horizon_cap=10)
+    gamma0_max_sh = float(max(abs(V_g0[1][q] - V_g0[1][q + 1]) for q in range(9)))
+    assert gamma0_max_sh < 1e-9, f"gamma=0 shadow price non-zero: {gamma0_max_sh}"
+
     # Check finite horizon bound 0 <= Delta V_h <= gamma * h at h=4
-    V4 = solve_3action_mdp_shadow_prices(omega, calib, p_e, cap, di, gamma, 1.5, 2.0, 10.0, -10.0, 4, q_max=20, horizon_cap=10)
+    V4 = solve_3action_mdp_shadow_prices(omega, calib, p_e, cap, di, gamma, c_ask, c_def, r_ok, r_err, 4, q_max=20, horizon_cap=10)
     max_sh_4 = float(max(V4[1][q] - V4[1][q + 1] for q in range(19)))
     assert min_sh >= -1e-9, f"Negative shadow price: {min_sh}"
     assert max_sh_4 <= gamma * 4.0 + 1e-6, f"Coupling upper bound violated: {max_sh_4}"
 
     # Check degenerate no-defer case even when I = 2 > 1 (c_defer=100 -> DEFER never optimal -> Delta V == 0)
-    V_deg = solve_3action_mdp_shadow_prices(omega, calib, p_e, cap, di, gamma, 1.5, 100.0, 10.0, -10.0, 10, q_max=10, horizon_cap=10)
+    V_deg = solve_3action_mdp_shadow_prices(omega, calib, p_e, cap, di, gamma, c_ask, 100.0, r_ok, r_err, 10, q_max=10, horizon_cap=10)
     deg_max_sh = float(max(abs(V_deg[1][q] - V_deg[1][q + 1]) for q in range(9)))
     assert deg_max_sh < 1e-9, f"Degenerate zero-defer shadow price non-zero: {deg_max_sh}"
 
@@ -434,13 +463,79 @@ def verify_theorem_4() -> Dict[str, Any]:
         "shadow_phase1_q0_to_q9": [round(x, 4) for x in sh_ph1[:10]],
         "subcap_phase1_q1": round(sh_ph1[1], 4),
         "degenerate_cdef100_max_shadow": round(deg_max_sh, 6),
+        "gamma0_max_shadow": round(gamma0_max_sh, 6),
         "min_shadow": round(min_sh, 6),
         "max_shadow_h25": round(max_sh, 4),
         "max_shadow_h4": round(max_sh_4, 4),
         "coupling_bound_h4": round(gamma * 4.0, 4),
-        "high_q65_shadow": round(sh_high, 6),
+        "q_act_only_thresh": round(q_act_only, 3),
+        "q_max_4branch_thresh": round(q_max_4branch, 3),
+        "q_witness_between": q_witness,
+        "witness_gap_shadow": round(sh_witness_gap, 4),
+        "q_aband_4branch": q_aband_test,
+        "high_q_aband_shadow": round(sh_high, 6),
         "horizon_25_vs_100_max_diff_q0_7": round(trunc_diff, 5),
     }
+
+
+def verify_proposition_5() -> Dict[str, Any]:
+    """Verify Proposition 5: exact one-step regret decomposition Regret_CC and Delta_opt across (c_ask, Q)."""
+    cal_v1, _ = build_cscw_benchmark(n_cal_per_quad=15, n_test_per_quad=45, seed=2027)
+    q35_cal = probe_dataset(cal_v1, "Qwen/Qwen3.5-35B-A3B", dry_run=False, workers=1)
+    calib = HeldOutCalibrator(q35_cal)
+    r_ok, r_err, gamma, p_e, c_def = 10.0, -10.0, 0.85, 0.90, 2.0
+    u_def0 = p_e * r_ok + (1.0 - p_e) * r_err - c_def
+    omega = (0.25, 0.25, 0.25, 0.25)
+
+    p_act = calib.coarse_p_act.get((True, True), 0.35)
+    p_res, p_ovra, p_no = calib.get_post_ask_probs(True, True)
+    p_clear = calib.get_p_post_clear(True)
+    p_ovr = calib.p_post_ovr
+    p_ni = calib.p_post_no_info
+    u_act = p_act * r_ok + (1.0 - p_act) * r_err
+    u_clear = p_clear * r_ok + (1.0 - p_clear) * r_err
+    u_ovr = p_ovr * r_ok + (1.0 - p_ovr) * r_err
+    u_no = p_ni * r_ok + (1.0 - p_ni) * r_err
+
+    rows = []
+    for c_ask in (0.5, 1.5, 3.0, 4.5):
+        V25 = solve_3action_mdp_shadow_prices(omega, calib, p_e, 1, 3, gamma, c_ask, c_def, r_ok, r_err, 25, q_max=30, horizon_cap=25)
+        for q in (0, 3, 7, 12):
+            dv = max(0.0, V25[1][q] - V25[1][q + 1])
+            u_def_eff = u_def0 - gamma * q - dv
+            u_ask_dp = (
+                p_res * max(u_clear, u_def_eff)
+                + p_ovra * max(u_ovr, u_def_eff)
+                + p_no * max(u_no, u_def_eff)
+                - c_ask
+            )
+            u_ask_jg = p_res * u_clear + p_ovra * u_ovr + p_no * u_no - c_ask
+            u_opt = max(u_act, u_def_eff, u_ask_dp)
+            evoi_dp = u_ask_dp - max(u_act, u_def_eff)
+            regret_cc = u_opt - u_ask_dp
+            assert abs(regret_cc - max(0.0, -evoi_dp)) < 1e-9
+
+            delta_opt = (
+                p_res * max(0.0, u_def_eff - u_clear)
+                + p_ovra * max(0.0, u_def_eff - u_ovr)
+                + p_no * max(0.0, u_def_eff - u_no)
+            )
+            assert abs((u_ask_dp - u_ask_jg) - delta_opt) < 1e-9
+
+            # JG+MDP choice: ASK iff obs_m and u_ask_jg > max(u_act, u_def_eff)
+            jg_val = u_ask_jg if u_ask_jg > max(u_act, u_def_eff) else max(u_act, u_def_eff)
+            regret_jg = u_opt - jg_val
+            assert -1e-9 <= regret_jg <= delta_opt + 1e-9
+            rows.append({
+                "c_ask": c_ask,
+                "q": q,
+                "u_def_eff": round(u_def_eff, 3),
+                "evoi_dp": round(evoi_dp, 3),
+                "regret_cc": round(regret_cc, 3),
+                "delta_opt": round(delta_opt, 3),
+                "regret_jg": round(regret_jg, 3),
+            })
+    return {"bucket_true_true_rows": rows}
 
 
 def plot_fig2(t1: Dict[str, Any], t2: Dict[str, Any], t3: Dict[str, Any]) -> None:
@@ -515,9 +610,10 @@ def main() -> None:
     t2 = verify_theorem_2()
     t3 = verify_theorem_3()
     t4 = verify_theorem_4()
+    p5 = verify_proposition_5()
     plot_fig2(t1, t2, t3)
 
-    payload = {"theorem_1": t1, "theorem_2": t2, "theorem_3": t3, "theorem_4": t4}
+    payload = {"theorem_1": t1, "theorem_2": t2, "theorem_3": t3, "theorem_4": t4, "proposition_5": p5}
     (THEORY_DIR / "theory_verification.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     lines = [
@@ -581,8 +677,18 @@ def main() -> None:
         "",
         "## Theorem 4 (Exact 3-Action Periodic-Drain Bellman Optimality & Shadow-Price Monotonicity)",
         f"- Phase-1 shadow prices $\\Delta V_{{25}}(1, q)$ for $q=0..9$: `{t4['shadow_phase1_q0_to_q9']}` (sub-capacity $q=1 < C$: `{t4['subcap_phase1_q1']}` > 0).",
-        f"- Non-negativity min $\\Delta V$: `{t4['min_shadow']}`, Coupling bound ($h=4$): `{t4['max_shadow_h4']} <= {t4['coupling_bound_h4']}`, Abandonment limit ($q=65 > Q_{{\\max}}+25C$): `{t4['high_q65_shadow']}`, Operating-queue truncation diff ($q\\le 7$, $H=25$ vs $100$): `{t4['horizon_25_vs_100_max_diff_q0_7']}`.",
+        f"- Non-negativity min $\\Delta V$: `{t4['min_shadow']}`, $\\gamma=0$ max $|\\Delta V|$: `{t4['gamma0_max_shadow']}`, Coupling bound ($h=4$): `{t4['max_shadow_h4']} <= {t4['coupling_bound_h4']}`.",
+        f"- 4-branch abandonment threshold: $Q_{{act}}={t4['q_act_only_thresh']}$, $Q_{{\\max}}^{{\\text{{defer}}}}={t4['q_max_4branch_thresh']}$ (witness $q={t4['q_witness_between']}$ gap $\\Delta V={t4['witness_gap_shadow']}>0$; above 4-branch bound $q={t4['q_aband_4branch']}$: `{t4['high_q_aband_shadow']}`), Operating-queue diff ($q\\le 7$): `{t4['horizon_25_vs_100_max_diff_q0_7']}`.",
+        "",
+        "## Proposition 5 (Tri-Party EVOI Regret Decomposition under Matched Dynamic Shadow Pricing)",
+        "| $c_{\\text{ask}}$ | $Q$ | $\\widetilde{U}_{\\text{def,eff}}$ | $\\text{EVOI}_{\\text{DP}}$ | $\\text{Regret}_{\\text{CC}}$ | $\\Delta_{\\text{opt}}$ | $\\text{Regret}_{\\text{JG}}$ |",
+        "|---:|---:|---:|---:|---:|---:|---:|",
     ])
+    for row in p5["bucket_true_true_rows"]:
+        lines.append(
+            f"| {row['c_ask']} | {row['q']} | {row['u_def_eff']:.3f} | {row['evoi_dp']:+.3f} | "
+            f"{row['regret_cc']:.3f} | {row['delta_opt']:.3f} | {row['regret_jg']:.3f} |"
+        )
 
     (THEORY_DIR / "theory_verification.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("Saved theory verification JSON, MD, and fig2_theory_verification.{pdf,png}")

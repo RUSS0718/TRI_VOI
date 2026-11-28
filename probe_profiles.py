@@ -5,11 +5,20 @@ from benchmark import DOMAIN_RUBRIC, user_oracle
 from benchmark_v3 import DOMAIN_RUBRIC_V3, DOMAINS_V3, user_oracle_v3
 from controller import extract_answer, parse_json_obj, shannon_entropy
 from external_baselines import build_acl_voi_belief_prompt
+from mediq_test_disjoint import MEDIQ_TEST_DISJOINT_RUBRIC
 from public_tri import PUBLIC_TRI_HOLDOUT_RUBRIC, PUBLIC_TRI_RUBRIC, mediq_fact_select_oracle
 
 
 def get_item_profile(item: Dict[str, Any]) -> Dict[str, Any]:
     """Return prompt rubric, valid choices, and requester oracle for Benchmark v1/v2 or Public-Tri."""
+    if item.get("domain") == "MediQTestDisjoint":
+        return {
+            "rubric": item.get("custom_rubric") or MEDIQ_TEST_DISJOINT_RUBRIC,
+            "choices": ("A", "B", "C", "D"),
+            "oracle_fn": mediq_fact_select_oracle,
+            "is_mediq": True,
+            "is_mediq_v3": True,
+        }
     if item.get("domain") == "MediQHoldout":
         return {
             "rubric": item.get("custom_rubric") or PUBLIC_TRI_HOLDOUT_RUBRIC,
@@ -56,7 +65,18 @@ def build_wave_a_specs(item: Dict[str, Any], dry_run: bool = False) -> List[Dict
         f"{{\"answer\": {c_json_str}, \"rationale\": \"brief\"}}."
     )
 
-    if prof["is_mediq"]:
+    if prof.get("is_mediq_v3"):
+        diag_prompt = (
+            f"{rubric}\nTicket:\n{item['prose']}{dry_meta}\n\n"
+            "Audit the clinical presentation against the Pre-Registered Clinical Safety & Referral Triage Policy:\n"
+            "1. missing_user_info: true if decisive patient history, physical exam, or lab/imaging details are omitted from the Presenting Vignette.\n"
+            "2. potential_override: true if the case could fall under Specialist Escalation Scope (pediatric/obstetric, emergency/ICU/surgery/trauma/oncology, or clinical red flags) either upfront or pending withheld findings.\n"
+            "3. override_confirmed: true ONLY if a Specialist Escalation trigger is ALREADY confirmed present in the Presenting Vignette.\n"
+            "4. clarifying_question: if missing_user_info is true, write one short specific question asking for missing history/exam/lab details; else empty string.\n"
+            "Respond in JSON ONLY: "
+            "{\"missing_user_info\": true|false, \"potential_override\": true|false, \"override_confirmed\": true|false, \"clarifying_question\": \"...\"}."
+        )
+    elif prof["is_mediq"]:
         diag_prompt = (
             f"{rubric}\nTicket:\n{item['prose']}{dry_meta}\n\n"
             "Audit the clinical presentation against the Pre-Registered Clinical Triage Scope:\n"
@@ -136,7 +156,20 @@ def build_wave_b_specs(
 
     oracle_reply, oracle_revealed = prof["oracle_fn"](item, clarify_q)
 
-    if prof["is_mediq"]:
+    if prof.get("is_mediq_v3"):
+        post_prompt = (
+            f"{rubric}\nPresenting Vignette:\n{item['prose']}{dry_meta}\n\n"
+            f"[Patient/Requester Clarified Findings]:\n{oracle_reply}\n\n"
+            "Combine the Presenting Vignette and [Patient/Requester Clarified Findings], then evaluate:\n"
+            "1. rationale: <=25 words determining best answer and whether Specialist Escalation Scope applies.\n"
+            f"2. answer: best clinical option {c_list_str}.\n"
+            "3. missing_user_info: true if decisive clinical details are still missing.\n"
+            "4. override_confirmed: true ONLY if a Specialist Escalation Scope rule (pediatric/obstetric, emergency/ICU/surgery/trauma/oncology, or clinical red flag) is confirmed present.\n"
+            "Respond in JSON ONLY (keep rationale <=25 words): "
+            f"{{\"rationale\": \"...\", \"answer\": {c_json_str}, \"missing_user_info\": true|false, \"override_confirmed\": true|false}}."
+        )
+        post_tag = "post_ask_combined_v3"
+    elif prof["is_mediq"]:
         post_prompt = (
             f"{rubric}\nPresenting Vignette:\n{item['prose']}{dry_meta}\n\n"
             f"[Patient/Requester Clarified Findings]:\n{oracle_reply}\n\n"
@@ -162,11 +195,12 @@ def build_wave_b_specs(
         )
         post_tag = "post_ask_combined"
 
+    post_max_tokens = 1536 if prof.get("is_mediq_v3") else 1024
     specs = [
         {
             "messages": [{"role": "user", "content": post_prompt}],
             "temperature": 0.0,
-            "max_tokens": 1024,
+            "max_tokens": post_max_tokens,
             "tag": post_tag,
             "seed_idx": 0,
         },
@@ -229,12 +263,17 @@ def assemble_probed_record(
     tag_tokens["acl_voi_belief"] = 0
     tokens = sum(tag_tokens.values())
 
-    r_post = responses_by_tag.get("post_ask_combined_v2") or responses_by_tag.get("post_ask_combined")
+    r_post = (
+        responses_by_tag.get("post_ask_combined_v3")
+        or responses_by_tag.get("post_ask_combined_v2")
+        or responses_by_tag.get("post_ask_combined")
+    )
     if clarify_q and r_post is not None:
         post_obj = parse_json_obj(r_post["content"])
         post_ans = extract_answer(r_post["content"], choices)
         post_ovr_conf = bool(post_obj.get("override_confirmed", obs_conf_ovr))
-        post_missing = bool(post_obj.get("missing_user_info", not oracle_revealed))
+        post_missing_parsed = "missing_user_info" in post_obj
+        post_missing = bool(post_obj["missing_user_info"]) if post_missing_parsed else bool(obs_missing)
         r_ps1 = responses_by_tag["post_ask_s1"]
         post_s1 = extract_answer(r_ps1["content"], choices)
         t_post = int(r_post.get("prompt_tokens", 0)) + int(r_post.get("completion_tokens", 0))
@@ -246,7 +285,8 @@ def assemble_probed_record(
         post_ans = greedy_ans
         post_s1 = samples[0]
         post_ovr_conf = obs_conf_ovr
-        post_missing = obs_missing
+        post_missing_parsed = True
+        post_missing = bool(obs_missing)
 
     acl_belief_raw = ""
     if clarify_q and "acl_voi_belief" in responses_by_tag:
@@ -272,6 +312,7 @@ def assemble_probed_record(
         "post_s1": post_s1,
         "post_ovr_conf": post_ovr_conf,
         "post_missing": post_missing,
+        "post_missing_parsed": post_missing_parsed,
         "acl_belief_raw": acl_belief_raw,
         "tokens": tokens,
         "tag_tokens": tag_tokens,

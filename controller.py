@@ -150,7 +150,8 @@ def probe_item(item: Dict[str, Any], model_id: str, dry_run: bool) -> Dict[str, 
         post_obj = parse_json_obj(r_post["content"])
         post_ans = extract_answer(r_post["content"])
         post_ovr_conf = bool(post_obj.get("override_confirmed", obs_conf_ovr))
-        post_missing = bool(post_obj.get("missing_user_info", not oracle_revealed))
+        post_missing_parsed = "missing_user_info" in post_obj
+        post_missing = bool(post_obj["missing_user_info"]) if post_missing_parsed else bool(obs_missing)
         t_post = r_post["prompt_tokens"] + r_post["completion_tokens"]
         tokens += t_post
         tag_tokens["post_ask_combined"] = t_post
@@ -175,7 +176,8 @@ def probe_item(item: Dict[str, Any], model_id: str, dry_run: bool) -> Dict[str, 
         post_ans = greedy_ans
         post_s1 = samples[0]
         post_ovr_conf = obs_conf_ovr
-        post_missing = obs_missing
+        post_missing_parsed = True
+        post_missing = bool(obs_missing)
 
     return {
         "item": item,
@@ -194,6 +196,7 @@ def probe_item(item: Dict[str, Any], model_id: str, dry_run: bool) -> Dict[str, 
         "post_s1": post_s1,
         "post_ovr_conf": post_ovr_conf,
         "post_missing": post_missing,
+        "post_missing_parsed": post_missing_parsed,
         "tokens": tokens,
         "tag_tokens": tag_tokens,
     }
@@ -252,7 +255,7 @@ class HeldOutCalibrator:
             m_flag = bool(r["obs_missing"])
             p_flag = bool(r["obs_pot_ovr"])
             u_flag = (r["maj_count"] == 3)
-            pm_flag = bool(r.get("post_missing", not r["oracle_revealed"]))
+            pm_flag = bool(r["post_missing"]) if "post_missing" in r else bool(m_flag)
             coarse_stats[(m_flag, p_flag)][1] += 1
             fine_stats[(m_flag, p_flag, u_flag)][1] += 1
             if _is_self_act_correct(it_cal, r["greedy_ans"]):
@@ -467,6 +470,7 @@ def solve_3action_mdp_shadow_prices(
     horizon_cap: int = 25,
     return_all_horizons: bool = False,
     use_self_signal: bool = False,
+    policy_mode: str = "tri_voi",
 ) -> Any:
     """Exact finite-horizon periodic-drain 3-action Bellman DP value table V[phase][q_pre]."""
     di = max(1, int(drain_interval))
@@ -538,10 +542,19 @@ def solve_3action_mdp_shadow_prices(
                             + p_no * (n_stay if n_stay >= u_def_pre else u_def_pre)
                             - c_ask
                         )
-                        best_branch = val_act if val_act >= u_def_pre else u_def_pre
-                        if val_ask > best_branch:
-                            best_branch = val_ask
-                        total_v += w_b * best_branch
+                        if policy_mode == "cascade":
+                            total_v += w_b * val_ask
+                        elif policy_mode == "joint_greedy":
+                            val_ask_jg = (p_res * u_clear + p_ovra * u_ovr + p_no * u_no_act - c_ask) + v_stay
+                            best_branch = val_act if val_act >= u_def_pre else u_def_pre
+                            if val_ask_jg > best_branch:
+                                best_branch = val_ask_jg
+                            total_v += w_b * best_branch
+                        else:
+                            best_branch = val_act if val_act >= u_def_pre else u_def_pre
+                            if val_ask > best_branch:
+                                best_branch = val_ask
+                            total_v += w_b * best_branch
                     else:
                         total_v += w_b * (val_act if val_act >= u_def_pre else u_def_pre)
                 vc[q_pre] = total_v
@@ -721,7 +734,7 @@ def simulate_stream(
         obs_p = rec["obs_pot_ovr"]
         obs_c = rec["obs_conf_ovr"]
 
-        use_mdp_pricing = ("MDP" in method)
+        use_mdp_pricing = ("MDP" in method) or ("OwnDP" in method)
         if use_mdp_pricing:
             b_idx = (2 if obs_m else 0) + (1 if obs_p else 0)
             omega_counts[b_idx] += 1.0
@@ -736,7 +749,7 @@ def simulate_stream(
             h_idx = 25 if rem_after >= 25 else rem_after
             next_ph = (t + 1) % drain_interval
 
-        def mdp_congestion_cost(m_name: str, use_self_sig: bool = False) -> float:
+        def mdp_congestion_cost(m_name: str, use_self_sig: bool = False, policy_mode: str = "tri_voi") -> float:
             q_m = queues[m_name]
             if eff_gamma <= 0.0 or rem_after <= 0:
                 return eff_gamma * q_m
@@ -766,6 +779,7 @@ def simulate_stream(
                     horizon_cap=25,
                     return_all_horizons=True,
                     use_self_signal=use_self_sig,
+                    policy_mode=policy_mode,
                 )
                 mdp_last_pe[m_name] = p_e_m
                 mdp_last_omega[m_name] = omega_probs
@@ -774,14 +788,19 @@ def simulate_stream(
             shadow_m = max(0.0, vt[idx0] - vt[idx0 + 1])
             return eff_gamma * q_m + shadow_m
 
-        def best_specialist_util(use_externality: bool = False, use_mdp: bool = False, use_self_sig: bool = False) -> Tuple[str, float]:
+        def best_specialist_util(
+            use_externality: bool = False,
+            use_mdp: bool = False,
+            use_self_sig: bool = False,
+            policy_mode: str = "tri_voi",
+        ) -> Tuple[str, float]:
             best_m = list(queues.keys())[0]
             best_u = -1e9
             for m in queues:
                 p_e = trackers[m].mean()
                 q_m = queues[m]
                 if use_mdp:
-                    cong_cost = mdp_congestion_cost(m, use_self_sig=use_self_sig)
+                    cong_cost = mdp_congestion_cost(m, use_self_sig=use_self_sig, policy_mode=policy_mode)
                 else:
                     mu_m = caps[m] / float(drain_interval)
                     rho_m = min(lam_ema[m] / max(1e-6, mu_m), 1.5)
@@ -800,16 +819,17 @@ def simulate_stream(
             p_rework: float = 0.0,
             use_mdp: bool = False,
             use_self_sig: bool = False,
+            policy_mode: str = "tri_voi",
         ) -> Tuple[str, float]:
             if (not unclarified_spec_penalty) or p_rework <= 0.0:
-                return best_specialist_util(use_externality=use_externality, use_mdp=use_mdp, use_self_sig=use_self_sig)
+                return best_specialist_util(use_externality=use_externality, use_mdp=use_mdp, use_self_sig=use_self_sig, policy_mode=policy_mode)
             best_m = list(queues.keys())[0]
             best_u = -1e9
             for m in queues:
                 p_e = trackers[m].mean()
                 q_m = queues[m]
                 if use_mdp:
-                    cong_cost = mdp_congestion_cost(m, use_self_sig=use_self_sig)
+                    cong_cost = mdp_congestion_cost(m, use_self_sig=use_self_sig, policy_mode=policy_mode)
                 else:
                     mu_m = caps[m] / float(drain_interval)
                     rho_m = min(lam_ema[m] / max(1e-6, mu_m), 1.5)
@@ -859,17 +879,32 @@ def simulate_stream(
             "ACL-2026-VoI+Post-Defer",
             "ACL-2026-VoI+Full-Defer+Naor",
             "ACL-2026-VoI+Full-Defer+MDP",
+            "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
             "ACL-2026-VoI (Live)",
             "ACL-2026-VoI (Live)+Post-Defer",
             "ACL-2026-VoI (Live)+Full-Defer+Naor",
             "ACL-2026-VoI (Live)+Full-Defer+MDP",
+            "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
         ):
-            p_act = calibrator.get_p_act(obs_m, obs_p, unanimous) if calibrator else (rec["maj_count"] / 3.0)
-            p_res, p_ovra, p_no = calibrator.get_post_ask_probs(obs_m, obs_p) if calibrator else (
-                (0.45, 0.45, 0.10) if (obs_m and obs_p) else ((0.85, 0.05, 0.10) if obs_m else (0.0, 0.0, 1.0))
-            )
-            p_clear = calibrator.get_p_post_clear(obs_p) if calibrator else 0.88
-            p_ovr = calibrator.p_post_ovr if calibrator else 0.40
+            acl_2c_self = ("(2C-Self)" in method)
+            if calibrator is not None:
+                if acl_2c_self:
+                    p_act = calibrator.coarse_p_act.get((obs_m, obs_p), 0.85 if (not obs_m and not obs_p) else 0.50)
+                    p_res, p_ovra, p_no = calibrator.get_post_ask_probs_self(obs_m, obs_p)
+                    p_clear = calibrator.get_p_post_clear_self(obs_p)
+                    p_ni_acl = calibrator.p_post_no_info_self
+                else:
+                    p_act = calibrator.get_p_act(obs_m, obs_p, unanimous)
+                    p_res, p_ovra, p_no = calibrator.get_post_ask_probs(obs_m, obs_p)
+                    p_clear = calibrator.get_p_post_clear(obs_p)
+                    p_ni_acl = calibrator.p_post_no_info
+                p_ovr = calibrator.p_post_ovr
+            else:
+                p_act = 0.85 if (acl_2c_self and not obs_m and not obs_p) else (0.50 if acl_2c_self else (rec["maj_count"] / 3.0))
+                p_res, p_ovra, p_no = (
+                    (0.45, 0.45, 0.10) if (obs_m and obs_p) else ((0.85, 0.05, 0.10) if obs_m else (0.0, 0.0, 1.0))
+                )
+                p_clear, p_ovr, p_ni_acl = 0.88, 0.40, 0.65
 
             use_live_acl = "Live" in method and bool(rec.get("acl_belief_raw"))
             if use_live_acl and rec.get("clarify_q"):
@@ -896,11 +931,16 @@ def simulate_stream(
             if ask_flag:
                 did_ask = True
                 if "Post-Defer" in method or "Full-Defer" in method:
-                    post_p = p_ovr if rec["post_ovr_conf"] else p_clear
+                    if acl_2c_self:
+                        still_missing = bool(rec["post_missing"]) if "post_missing" in rec else bool(obs_m)
+                        post_p = p_ni_acl if still_missing else (p_ovr if rec["post_ovr_conf"] else p_clear)
+                    else:
+                        post_p = p_ovr if rec["post_ovr_conf"] else p_clear
                     u_act_post = post_p * r_ok + (1.0 - post_p) * r_err
                     m_best2, u_def2 = best_specialist_util(
                         use_externality=(use_ext_flag if "Full-Defer" in method else False),
                         use_mdp=acl_use_mdp,
+                        use_self_sig=acl_2c_self,
                     )
                     if u_def2 > u_act_post:
                         did_defer = True
@@ -911,7 +951,11 @@ def simulate_stream(
                     final_ans = rec["post_ans"]
             elif "Full-Defer" in method:
                 u_act_pre = p_act * r_ok + (1.0 - p_act) * r_err
-                m_b0, u_d0 = best_specialist_util(use_externality=use_ext_flag, use_mdp=acl_use_mdp)
+                m_b0, u_d0 = best_specialist_util(
+                    use_externality=use_ext_flag,
+                    use_mdp=acl_use_mdp,
+                    use_self_sig=acl_2c_self,
+                )
                 if u_d0 > u_act_pre:
                     did_defer = True
                     chosen_spec = m_b0
@@ -943,6 +987,30 @@ def simulate_stream(
             elif u_def > u_act:
                 did_defer = True
                 chosen_spec = m_best
+        elif method in ("Calibrated-Cascade+MDP (2C-Self)", "Calibrated-Cascade+OwnDP (2C-Self)"):
+            if calibrator is not None:
+                p_act = calibrator.coarse_p_act.get((obs_m, obs_p), 0.85 if (not obs_m and not obs_p) else 0.50)
+                p_clear = calibrator.get_p_post_clear_self(obs_p)
+                p_ovr = calibrator.p_post_ovr
+                p_ni = calibrator.p_post_no_info_self
+            else:
+                p_act, p_clear, p_ovr, p_ni = (0.85 if (not obs_m and not obs_p) else 0.50), 0.88, 0.40, 0.65
+            u_act = p_act * r_ok + (1.0 - p_act) * r_err
+            pol_mode = "cascade" if "OwnDP" in method else "tri_voi"
+            m_best, u_def = best_specialist_util(use_externality=use_ext_flag, use_mdp=True, use_self_sig=True, policy_mode=pol_mode)
+            if obs_m:
+                did_ask = True
+                still_missing = bool(rec["post_missing"]) if "post_missing" in rec else bool(obs_m)
+                post_p = p_ni if still_missing else (p_ovr if rec["post_ovr_conf"] else p_clear)
+                u_act_post = post_p * r_ok + (1.0 - post_p) * r_err
+                if u_def > u_act_post:
+                    did_defer = True
+                    chosen_spec = m_best
+                else:
+                    final_ans = rec["post_ans"]
+            elif u_def > u_act:
+                did_defer = True
+                chosen_spec = m_best
         elif method in ("Joint-Greedy", "Joint-Greedy+Naor", "Joint-Greedy+MDP"):
             p_act = calibrator.get_p_act(obs_m, obs_p, unanimous) if calibrator else (rec["maj_count"] / 3.0)
             p_res, p_ovra, p_no = calibrator.get_post_ask_probs(obs_m, obs_p) if calibrator else (
@@ -955,6 +1023,30 @@ def simulate_stream(
             u_ovr = p_ovr * r_ok + (1.0 - p_ovr) * r_err
             m_best, u_def = best_specialist_util(use_externality=use_ext_flag, use_mdp=("+MDP" in method))
             u_ask_myopic = p_res * u_clear + p_ovra * u_ovr + p_no * u_act - c_ask
+            if obs_m and u_ask_myopic > max(u_act, u_def):
+                did_ask = True
+                final_ans = rec["post_ans"]
+            elif u_def > u_act:
+                did_defer = True
+                chosen_spec = m_best
+        elif method in ("Joint-Greedy+MDP (2C-Self)", "Joint-Greedy+OwnDP (2C-Self)"):
+            if calibrator is not None:
+                p_act = calibrator.coarse_p_act.get((obs_m, obs_p), 0.85 if (not obs_m and not obs_p) else 0.50)
+                p_res, p_ovra, p_no = calibrator.get_post_ask_probs_self(obs_m, obs_p)
+                p_clear = calibrator.get_p_post_clear_self(obs_p)
+                p_ovr = calibrator.p_post_ovr
+                p_ni = calibrator.p_post_no_info_self
+            else:
+                p_act = 0.85 if (not obs_m and not obs_p) else 0.50
+                p_res, p_ovra, p_no = ((0.45, 0.45, 0.10) if obs_p else (0.85, 0.05, 0.10)) if obs_m else (0.0, 0.0, 1.0)
+                p_clear, p_ovr, p_ni = 0.88, 0.40, 0.65
+            u_act = p_act * r_ok + (1.0 - p_act) * r_err
+            u_clear = p_clear * r_ok + (1.0 - p_clear) * r_err
+            u_ovr = p_ovr * r_ok + (1.0 - p_ovr) * r_err
+            u_no_act = (p_ni * r_ok + (1.0 - p_ni) * r_err) if obs_m else u_act
+            pol_mode = "joint_greedy" if "OwnDP" in method else "tri_voi"
+            m_best, u_def = best_specialist_util(use_externality=use_ext_flag, use_mdp=True, use_self_sig=True, policy_mode=pol_mode)
+            u_ask_myopic = p_res * u_clear + p_ovra * u_ovr + p_no * u_no_act - c_ask
             if obs_m and u_ask_myopic > max(u_act, u_def):
                 did_ask = True
                 final_ans = rec["post_ans"]
@@ -1023,7 +1115,7 @@ def simulate_stream(
             )
             if u_ask > max(u_act, u_def_pre):
                 did_ask = True
-                still_missing = bool(rec.get("post_missing", not rec["oracle_revealed"])) if use_self_mdp else (not rec["oracle_revealed"])
+                still_missing = (bool(rec["post_missing"]) if "post_missing" in rec else bool(obs_m)) if use_self_mdp else (not rec["oracle_revealed"])
                 if still_missing:
                     u_act_post = p_ni * r_ok + (1.0 - p_ni) * r_err
                     m_best2, u_def2 = best_specialist_util_pre_ask(use_externality=use_ext_flag, p_rework=p_rework, use_mdp=True, use_self_sig=use_self_mdp)
@@ -1202,14 +1294,14 @@ def simulate_stream(
                 t_post = tt.get("post_ask_combined", 0) if asked else 0
                 if method == "Direct-ACT":
                     tok_i = tt.get("greedy_act", 0)
-                elif method in ("Tri-VoI-L2D (2-Call)", "Tri-VoI-L2D (2-Call+NoInfo)", "Tri-VoI-MDP", "Tri-VoI-MDP (Deploy-Self)"):
+                elif "ACL-2026-VoI (Live)" in method:
+                    tok_i = t1_gd + tt.get("acl_voi_belief", 0) + t_post
+                elif method in ("Tri-VoI-L2D (2-Call)", "Tri-VoI-L2D (2-Call+NoInfo)", "Tri-VoI-MDP", "Tri-VoI-MDP (Deploy-Self)") or ("(2C-Self)" in method):
                     tok_i = t1_gd + t_post
                 elif method == "KL-PBD+ (SC-Only)":
                     tok_i = t1_probes + tt.get("greedy_act", 0)
                 elif method in ("KL-PBD", "KL-PBD+", "KL-PBD+ (Warm)"):
                     tok_i = t1_probes + t1_gd
-                elif "ACL-2026-VoI (Live)" in method:
-                    tok_i = t1_gd + tt.get("acl_voi_belief", 0) + t_post
                 elif method == "Naive-Cascade":
                     tok_i = t1_probes + t1_gd + (t_post + tt.get("post_ask_s1", 0) if asked else 0)
                 else:
@@ -1258,7 +1350,12 @@ def simulate_stream(
                     p_spec = chosen_spec
                     p_ans = p_rec["post_ans"]
                     if pa["can_post_defer"]:
-                        m_b2, u_d2 = best_specialist_util(use_externality=pa["use_ext"])
+                        m_b2, u_d2 = best_specialist_util(
+                            use_externality=pa["use_ext"],
+                            use_mdp=pa.get("use_mdp", False),
+                            use_self_sig=pa.get("use_self_sig", False),
+                            policy_mode=pa.get("policy_mode", "tri_voi"),
+                        )
                         if u_d2 > pa["u_act_post"]:
                             p_def = True
                             p_spec = m_b2
@@ -1290,19 +1387,23 @@ def simulate_stream(
                 "Calibrated-Cascade",
                 "Calibrated-Cascade+Naor",
                 "Calibrated-Cascade+MDP",
+                "Calibrated-Cascade+MDP (2C-Self)",
+                "Calibrated-Cascade+OwnDP (2C-Self)",
                 "Naive-Cascade",
                 "ACL-2026-VoI+Post-Defer",
                 "ACL-2026-VoI+Full-Defer+Naor",
                 "ACL-2026-VoI+Full-Defer+MDP",
+                "ACL-2026-VoI+Full-Defer+MDP (2C-Self)",
                 "ACL-2026-VoI (Live)+Post-Defer",
                 "ACL-2026-VoI (Live)+Full-Defer+Naor",
                 "ACL-2026-VoI (Live)+Full-Defer+MDP",
+                "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
             )
+            use_self_l = (method == "Tri-VoI-MDP (Deploy-Self)") or ("(2C-Self)" in method)
             if method == "Naive-Cascade":
                 force_pd = (rec["post_ans"] != rec["post_s1"] or rec["post_ovr_conf"])
                 u_ap = -1e9 if force_pd else 1e9
             else:
-                use_self_l = (method == "Tri-VoI-MDP (Deploy-Self)")
                 if calibrator:
                     p_cl = calibrator.get_p_post_clear_self(obs_p) if use_self_l else calibrator.get_p_post_clear(obs_p)
                     p_ov = calibrator.p_post_ovr
@@ -1312,18 +1413,21 @@ def simulate_stream(
                 if method in ("Tri-VoI-MDP", "Tri-VoI-MDP (5-Call)", "Tri-VoI-L2D (2-Call+NoInfo)"):
                     pp = p_ni_l if (not rec["oracle_revealed"]) else (p_ov if rec["post_ovr_conf"] else p_cl)
                 elif use_self_l:
-                    pp = p_ni_l if bool(rec.get("post_missing", not rec["oracle_revealed"])) else (p_ov if rec["post_ovr_conf"] else p_cl)
+                    still_m_l = bool(rec["post_missing"]) if "post_missing" in rec else bool(obs_m)
+                    pp = p_ni_l if still_m_l else (p_ov if rec["post_ovr_conf"] else p_cl)
                 else:
                     pp = p_ov if rec["post_ovr_conf"] else p_cl
                 u_ap = pp * r_ok + (1.0 - pp) * r_err
+            pol_pa = "cascade" if ("Calibrated-Cascade+OwnDP" in method) else ("joint_greedy" if ("Joint-Greedy+OwnDP" in method) else "tri_voi")
             pending_ask.append({
                 "ready_t": t + ask_latency,
                 "orig_t": t,
                 "rec": rec,
                 "can_post_defer": can_pd,
                 "use_ext": use_ext_flag if ("Full-Defer" in method or ("ACL" not in method and "Naive" not in method)) else False,
-                "use_mdp": ("MDP" in method),
+                "use_mdp": ("MDP" in method) or ("OwnDP" in method),
                 "use_self_sig": use_self_l,
+                "policy_mode": pol_pa,
                 "u_act_post": u_ap,
             })
             continue
@@ -1348,7 +1452,12 @@ def simulate_stream(
             p_spec = list(queues.keys())[0]
             p_ans = p_rec["post_ans"]
             if pa["can_post_defer"]:
-                m_b2, u_d2 = best_specialist_util(use_externality=pa["use_ext"])
+                m_b2, u_d2 = best_specialist_util(
+                    use_externality=pa["use_ext"],
+                    use_mdp=pa.get("use_mdp", False),
+                    use_self_sig=pa.get("use_self_sig", False),
+                    policy_mode=pa.get("policy_mode", "tri_voi"),
+                )
                 if u_d2 > pa["u_act_post"]:
                     p_def = True
                     p_spec = m_b2

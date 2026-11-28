@@ -1,5 +1,6 @@
 import json
 import re
+import sqlite3
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -8,7 +9,7 @@ import numpy as np
 
 from benchmark import build_cscw_benchmark, build_cscw_benchmark_v2, build_cscw_expansion_batch
 from benchmark_v3 import load_benchmark_v3_dataset
-from controller import HeldOutCalibrator, probe_dataset, simulate_stream
+from controller import HeldOutCalibrator, parse_json_obj, probe_dataset, simulate_stream
 from llm_client import RESULTS_DIR
 from overnight.overnight_lib import (
     BudgetTracker,
@@ -60,10 +61,48 @@ def _mean_util(
     )
 
 
+def _mean_metrics(
+    method: str,
+    test_p: List[Dict[str, Any]],
+    calib: HeldOutCalibrator,
+    cal_p: List[Dict[str, Any]],
+    *,
+    cap: int,
+    di: int,
+    c_ask: float = 1.5,
+    c_def: float = 2.0,
+    real_spec_ok: Optional[Dict[str, bool]] = None,
+    n_seeds: int = 5,
+) -> Dict[str, Any]:
+    runs = [
+        simulate_stream(
+            method,
+            test_p,
+            calib,
+            capacity=cap,
+            drain_interval=di,
+            c_ask=c_ask,
+            c_defer_base=c_def,
+            seed=s,
+            cal_probed=cal_p,
+            real_specialist_ok=real_spec_ok,
+        )
+        for s in range(n_seeds)
+    ]
+    return {
+        "mean_utility": round(float(np.mean([r["mean_utility"] for r in runs])), 3),
+        "mean_tokens": round(float(np.mean([r["mean_realized_tokens"] for r in runs])), 1),
+        "per_item_utils_mean": np.mean([r["per_item_utils"] for r in runs], axis=0),
+    }
+
+
 def _post_missing_metrics(probed: List[Dict[str, Any]]) -> Dict[str, Any]:
     sub = [r for r in probed if r["obs_missing"]]
     tp = fp = fn = tn = 0
+    unparsed_cnt = 0
     for r in sub:
+        if not bool(r.get("post_missing_parsed", True)):
+            unparsed_cnt += 1
         true_ni = not bool(r["oracle_revealed"])
         pred_ni = bool(r.get("post_missing", False))
         if pred_ni and true_ni:
@@ -82,10 +121,46 @@ def _post_missing_metrics(probed: List[Dict[str, Any]]) -> Dict[str, Any]:
         "n_obs_missing": len(sub),
         "true_no_info": tp + fn,
         "pred_post_missing": tp + fp,
+        "unparsed_fallback_to_obs": unparsed_cnt,
         "agreement_pct": round(100.0 * (tp + tn) / tot, 2),
         "precision": round(prec, 3),
         "recall": round(rec, 3),
         "f1": round(f1, 3),
+    }
+
+
+def _audit_sqlite_post_missing() -> Dict[str, Any]:
+    """Scan all SQLite caches to count exact historical post_ask_combined rows missing `missing_user_info`."""
+    per_db = []
+    tot_rows = 0
+    tot_missing_key = 0
+    for db in sorted(RESULTS_DIR.glob("cache_*.sqlite")):
+        conn = sqlite3.connect(str(db))
+        rows = conn.execute("SELECT tag, content, finish_reason FROM cache_v1 WHERE tag LIKE '%post_ask_combined%'").fetchall()
+        conn.close()
+        if not rows:
+            continue
+        db_missing = 0
+        by_tag: Dict[str, Dict[str, int]] = {}
+        for tag, content, _ in rows:
+            obj = parse_json_obj(content or "")
+            st = by_tag.setdefault(tag, {"total": 0, "missing_key": 0})
+            st["total"] += 1
+            if "missing_user_info" not in obj:
+                db_missing += 1
+                st["missing_key"] += 1
+        tot_rows += len(rows)
+        tot_missing_key += db_missing
+        per_db.append({
+            "db": db.name,
+            "total": len(rows),
+            "missing_key": db_missing,
+            "by_tag": by_tag,
+        })
+    return {
+        "total_post_ask_combined_rows": tot_rows,
+        "total_missing_key_fallbacks": tot_missing_key,
+        "per_db": per_db,
     }
 
 
@@ -145,11 +220,22 @@ def main() -> None:
     part_a_rows = []
     part_b_rows = []
     part_c_signal = {}
+    part_e_rows = []
+    part_f_rows = []
+
+    regime_map_suites = {
+        "v1-Clean / Qwen3.5",
+        "v1-Noisy / Qwen3.5",
+        "v2 / DeepSeek-V3.2",
+        "v3 / DeepSeek-V3.2",
+        "MediQ-Holdout / Q3.5->RealDS",
+    }
 
     for lbl, cp, tp, live_acl, real_ok, strat in suites:
         cb = HeldOutCalibrator(cp, stratify_post_clear=strat)
         acl_naor = "ACL-2026-VoI (Live)+Full-Defer+Naor" if live_acl else "ACL-2026-VoI+Full-Defer+Naor"
         acl_mdp = "ACL-2026-VoI (Live)+Full-Defer+MDP" if live_acl else "ACL-2026-VoI+Full-Defer+MDP"
+        acl_2c = "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)" if live_acl else "ACL-2026-VoI+Full-Defer+MDP (2C-Self)"
         fair_methods = [
             "Calibrated-Cascade+Naor",
             "Calibrated-Cascade+MDP",
@@ -158,6 +244,14 @@ def main() -> None:
             acl_naor,
             acl_mdp,
             "Tri-VoI-MDP",
+            "Tri-VoI-MDP (Deploy-Self)",
+        ]
+        matched_2c_methods = [
+            "Calibrated-Cascade+MDP (2C-Self)",
+            "Calibrated-Cascade+OwnDP (2C-Self)",
+            "Joint-Greedy+MDP (2C-Self)",
+            "Joint-Greedy+OwnDP (2C-Self)",
+            acl_2c,
             "Tri-VoI-MDP (Deploy-Self)",
         ]
         if lbl not in part_c_signal and "strat=True" not in lbl and "RealSpec" not in lbl:
@@ -181,6 +275,64 @@ def main() -> None:
                 "evoi_net_vs_best_base_mdp": round(vals_b["Tri-VoI-MDP"] - best_base_mdp, 3),
                 "deploy_self_net_vs_best_base_mdp": round(vals_b["Tri-VoI-MDP (Deploy-Self)"] - best_base_mdp, 3),
             })
+
+            met_e = {m: _mean_metrics(m, tp, cb, cp, cap=cap, di=di, real_spec_ok=real_ok) for m in matched_2c_methods}
+            vals_e = {m: met_e[m]["mean_utility"] for m in matched_2c_methods}
+            toks_e = {m: met_e[m]["mean_tokens"] for m in matched_2c_methods}
+            shared_base_keys = ["Calibrated-Cascade+MDP (2C-Self)", "Joint-Greedy+MDP (2C-Self)", acl_2c]
+            own_base_keys = ["Calibrated-Cascade+OwnDP (2C-Self)", "Joint-Greedy+OwnDP (2C-Self)", acl_2c]
+            best_shared_k = max(shared_base_keys, key=lambda mk: vals_e[mk])
+            best_own_k = max(own_base_keys, key=lambda mk: vals_e[mk])
+            bp_shared = block_paired_bootstrap(
+                met_e["Tri-VoI-MDP (Deploy-Self)"]["per_item_utils_mean"],
+                met_e[best_shared_k]["per_item_utils_mean"],
+                block_size=6,
+                n_boot=3000,
+                seed=2029,
+            )
+            bp_own = block_paired_bootstrap(
+                met_e["Tri-VoI-MDP (Deploy-Self)"]["per_item_utils_mean"],
+                met_e[best_own_k]["per_item_utils_mean"],
+                block_size=6,
+                n_boot=3000,
+                seed=2029,
+            )
+            part_e_rows.append({
+                "suite": lbl,
+                "regime": r_lbl,
+                "acl_2c_key": acl_2c,
+                "vals": vals_e,
+                "tokens": toks_e,
+                "best_shared_2c_key": best_shared_k,
+                "best_own_2c_key": best_own_k,
+                "evoi_net_vs_best_shared_2c": round(vals_e["Tri-VoI-MDP (Deploy-Self)"] - vals_e[best_shared_k], 3),
+                "evoi_net_vs_best_own_2c": round(vals_e["Tri-VoI-MDP (Deploy-Self)"] - vals_e[best_own_k], 3),
+                "boot_p_vs_best_shared_2c": bp_shared["boot_p"],
+                "boot_p_vs_best_own_2c": bp_own["boot_p"],
+            })
+
+        if lbl in regime_map_suites:
+            rm_meths = [
+                "Calibrated-Cascade+MDP (2C-Self)",
+                "Joint-Greedy+MDP (2C-Self)",
+                acl_2c,
+                "Tri-VoI-MDP (Deploy-Self)",
+            ]
+            for cap_lbl, cap, di in [("Cap=2", 2, 2), ("Cap=1/3", 1, 3)]:
+                for ca in (0.5, 1.5, 3.0, 4.5):
+                    vals_f = {
+                        m: _mean_util(m, tp, cb, cp, cap=cap, di=di, c_ask=ca, real_spec_ok=real_ok)
+                        for m in rm_meths
+                    }
+                    best_f = max(vals_f["Calibrated-Cascade+MDP (2C-Self)"], vals_f["Joint-Greedy+MDP (2C-Self)"], vals_f[acl_2c])
+                    part_f_rows.append({
+                        "suite": lbl,
+                        "cap_regime": cap_lbl,
+                        "c_ask": ca,
+                        "acl_2c_key": acl_2c,
+                        "vals": vals_f,
+                        "evoi_net_vs_best_2c": round(vals_f["Tri-VoI-MDP (Deploy-Self)"] - best_f, 3),
+                    })
 
     # Part D: Benchmark v3 Content Overlap Audit & Strict Zero-Overlap Slices
     cal_v3_proses = {_norm_v3(it["prose"]) for it in cal_v3}
@@ -207,10 +359,13 @@ def main() -> None:
         "KL-PBD+ (Warm)",
         "ACL-2026-VoI (Live)+Full-Defer+Naor",
         "ACL-2026-VoI (Live)+Full-Defer+MDP",
+        "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
         "Joint-Greedy+Naor",
         "Joint-Greedy+MDP",
+        "Joint-Greedy+MDP (2C-Self)",
         "Calibrated-Cascade+Naor",
         "Calibrated-Cascade+MDP",
+        "Calibrated-Cascade+MDP (2C-Self)",
         "Tri-VoI-L2D",
         "Tri-VoI-MDP",
         "Tri-VoI-MDP (Deploy-Self)",
@@ -229,11 +384,13 @@ def main() -> None:
         ]:
             for r_lbl, cap, di in [("Cap=2, c=1.5", 2, 2), ("Cap=1/3, c=1.5", 1, 3)]:
                 vals_d = {m: _mean_util(m, slice_tp, cb, cp, cap=cap, di=di) for m in v3_eval_meths}
-                # Bootstrap Deploy-Self vs best Baseline+MDP on the slice
                 raw_self = [simulate_stream("Tri-VoI-MDP (Deploy-Self)", slice_tp, cb, capacity=cap, drain_interval=di, c_ask=1.5, seed=s, cal_probed=cp)["per_item_utils"] for s in range(5)]
                 best_bm = max(["Calibrated-Cascade+MDP", "Joint-Greedy+MDP", "ACL-2026-VoI (Live)+Full-Defer+MDP"], key=lambda km: vals_d[km])
                 raw_bm = [simulate_stream(best_bm, slice_tp, cb, capacity=cap, drain_interval=di, c_ask=1.5, seed=s, cal_probed=cp)["per_item_utils"] for s in range(5)]
                 bp = block_paired_bootstrap(np.mean(raw_self, axis=0), np.mean(raw_bm, axis=0), block_size=6, n_boot=3000, seed=2029)
+                best_2cbm = max(["Calibrated-Cascade+MDP (2C-Self)", "Joint-Greedy+MDP (2C-Self)", "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)"], key=lambda km: vals_d[km])
+                raw_2cbm = [simulate_stream(best_2cbm, slice_tp, cb, capacity=cap, drain_interval=di, c_ask=1.5, seed=s, cal_probed=cp)["per_item_utils"] for s in range(5)]
+                bp_2c = block_paired_bootstrap(np.mean(raw_self, axis=0), np.mean(raw_2cbm, axis=0), block_size=6, n_boot=3000, seed=2029)
                 part_d_rows.append({
                     "model": mid.split("/")[-1],
                     "slice": slice_lbl,
@@ -241,23 +398,31 @@ def main() -> None:
                     "vals": vals_d,
                     "best_base_mdp_name": best_bm,
                     "boot_p_deploy_vs_best_base_mdp": bp["boot_p"],
+                    "best_2c_self_base_mdp_name": best_2cbm,
+                    "boot_p_deploy_vs_best_2c_self_base_mdp": bp_2c["boot_p"],
                 })
 
+    sqlite_audit = _audit_sqlite_post_missing()
     snap = tracker.snapshot()
     assert snap["live_calls"] == 0, f"Unexpected live API call! {snap}"
 
     payload = {
         "budget": snap,
+        "sqlite_post_missing_fallback_audit": sqlite_audit,
         "part_a_stepwise_ablation": part_a_rows,
         "part_b_fair_baseline_mdp": part_b_rows,
         "part_c_post_missing_signal_audit": part_c_signal,
         "part_d_v3_overlap_audit": overlap_audit,
         "part_d_v3_zero_overlap_slices": part_d_rows,
+        "part_e_matched_2c_self_attribution": part_e_rows,
+        "part_f_c_ask_regime_map": part_f_rows,
     }
     (RESULTS_DIR / "attribution_and_dedup_audit.json").write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
 
     md = [
-        "# Offline Attribution, Fair `Baseline+MDP`, Deployable Signal & `Benchmark v3` Deduplication Audit (`live=0`, `¥0.00`)",
+        "# Offline Attribution, Fair 2-Call Zero-Oracle `Baseline+MDP`, `c_ask` Regime Map & `Benchmark v3` Audit (`live=0`, `¥0.00`)",
+        "",
+        f"- **Global SQLite `post_ask_combined*` Fallback Audit**: `{sqlite_audit['total_missing_key_fallbacks']}/{sqlite_audit['total_post_ask_combined_rows']}` rows historically lacked `missing_user_info` (all truncated `length` JSON responses; `Deploy-Self` now strictly falls back to `obs_missing` and never accesses `oracle_revealed`).",
         "",
         "## Part A: Step-by-Step Controlled Ablation (`L2D` -> `2-Call` -> `2-Call+NoInfo` -> `MDP (5-Call)` -> `Tri-VoI-MDP` -> `Deploy-Self`)",
         "| Suite | Regime | `L2D (5C)` | `+2-Call` | `+2C+NoInfo` | `MDP (5C)` | `Tri-VoI-MDP` | `Deploy-Self` |",
@@ -273,7 +438,7 @@ def main() -> None:
 
     md.extend([
         "",
-        "## Part B: Fair `Baseline+MDP` vs. `Tri-VoI-MDP` (Isolating EVOI Under Equal DP Shadow Pricing)",
+        "## Part B: 5-Call `Baseline+MDP` vs. `Tri-VoI-MDP` (Historical Cross-Call Comparison)",
         "| Suite | Regime | `CC+N` | `CC+MDP` | `JG+N` | `JG+MDP` | `ACL+FD+N` | `ACL+FD+MDP` | `Tri-VoI-MDP` | `Deploy-Self` | EVOI Net (Self vs Best Base+MDP) |",
         "|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ])
@@ -289,13 +454,13 @@ def main() -> None:
     md.extend([
         "",
         "## Part C: Deployable `post_missing` Signal vs. Simulator `not oracle_revealed` (on `obs_missing=True` Test Items)",
-        "| Suite | `obs_missing` N | True NoInfo | Pred `post_missing` | Agreement% | Precision | Recall | F1 |",
-        "|:---|---:|---:|---:|---:|---:|---:|---:|",
+        "| Suite | `obs_missing` N | True NoInfo | Pred `post_missing` | Unparsed (`obs_missing` Fallback) | Agreement% | Precision | Recall | F1 |",
+        "|:---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ])
     for s_lbl, st in part_c_signal.items():
         md.append(
             f"| {s_lbl} | {st['n_obs_missing']} | {st['true_no_info']} | {st['pred_post_missing']} | "
-            f"{st['agreement_pct']:.2f}% | {st['precision']:.3f} | {st['recall']:.3f} | {st['f1']:.3f} |"
+            f"{st['unparsed_fallback_to_obs']} | {st['agreement_pct']:.2f}% | {st['precision']:.3f} | {st['recall']:.3f} | {st['f1']:.3f} |"
         )
 
     md.extend([
@@ -303,17 +468,51 @@ def main() -> None:
         "## Part D: `Benchmark v3` Content Overlap Disclosure & Strict Zero-Overlap Test Slices",
         f"- **Overlap Audit**: `n_cal={overlap_audit['n_cal']}`, `n_test={overlap_audit['n_test']}`, `uniq_cal_prose={overlap_audit['uniq_cal_prose']}`, `uniq_test_prose={overlap_audit['uniq_test_prose']}`, `test_prose_in_cal={overlap_audit['test_prose_in_cal']}/{overlap_audit['n_test']}` (`{100*overlap_audit['test_prose_in_cal']/overlap_audit['n_test']:.1f}%`), `exact_(prose,missing_val,gold)_in_cal={overlap_audit['exact_triple_in_cal']}/{overlap_audit['n_test']}` (`{100*overlap_audit['exact_triple_in_cal']/overlap_audit['n_test']:.1f}%`).",
         "",
-        "| Model | Slice | Regime | `KL-PBD+(W)` | `ACL+FD+N` | `ACL+FD+MDP` | `JG+MDP` | `CC+Naor` | `CC+MDP` | `L2D` | `Tri-VoI-MDP` | `Deploy-Self` | p (Self vs Best Base+MDP) |",
-        "|:---|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| Model | Slice | Regime | `ACL+FD+MDP (2C-S)` | `JG+MDP (2C-S)` | `CC+MDP (2C-S)` | `CC+MDP (5C)` | `JG+MDP (5C)` | `Deploy-Self` | p (Self vs Best 2C-S) |",
+        "|:---|:---|:---|---:|---:|---:|---:|---:|---:|---:|",
     ])
     for r in part_d_rows:
         v = r["vals"]
         md.append(
-            f"| {r['model']} | {r['slice']} | {r['regime']} | {v['KL-PBD+ (Warm)']:.3f} | "
-            f"{v['ACL-2026-VoI (Live)+Full-Defer+Naor']:.3f} | {v['ACL-2026-VoI (Live)+Full-Defer+MDP']:.3f} | "
-            f"{v['Joint-Greedy+MDP']:.3f} | {v['Calibrated-Cascade+Naor']:.3f} | {v['Calibrated-Cascade+MDP']:.3f} | "
-            f"{v['Tri-VoI-L2D']:.3f} | {v['Tri-VoI-MDP']:.3f} | {v['Tri-VoI-MDP (Deploy-Self)']:.3f} | "
-            f"{r['boot_p_deploy_vs_best_base_mdp']:.4f} |"
+            f"| {r['model']} | {r['slice']} | {r['regime']} | "
+            f"{v['ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)']:.3f} | {v['Joint-Greedy+MDP (2C-Self)']:.3f} | "
+            f"{v['Calibrated-Cascade+MDP (2C-Self)']:.3f} | {v['Calibrated-Cascade+MDP']:.3f} | "
+            f"{v['Joint-Greedy+MDP']:.3f} | {v['Tri-VoI-MDP (Deploy-Self)']:.3f} | "
+            f"{r['boot_p_deploy_vs_best_2c_self_base_mdp']:.4f} |"
+        )
+
+    md.extend([
+        "",
+        "## Part E: Strictly Matched 2-Call Zero-Oracle Fair Comparison (Equal Probe Cost, Zero Oracle & Same DP Pricing)",
+        "| Suite | Regime | `CC+MDP (2C-S)` | `CC+OwnDP` | `JG+MDP (2C-S)` | `JG+OwnDP` | `ACL+FD+MDP (2C-S)` | `Deploy-Self` | Net vs Shared (`p`) | Net vs OwnDP (`p`) | Tok (`CC/JG/Self`) |",
+        "|:---|:---|---:|---:|---:|---:|---:|---:|:---:|:---:|:---:|",
+    ])
+    for r in part_e_rows:
+        v = r["vals"]
+        tk = r["tokens"]
+        a2c = r["acl_2c_key"]
+        md.append(
+            f"| {r['suite']} | {r['regime']} | {v['Calibrated-Cascade+MDP (2C-Self)']:.3f} | "
+            f"{v['Calibrated-Cascade+OwnDP (2C-Self)']:.3f} | {v['Joint-Greedy+MDP (2C-Self)']:.3f} | "
+            f"{v['Joint-Greedy+OwnDP (2C-Self)']:.3f} | {v[a2c]:.3f} | {v['Tri-VoI-MDP (Deploy-Self)']:.3f} | "
+            f"{r['evoi_net_vs_best_shared_2c']:+.3f} (`{r['boot_p_vs_best_shared_2c']:.4f}`) | "
+            f"{r['evoi_net_vs_best_own_2c']:+.3f} (`{r['boot_p_vs_best_own_2c']:.4f}`) | "
+            f"{tk['Calibrated-Cascade+MDP (2C-Self)']:.0f}/{tk['Joint-Greedy+MDP (2C-Self)']:.0f}/{tk['Tri-VoI-MDP (Deploy-Self)']:.0f} |"
+        )
+
+    md.extend([
+        "",
+        "## Part F: Clarification-Cost `c_ask` Regime Map Under Matched 2-Call Zero-Oracle Pricing (Proposition 5)",
+        "| Suite | Cap | `c_ask` | `CC+MDP (2C-S)` | `JG+MDP (2C-S)` | `ACL+FD+MDP (2C-S)` | `Deploy-Self` | EVOI Net vs Best 2C-S |",
+        "|:---|:---|---:|---:|---:|---:|---:|---:|",
+    ])
+    for r in part_f_rows:
+        v = r["vals"]
+        a2c = r["acl_2c_key"]
+        md.append(
+            f"| {r['suite']} | {r['cap_regime']} | {r['c_ask']:.1f} | {v['Calibrated-Cascade+MDP (2C-Self)']:.3f} | "
+            f"{v['Joint-Greedy+MDP (2C-Self)']:.3f} | {v[a2c]:.3f} | {v['Tri-VoI-MDP (Deploy-Self)']:.3f} | "
+            f"{r['evoi_net_vs_best_2c']:+.3f} |"
         )
 
     (RESULTS_DIR / "attribution_and_dedup_audit.md").write_text("\n".join(md) + "\n", encoding="utf-8")

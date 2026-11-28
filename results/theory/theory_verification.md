@@ -45,4 +45,25 @@
 
 ## Theorem 4 (Exact 3-Action Periodic-Drain Bellman Optimality & Shadow-Price Monotonicity)
 - Phase-1 shadow prices $\Delta V_{25}(1, q)$ for $q=0..9$: `[0.4911, 0.8071, 1.4934, 1.9007, 2.4293, 2.9016, 3.4, 3.8862, 4.2466, 4.4452]` (sub-capacity $q=1 < C$: `0.8071` > 0).
-- Non-negativity min $\Delta V$: `0.0`, Coupling bound ($h=4$): `1.3401 <= 3.4`, Abandonment limit ($q=65 > Q_{\max}+25C$): `0.0`, Operating-queue truncation diff ($q\le 7$, $H=25$ vs $100$): `9e-05`.
+- Non-negativity min $\Delta V$: `0.0`, $\gamma=0$ max $|\Delta V|$: `0.0`, Coupling bound ($h=4$): `1.3401 <= 3.4`.
+- 4-branch abandonment threshold: $Q_{act}=13.557$, $Q_{\max}^{\text{defer}}=16.919$ (witness $q=14$ gap $\Delta V=0.5894>0$; above 4-branch bound $q=69$: `0.0`), Operating-queue diff ($q\le 7$): `9e-05`.
+
+## Proposition 5 (Tri-Party EVOI Regret Decomposition under Matched Dynamic Shadow Pricing)
+| $c_{\text{ask}}$ | $Q$ | $\widetilde{U}_{\text{def,eff}}$ | $\text{EVOI}_{\text{DP}}$ | $\text{Regret}_{\text{CC}}$ | $\Delta_{\text{opt}}$ | $\text{Regret}_{\text{JG}}$ |
+|---:|---:|---:|---:|---:|---:|---:|
+| 0.5 | 0 | 2.452 | +2.078 | 0.000 | 4.917 | 2.078 |
+| 0.5 | 3 | -4.204 | +4.279 | 0.000 | 1.896 | 1.896 |
+| 0.5 | 7 | -6.564 | +3.208 | 0.000 | 0.825 | 0.825 |
+| 0.5 | 12 | -8.893 | +2.383 | 0.000 | 0.000 | 0.000 |
+| 1.5 | 0 | 2.148 | +1.244 | 0.000 | 4.779 | 1.244 |
+| 1.5 | 3 | -4.253 | +3.257 | 0.000 | 1.874 | 1.874 |
+| 1.5 | 7 | -6.564 | +2.208 | 0.000 | 0.825 | 0.825 |
+| 1.5 | 12 | -8.893 | +1.383 | 0.000 | 0.000 | 0.000 |
+| 3.0 | 0 | 0.943 | +0.403 | 0.000 | 4.232 | 0.403 |
+| 3.0 | 3 | -4.625 | +1.588 | 0.000 | 1.705 | 1.588 |
+| 3.0 | 7 | -6.601 | +0.691 | 0.000 | 0.808 | 0.691 |
+| 3.0 | 12 | -8.817 | -0.117 | 0.117 | 0.000 | 0.000 |
+| 4.5 | 0 | -0.584 | -0.264 | 0.264 | 3.539 | 0.000 |
+| 4.5 | 3 | -5.169 | -0.159 | 0.159 | 1.458 | 0.000 |
+| 4.5 | 7 | -6.529 | -0.776 | 0.776 | 0.840 | 0.000 |
+| 4.5 | 12 | -8.328 | -1.593 | 1.593 | 0.024 | 0.000 |

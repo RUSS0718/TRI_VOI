@@ -486,30 +486,84 @@ def main() -> None:
         f_md = [_fmt_max_row_md(nums, i, True) for i in range(len(keys_b))]
         md.append(f"| {r['suite']} | {r['regime']} | " + " | ".join(f_md) + f" | {r['deploy_self_net_vs_best_base_mdp']:+.3f} |")
 
+    sa = attr["sqlite_post_missing_fallback_audit"]
     md.extend([
         "",
         "### 9C. Deployable LLM `post_missing` vs. Simulator `not oracle_revealed` (`obs_missing=True` Test Items)",
-        "| Suite | `obs_missing` N | True NoInfo | Pred `post_missing` | Agreement% | Precision | Recall | F1 |",
-        "|:---|---:|---:|---:|---:|---:|---:|---:|",
+        f"- **Zero-Oracle Audit**: Across `{sa['total_post_ask_combined_rows']}` cached `post_ask_combined*` calls, `{sa['total_missing_key_fallbacks']}` lacked `missing_user_info` (truncated JSON). `Deploy-Self` falls back strictly to `obs_missing` and never reads `oracle_revealed`.",
+        "",
+        "| Suite | `obs_missing` N | True NoInfo | Pred `post_missing` | Unparsed (`obs_missing` Fallback) | Agreement% | Precision | Recall | F1 |",
+        "|:---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ])
     for s_lbl, st in attr["part_c_post_missing_signal_audit"].items():
         md.append(
             f"| {s_lbl} | {st['n_obs_missing']} | {st['true_no_info']} | {st['pred_post_missing']} | "
-            f"{st['agreement_pct']:.2f}% | {st['precision']:.3f} | {st['recall']:.3f} | {st['f1']:.3f} |"
+            f"{st['unparsed_fallback_to_obs']} | {st['agreement_pct']:.2f}% | {st['precision']:.3f} | {st['recall']:.3f} | {st['f1']:.3f} |"
         )
 
     md.extend([
         "",
         "### 9D. `Benchmark v3` Strict Zero-Overlap Slices (`Zero-Cal-Prose-Overlap (72)` & `Unique-Prose (40)`)",
-        "| Model | Slice | Regime | `ACL+FD+MDP` | `JG+MDP` | `CC+Naor` | `CC+MDP` | `L2D` | `Tri-VoI-MDP` | `Deploy-Self` | p (Self vs Best Base+MDP) |",
-        "|:---|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| Model | Slice | Regime | `ACL+FD+MDP (2C-S)` | `JG+MDP (2C-S)` | `CC+MDP (2C-S)` | `CC+MDP (5C)` | `JG+MDP (5C)` | `Deploy-Self` | p (Self vs Best 2C-S) |",
+        "|:---|:---|:---|---:|---:|---:|---:|---:|---:|---:|",
     ])
     for r in attr["part_d_v3_zero_overlap_slices"]:
         v = r["vals"]
-        keys_d = ["ACL-2026-VoI (Live)+Full-Defer+MDP", "Joint-Greedy+MDP", "Calibrated-Cascade+Naor", "Calibrated-Cascade+MDP", "Tri-VoI-L2D", "Tri-VoI-MDP", "Tri-VoI-MDP (Deploy-Self)"]
+        keys_d = [
+            "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+            "Joint-Greedy+MDP (2C-Self)",
+            "Calibrated-Cascade+MDP (2C-Self)",
+            "Calibrated-Cascade+MDP",
+            "Joint-Greedy+MDP",
+            "Tri-VoI-MDP (Deploy-Self)",
+        ]
         nums = [v[k] for k in keys_d]
         f_md = [_fmt_max_row_md(nums, i, True) for i in range(len(keys_d))]
-        md.append(f"| {r['model']} | {r['slice']} | {r['regime']} | " + " | ".join(f_md) + f" | {r['boot_p_deploy_vs_best_base_mdp']:.4f} |")
+        md.append(f"| {r['model']} | {r['slice']} | {r['regime']} | " + " | ".join(f_md) + f" | {r['boot_p_deploy_vs_best_2c_self_base_mdp']:.4f} |")
+
+    md.extend([
+        "",
+        "### 9E. Strictly Matched 2-Call Zero-Oracle Attribution (Equal Probe Cost, Zero Oracle & Same DP Pricing)",
+        "| Suite | Regime | `CC+MDP (2C-S)` | `CC+OwnDP` | `JG+MDP (2C-S)` | `JG+OwnDP` | `ACL+FD+MDP (2C-S)` | `Deploy-Self` | Net vs Shared (`p`) | Net vs OwnDP (`p`) | Tok (`CC/JG/Self`) |",
+        "|:---|:---|---:|---:|---:|---:|---:|---:|:---:|:---:|:---:|",
+    ])
+    for r in attr["part_e_matched_2c_self_attribution"]:
+        v = r["vals"]
+        tk = r["tokens"]
+        a2c = r["acl_2c_key"]
+        keys_e = [
+            "Calibrated-Cascade+MDP (2C-Self)",
+            "Calibrated-Cascade+OwnDP (2C-Self)",
+            "Joint-Greedy+MDP (2C-Self)",
+            "Joint-Greedy+OwnDP (2C-Self)",
+            a2c,
+            "Tri-VoI-MDP (Deploy-Self)",
+        ]
+        nums = [v[k] for k in keys_e]
+        f_md = [_fmt_max_row_md(nums, i, True) for i in range(len(keys_e))]
+        md.append(
+            f"| {r['suite']} | {r['regime']} | " + " | ".join(f_md)
+            + f" | {r['evoi_net_vs_best_shared_2c']:+.3f} (`{r['boot_p_vs_best_shared_2c']:.4f}`) | "
+            + f"{r['evoi_net_vs_best_own_2c']:+.3f} (`{r['boot_p_vs_best_own_2c']:.4f}`) | "
+            + f"{tk['Calibrated-Cascade+MDP (2C-Self)']:.0f}/{tk['Joint-Greedy+MDP (2C-Self)']:.0f}/{tk['Tri-VoI-MDP (Deploy-Self)']:.0f} |"
+        )
+
+    md.extend([
+        "",
+        "### 9F. Clarification-Cost `c_ask` Regime Map Under Matched 2-Call Zero-Oracle Pricing (Proposition 5)",
+        "| Suite | Cap | `c_ask` | `CC+MDP (2C-S)` | `JG+MDP (2C-S)` | `ACL+FD+MDP (2C-S)` | `Deploy-Self` | EVOI Net vs Best 2C-S |",
+        "|:---|:---|---:|---:|---:|---:|---:|---:|",
+    ])
+    for r in attr["part_f_c_ask_regime_map"]:
+        v = r["vals"]
+        a2c = r["acl_2c_key"]
+        keys_f = ["Calibrated-Cascade+MDP (2C-Self)", "Joint-Greedy+MDP (2C-Self)", a2c, "Tri-VoI-MDP (Deploy-Self)"]
+        nums = [v[k] for k in keys_f]
+        f_md = [_fmt_max_row_md(nums, i, True) for i in range(len(keys_f))]
+        md.append(
+            f"| {r['suite']} | {r['cap_regime']} | {r['c_ask']:.1f} | " + " | ".join(f_md)
+            + f" | {r['evoi_net_vs_best_2c']:+.3f} |"
+        )
 
     (RESULTS_DIR / "ijcai2027_canonical_tables.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     (RESULTS_DIR / "ijcai2027_canonical_tables.tex").write_text("\n".join(tex) + "\n", encoding="utf-8")
