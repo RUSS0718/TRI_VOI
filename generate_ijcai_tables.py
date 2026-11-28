@@ -38,6 +38,7 @@ def main() -> None:
     hold = _load("zero_touch_holdout.json")
     blind = _load("preregistered_blind_eval.json")
     attr = _load("attribution_and_dedup_audit.json")
+    mtd = _load("mediq_test_disjoint_eval.json")
 
     md = [
         "# IJCAI 2027 Canonical Tables (Audit-Verified Single Source of Truth)",
@@ -564,6 +565,61 @@ def main() -> None:
             f"| {r['suite']} | {r['cap_regime']} | {r['c_ask']:.1f} | " + " | ".join(f_md)
             + f" | {r['evoi_net_vs_best_2c']:+.3f} |"
         )
+
+    # Section 10: Pre-Registered Organ-System-Disjoint Length-Matched MediQ-Test-Disjoint
+    mtd_b = mtd["budget"]
+    md.extend([
+        "",
+        f"## Section 10: Pre-Registered Organ-System-Disjoint, Length-Matched `MediQ-Test-Disjoint` (`prereg-mediq-test-disjoint`, `PY_DIFF_LEN=0`, `N_cal=60, N_test=180`, Spend `¥{mtd_b['estimated_rmb']:.2f}`)",
+        "> Constructed from official `medqa_test_convo.jsonl` (0 dev-split overlap, 0 clinical organ-system overlap between Cal `{Cardio_Pulm, Endo_Renal, Other}` and Test `{Heme_Onc_Repro_MSK, Infectious_Immuno, GI_Hepatic, Neuro_Psych}`, Q1 vs Q2 prose gap `4.86%`, `Unparsed Fallback=0` on both models).",
+        "",
+    ])
+    for s_title, s_key in [
+        ("### 10A. Setup A: Cross-Group Real-LLM Specialist (`Qwen3.5-35B-A3B` -> `DeepSeek-V3.2`)", "setup_qwen35_to_real_ds"),
+        ("### 10B. Setup B: Cross-Group Generalist (`DeepSeek-V3.2`)", "setup_deepseek_generalist"),
+    ]:
+        sdata = mtd[s_key]
+        md.extend([
+            s_title,
+            "| Method | Cap=2, c=1.5 | Cap=2, c=3.0 | Cap=1/3, c=1.5 | Cap=1/3, c=3.0 | Tok (Cap=2, c=1.5) |",
+            "|:---|---:|---:|---:|---:|---:|",
+        ])
+        m10_list = [
+            "Direct-ACT",
+            "KL-PBD+ (Warm)",
+            "ACL-2026-VoI (Live)+Full-Defer+Naor",
+            "ACL-2026-VoI (Live)+Full-Defer+MDP (2C-Self)",
+            "Joint-Greedy+Naor",
+            "Joint-Greedy+MDP (2C-Self)",
+            "Joint-Greedy+OwnDP (2C-Self)",
+            "Calibrated-Cascade+Naor",
+            "Calibrated-Cascade+MDP (2C-Self)",
+            "Calibrated-Cascade+OwnDP (2C-Self)",
+            "Tri-VoI-L2D",
+            "Tri-VoI-MDP",
+            "Tri-VoI-MDP (Deploy-Self)",
+        ]
+        regs10 = ["Cap=2, c=1.5", "Cap=2, c=3.0", "Cap=1/3, c=1.5", "Cap=1/3, c=3.0"]
+        cols10 = [[sdata[rg]["methods"][m]["mean_utility"] for m in m10_list] for rg in regs10]
+        for idx_m, m in enumerate(m10_list):
+            c_cells = []
+            for j, rg in enumerate(regs10):
+                u_str = _fmt_max_row_md(cols10[j], idx_m, True)
+                if j in (0, 2):
+                    mr = sdata[rg]["methods"][m]
+                    c_cells.append(f"{u_str} ({mr['raw_answer_acc_pct']:.1f}%/{mr['scope_escalation_recall_pct']:.1f}%)")
+                else:
+                    c_cells.append(u_str)
+            tok_c = sdata["Cap=2, c=1.5"]["methods"][m]["mean_realized_tokens"]
+            md.append(f"| `{m}` | " + " | ".join(c_cells) + f" | {tok_c:.0f} |")
+        md.append("")
+        for rg in regs10:
+            sm = sdata[rg]["summary"]
+            md.append(
+                f"- **{rg}**: `Deploy-Self` vs `{sm['best_2c_shared_name']}` = `{sm['deploy_self_vs_best_2c_shared']:+.3f}` (`p={sm['boot_p_vs_best_2c_shared']:.4f}`), "
+                f"vs `Tri-VoI-L2D` = `{sm['deploy_self_vs_l2d']:+.3f}` (`p={sm['boot_p_vs_l2d']:.4f}`)."
+            )
+        md.append("")
 
     (RESULTS_DIR / "ijcai2027_canonical_tables.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     (RESULTS_DIR / "ijcai2027_canonical_tables.tex").write_text("\n".join(tex) + "\n", encoding="utf-8")
