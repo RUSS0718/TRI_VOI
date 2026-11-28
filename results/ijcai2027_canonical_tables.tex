@@ -81,11 +81,11 @@ PT (DS-V3.2, $c_{\mathrm{def}}=2$) & w/o Externality & 1.533 & 2.267 & 37/0/19 \
 \begin{table*}[t]
 \centering
 \small
-\caption{Pre-registered zero-touch blind evaluation (tag \texttt{prereg-blind-v3}) on \textit{Benchmark v3} (4 unseen domains, 0 protocol codes, $N_{\text{test}}=144$) and disjoint \textit{MediQ-Holdout} ($N_{\text{test}}=128$). Bold marks row-wise best non-Oracle utility.}
+\caption{Pre-registered unseen-domain template generalization (\textit{Benchmark v3}, $N_{\text{test}}=144$; zero-overlap slices in Section 9) and sample-disjoint \textit{MediQ-Holdout} ($N_{\text{test}}=128$, tag \texttt{prereg-blind-v3}). Bold marks row-wise best non-Oracle utility.}
 \label{tab:blind_v3}
 \begin{tabular}{lcccccccc}
 \toprule
-Blind Suite & Direct & KL-PBD+(W) & ACL+FD+N & JG+Naor & CC+Naor & L2D & MDP & Tok (L2D$\to$MDP) \\
+Suite / Regime & Direct & KL-PBD+(W) & ACL+FD+N & JG+Naor & CC+Naor & L2D & MDP & Tok (L2D$\to$MDP) \\
 \midrule
 v3 / Qwen3.5-35B-A3B (Cap=2, c=1.5) & -0.556 & 3.401 & \textbf{4.599} & 4.416 & \textbf{4.599} & 4.364 & 4.470 & 4734$\to$2091 \\
 v3 / Qwen3.5-35B-A3B (Cap=2, c=2.5) & -0.556 & 3.401 & 4.149 & \textbf{4.176} & 4.162 & 4.139 & 4.059 & 4640$\to$2004 \\

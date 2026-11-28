@@ -150,7 +150,9 @@ Generated automatically by `generate_ijcai_tables.py` using canonical terminolog
 | Cap=2, c_def=4.0, c=1.5 | 1.471 / 77.1% / 92.2% | **1.963** / 79.2% / 85.6% | 1.785 / 79.2% / 82.2% | 1.355 / 79.2% / 72.2% | 1.477 / 78.8% / 77.8% | 1.830 / 78.8% / 84.4% |
 | Cap=1/3, c_def=2.0, c=1.5 | 0.279 / 72.1% / 38.9% | 1.276 / 80.0% / 55.6% | 1.367 / 80.0% / 57.8% | 1.420 / 80.8% / 53.3% | 0.960 / 80.4% / 50.0% | **1.651** / 79.6% / 56.7% |
 
-## Section 8: Pre-Registered Zero-Touch Blind Evaluation (Git Tag `prereg-blind-v3`, `PY_DIFF_LEN=0`, Spend `¥3.32`)
+## Section 8: Pre-Registered Unseen-Domain & Strictly Disjoint Holdout Evaluation (`prereg-blind-v3`, `PY_DIFF_LEN=0`, Spend `¥3.32`)
+
+> **Transparency Note on `Benchmark v3` Content Overlap**: Because each unseen domain in `v3` spans `2×2×2=8` discrete attribute templates, de-numbered audit shows `72/144` (`50.0%`) test items share normalized prose with `cal` and `51/144` (`35.4%`) share exact `(prose, missing_val, gold)` triples (`uniq_test_prose=73`). Consequently, `v3` measures **pre-registered unseen-domain template generalization** (with strictly zero-overlap slices reported in Section 9D), while disjoint **`MediQ-Holdout`** (`176` distinct real clinical cases) is our primary sample-level disjoint generalization benchmark.
 
 ### Suite A: `Benchmark v3` (4 Unseen Length-Matched Domains, Zero Protocol Code IDs, `N_cal=48, N_test=144`)
 | Model & Regime | `Direct-ACT` | `KL-PBD+ (Warm)` | `ACL+FD+N` | `JG+Naor` | `CC+Naor` | `Tri-VoI-L2D` | `Tri-VoI-MDP` | Realized Tok (`L2D` -> `MDP`) |
@@ -184,3 +186,86 @@ Generated automatically by `generate_ijcai_tables.py` using canonical terminolog
 | MediQ-Holdout / `DeepSeek-V3.2` (Cap=1/3, c=1.5) | 0.725 / 0.671 | 0.839 | 1.209 | 1.662 | 1.615 | **1.814** | 1.721 | 1.811 |
 | v2-UnseenIDs / `Qwen3.5` (Cap=2, c=1.5) | 0.838 / 0.929 | 2.711 | 4.418 | 4.193 | **4.434** | 4.121 | 3.989 | 4.157 |
 | v2-UnseenIDs / `Qwen3.5` (Cap=1/3, c=1.5) | 0.838 / 0.929 | 1.286 | 2.902 | 2.566 | **2.994** | 2.757 | 2.701 | 2.757 |
+
+## Section 9: Controlled Attribution (`±EVOI` under Equal `MDP` Shadow Pricing), Deployable `post_missing` Signal & `Benchmark v3` Zero-Overlap Slices (`live=0`, `¥0.00`)
+
+### 9A. Step-by-Step Controlled Ablation (`L2D` -> `+2-Call` -> `+2C+NoInfo` -> `MDP (5-Call)` -> `Tri-VoI-MDP` -> `Deploy-Self`)
+| Suite | Regime | `L2D (5C)` | `+2-Call` | `+2C+NoInfo` | `MDP (5C)` | `Tri-VoI-MDP` | `Deploy-Self` |
+|:---|:---|---:|---:|---:|---:|---:|---:|
+| v1-Clean / Qwen3.5 | Cap=2, c=1.5 | 5.220 | **5.416** | 5.401 | 5.199 | 5.341 | 5.343 |
+| v1-Clean / Qwen3.5 | Cap=1/3, c=1.5 | 3.792 | 3.681 | 3.681 | 4.024 | **4.048** | **4.048** |
+| v1-Noisy / Qwen3.5 | Cap=2, c=1.5 | 3.503 | 3.538 | 3.753 | **3.857** | 3.811 | 3.696 |
+| v1-Noisy / Qwen3.5 | Cap=1/3, c=1.5 | 1.525 | 1.616 | 1.552 | 2.303 | **2.398** | 2.319 |
+| v2 / Qwen3.5 | Cap=2, c=1.5 | 4.657 | **4.750** | 4.728 | 4.703 | 4.690 | 4.699 |
+| v2 / Qwen3.5 | Cap=1/3, c=1.5 | 3.847 | 3.810 | 3.810 | 4.016 | **4.041** | **4.041** |
+| v2 / DeepSeek-V3.2 | Cap=2, c=1.5 | 5.031 | 5.031 | 5.035 | 5.135 | 5.135 | **5.138** |
+| v2 / DeepSeek-V3.2 | Cap=1/3, c=1.5 | 4.334 | 4.284 | 4.284 | **4.572** | 4.406 | 4.492 |
+| v2 / Hy4-preview | Cap=2, c=1.5 | 6.053 | 6.053 | 6.053 | **6.085** | **6.085** | **6.085** |
+| v2 / Hy4-preview | Cap=1/3, c=1.5 | 5.313 | 5.095 | 5.095 | **5.762** | 5.551 | 5.551 |
+| Public-Tri / Qwen3.5 (strat=False) | Cap=2, c=1.5 | 3.404 | 3.448 | **3.474** | 3.407 | 3.445 | 3.446 |
+| Public-Tri / Qwen3.5 (strat=False) | Cap=1/3, c=1.5 | 1.203 | 1.125 | 1.357 | 1.638 | **1.720** | 1.718 |
+| Public-Tri / Qwen3.5 (strat=True) | Cap=2, c=1.5 | **3.612** | 3.579 | 3.452 | 3.501 | 3.521 | 3.544 |
+| Public-Tri / Qwen3.5 (strat=True) | Cap=1/3, c=1.5 | 1.259 | 1.092 | 1.294 | 1.583 | 1.636 | **1.711** |
+| Public-Tri / DS (RealSpec, strat=False) | Cap=2, c=1.5 | 3.136 | **3.303** | 3.088 | 2.806 | 2.957 | 2.961 |
+| Public-Tri / DS (RealSpec, strat=False) | Cap=1/3, c=1.5 | 1.236 | 1.170 | 1.183 | 1.505 | 1.651 | **1.671** |
+| v3 / Qwen3.5 | Cap=2, c=1.5 | 4.364 | 4.422 | 4.422 | **4.501** | 4.470 | 4.470 |
+| v3 / Qwen3.5 | Cap=1/3, c=1.5 | 3.458 | 2.970 | 2.970 | **3.891** | 3.334 | 3.334 |
+| v3 / DeepSeek-V3.2 | Cap=2, c=1.5 | 4.558 | 4.525 | 4.525 | 4.567 | **4.582** | **4.582** |
+| v3 / DeepSeek-V3.2 | Cap=1/3, c=1.5 | 2.695 | 2.846 | 2.846 | **3.499** | 3.484 | 3.484 |
+| MediQ-Holdout / Q3.5->RealDS | Cap=2, c=1.5 | 1.676 | **2.216** | 1.550 | 1.133 | 1.538 | 2.072 |
+| MediQ-Holdout / Q3.5->RealDS | Cap=1/3, c=1.5 | 0.434 | 1.031 | 0.892 | 0.494 | 1.003 | **1.348** |
+
+### 9B. Fair `Baseline+MDP` vs. `Tri-VoI-MDP` (Isolating Independent EVOI Gain under Equal Bellman Shadow Pricing)
+| Suite | Regime | `CC+N` | `CC+MDP` | `JG+N` | `JG+MDP` | `ACL+FD+N` | `ACL+FD+MDP` | `Tri-VoI-MDP` | `Deploy-Self` | EVOI Net (Self vs Best Base+MDP) |
+|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| v1-Clean / Qwen3.5 | Cap=2, c=1.5 | 4.867 | 4.878 | 5.190 | 5.166 | 4.867 | 4.878 | 5.341 | **5.343** | +0.177 |
+| v1-Clean / Qwen3.5 | Cap=1/3, c=1.5 | 3.798 | **4.064** | 3.188 | 3.616 | 3.798 | **4.064** | 4.048 | 4.048 | -0.016 |
+| v1-Noisy / Qwen3.5 | Cap=2, c=1.5 | 3.413 | 3.388 | **3.887** | 3.708 | 3.413 | 3.388 | 3.811 | 3.696 | -0.012 |
+| v1-Noisy / Qwen3.5 | Cap=1/3, c=1.5 | 1.614 | 2.309 | 1.295 | 2.074 | 1.614 | 2.309 | **2.398** | 2.319 | +0.010 |
+| v2 / Qwen3.5 | Cap=2, c=1.5 | **4.996** | 4.977 | 4.421 | 4.341 | 4.993 | 4.974 | 4.690 | 4.699 | -0.278 |
+| v2 / Qwen3.5 | Cap=1/3, c=1.5 | 3.808 | **4.056** | 3.169 | 3.487 | 3.805 | 4.043 | 4.041 | 4.041 | -0.015 |
+| v2 / DeepSeek-V3.2 | Cap=2, c=1.5 | 4.754 | 4.754 | 4.850 | 4.808 | 4.754 | 4.754 | 5.135 | **5.138** | +0.330 |
+| v2 / DeepSeek-V3.2 | Cap=1/3, c=1.5 | 4.509 | **4.572** | 4.014 | 4.246 | 4.509 | **4.572** | 4.406 | 4.492 | -0.080 |
+| v2 / Hy4-preview | Cap=2, c=1.5 | **6.271** | **6.271** | 5.408 | 5.412 | 5.986 | 6.007 | 6.085 | 6.085 | -0.186 |
+| v2 / Hy4-preview | Cap=1/3, c=1.5 | 5.512 | **5.804** | 4.711 | 5.081 | 5.021 | 5.468 | 5.551 | 5.551 | -0.253 |
+| Public-Tri / Qwen3.5 (strat=False) | Cap=2, c=1.5 | 3.094 | 3.124 | **3.536** | 3.483 | 3.186 | 3.184 | 3.445 | 3.446 | -0.037 |
+| Public-Tri / Qwen3.5 (strat=False) | Cap=1/3, c=1.5 | 1.371 | 1.649 | 1.648 | **2.012** | 1.128 | 1.594 | 1.720 | 1.718 | -0.294 |
+| Public-Tri / Qwen3.5 (strat=True) | Cap=2, c=1.5 | 3.067 | 3.054 | **3.723** | 3.662 | 3.105 | 3.065 | 3.521 | 3.544 | -0.118 |
+| Public-Tri / Qwen3.5 (strat=True) | Cap=1/3, c=1.5 | 1.347 | 1.708 | 1.450 | **1.826** | 1.251 | 1.611 | 1.636 | 1.711 | -0.115 |
+| Public-Tri / DS (RealSpec, strat=False) | Cap=2, c=1.5 | 2.398 | 2.436 | **3.129** | 2.917 | 2.579 | 2.550 | 2.957 | 2.961 | +0.044 |
+| Public-Tri / DS (RealSpec, strat=False) | Cap=1/3, c=1.5 | 1.298 | 1.422 | 1.043 | **1.867** | 1.028 | 1.545 | 1.651 | 1.671 | -0.196 |
+| v3 / Qwen3.5 | Cap=2, c=1.5 | 4.599 | **4.619** | 4.416 | 4.478 | 4.599 | **4.619** | 4.470 | 4.470 | -0.149 |
+| v3 / Qwen3.5 | Cap=1/3, c=1.5 | 3.458 | 3.907 | 3.417 | **4.117** | 3.458 | 3.907 | 3.334 | 3.334 | -0.783 |
+| v3 / DeepSeek-V3.2 | Cap=2, c=1.5 | 4.528 | **4.626** | 4.204 | 4.178 | 4.411 | 4.487 | 4.582 | 4.582 | -0.044 |
+| v3 / DeepSeek-V3.2 | Cap=1/3, c=1.5 | 2.695 | 3.499 | 3.469 | **3.682** | 2.612 | 3.385 | 3.484 | 3.484 | -0.198 |
+| MediQ-Holdout / Q3.5->RealDS | Cap=2, c=1.5 | 1.718 | 1.718 | 1.244 | 1.096 | 1.530 | 1.352 | 1.538 | **2.072** | +0.354 |
+| MediQ-Holdout / Q3.5->RealDS | Cap=1/3, c=1.5 | 0.882 | 1.072 | 0.191 | 0.162 | 0.222 | 0.420 | 1.003 | **1.348** | +0.276 |
+
+### 9C. Deployable LLM `post_missing` vs. Simulator `not oracle_revealed` (`obs_missing=True` Test Items)
+| Suite | `obs_missing` N | True NoInfo | Pred `post_missing` | Agreement% | Precision | Recall | F1 |
+|:---|---:|---:|---:|---:|---:|---:|---:|
+| v1-Clean / Qwen3.5 | 143 | 6 | 0 | 95.80% | 0.000 | 0.000 | 0.000 |
+| v1-Noisy / Qwen3.5 | 166 | 32 | 24 | 95.18% | 1.000 | 0.750 | 0.857 |
+| v2 / Qwen3.5 | 71 | 1 | 0 | 98.59% | 0.000 | 0.000 | 0.000 |
+| v2 / DeepSeek-V3.2 | 94 | 8 | 0 | 91.49% | 0.000 | 0.000 | 0.000 |
+| v2 / Hy4-preview | 90 | 0 | 0 | 100.00% | 0.000 | 0.000 | 0.000 |
+| Public-Tri / Qwen3.5 (strat=False) | 116 | 10 | 15 | 85.34% | 0.267 | 0.400 | 0.320 |
+| v3 / Qwen3.5 | 63 | 1 | 0 | 98.41% | 0.000 | 0.000 | 0.000 |
+| v3 / DeepSeek-V3.2 | 72 | 0 | 0 | 100.00% | 0.000 | 0.000 | 0.000 |
+| MediQ-Holdout / Q3.5->RealDS | 64 | 16 | 14 | 65.62% | 0.286 | 0.250 | 0.267 |
+
+### 9D. `Benchmark v3` Strict Zero-Overlap Slices (`Zero-Cal-Prose-Overlap (72)` & `Unique-Prose (40)`)
+| Model | Slice | Regime | `ACL+FD+MDP` | `JG+MDP` | `CC+Naor` | `CC+MDP` | `L2D` | `Tri-VoI-MDP` | `Deploy-Self` | p (Self vs Best Base+MDP) |
+|:---|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Qwen3.5-35B-A3B | Full (144) | Cap=2, c=1.5 | **4.619** | 4.478 | 4.599 | **4.619** | 4.364 | 4.470 | 4.470 | 0.7061 |
+| Qwen3.5-35B-A3B | Full (144) | Cap=1/3, c=1.5 | 3.907 | **4.117** | 3.458 | 3.907 | 3.458 | 3.334 | 3.334 | 0.0060 |
+| Qwen3.5-35B-A3B | Zero-Cal-Prose-Overlap (72) | Cap=2, c=1.5 | 5.404 | 5.119 | 5.404 | 5.404 | 5.519 | 5.552 | **5.559** | 0.5801 |
+| Qwen3.5-35B-A3B | Zero-Cal-Prose-Overlap (72) | Cap=1/3, c=1.5 | 4.023 | 4.167 | **4.318** | 4.023 | **4.318** | 3.937 | 3.937 | 0.6404 |
+| Qwen3.5-35B-A3B | Zero-Overlap-Unique-Prose (40) | Cap=2, c=1.5 | **4.949** | 4.659 | 4.839 | **4.949** | 4.786 | 4.897 | 4.897 | 0.7987 |
+| Qwen3.5-35B-A3B | Zero-Overlap-Unique-Prose (40) | Cap=1/3, c=1.5 | 3.023 | **3.192** | 2.488 | 3.023 | 2.488 | 2.751 | 2.751 | 0.5298 |
+| DeepSeek-V3.2 | Full (144) | Cap=2, c=1.5 | 4.487 | 4.178 | 4.528 | **4.626** | 4.558 | 4.582 | 4.582 | 0.8874 |
+| DeepSeek-V3.2 | Full (144) | Cap=1/3, c=1.5 | 3.385 | **3.682** | 2.695 | 3.499 | 2.695 | 3.484 | 3.484 | 0.6518 |
+| DeepSeek-V3.2 | Zero-Cal-Prose-Overlap (72) | Cap=2, c=1.5 | 5.014 | 4.950 | 5.327 | 5.327 | **5.398** | 5.222 | 5.222 | 0.7578 |
+| DeepSeek-V3.2 | Zero-Cal-Prose-Overlap (72) | Cap=1/3, c=1.5 | 2.651 | 2.480 | 3.115 | 2.711 | 3.115 | **3.261** | **3.261** | 0.1679 |
+| DeepSeek-V3.2 | Zero-Overlap-Unique-Prose (40) | Cap=2, c=1.5 | 4.483 | 4.467 | **4.845** | 4.841 | 4.765 | 4.793 | 4.793 | 0.8824 |
+| DeepSeek-V3.2 | Zero-Overlap-Unique-Prose (40) | Cap=1/3, c=1.5 | 1.349 | **2.849** | 1.113 | 1.664 | 1.113 | 2.197 | 2.197 | 0.2166 |

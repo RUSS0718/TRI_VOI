@@ -272,6 +272,7 @@ def probe_item_budgeted(
         post_obj = parse_json_obj(r_post["content"])
         post_ans = extract_answer(r_post["content"])
         post_ovr_conf = bool(post_obj.get("override_confirmed", obs_conf_ovr))
+        post_missing = bool(post_obj.get("missing_user_info", not oracle_revealed))
         tok_post = r_post["prompt_tokens"] + r_post["completion_tokens"]
         tokens += tok_post
         lat_post = float(r_post.get("latency", 0.0))
@@ -302,6 +303,7 @@ def probe_item_budgeted(
         post_ans = greedy_ans
         post_s1 = samples[0]
         post_ovr_conf = obs_conf_ovr
+        post_missing = obs_missing
         tok_post = 0
         lat_post = 0.0
 
@@ -321,6 +323,7 @@ def probe_item_budgeted(
         "post_ans": post_ans,
         "post_s1": post_s1,
         "post_ovr_conf": post_ovr_conf,
+        "post_missing": post_missing,
         "tokens": tokens,
         "tokens_greedy": r_greedy["prompt_tokens"] + r_greedy["completion_tokens"],
         "tokens_diag": r_diag["prompt_tokens"] + r_diag["completion_tokens"],

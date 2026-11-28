@@ -1428,6 +1428,7 @@
       4.4452
     ],
     "subcap_phase1_q1": 0.8071,
+    "degenerate_cdef100_max_shadow": 0.0,
     "min_shadow": 0.0,
     "max_shadow_h25": 4.6913,
     "max_shadow_h4": 1.3401,

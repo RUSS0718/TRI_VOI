@@ -425,9 +425,15 @@ def verify_theorem_4() -> Dict[str, Any]:
     assert min_sh >= -1e-9, f"Negative shadow price: {min_sh}"
     assert max_sh_4 <= gamma * 4.0 + 1e-6, f"Coupling upper bound violated: {max_sh_4}"
 
+    # Check degenerate no-defer case even when I = 2 > 1 (c_defer=100 -> DEFER never optimal -> Delta V == 0)
+    V_deg = solve_3action_mdp_shadow_prices(omega, calib, p_e, cap, di, gamma, 1.5, 100.0, 10.0, -10.0, 10, q_max=10, horizon_cap=10)
+    deg_max_sh = float(max(abs(V_deg[1][q] - V_deg[1][q + 1]) for q in range(9)))
+    assert deg_max_sh < 1e-9, f"Degenerate zero-defer shadow price non-zero: {deg_max_sh}"
+
     return {
         "shadow_phase1_q0_to_q9": [round(x, 4) for x in sh_ph1[:10]],
         "subcap_phase1_q1": round(sh_ph1[1], 4),
+        "degenerate_cdef100_max_shadow": round(deg_max_sh, 6),
         "min_shadow": round(min_sh, 6),
         "max_shadow_h25": round(max_sh, 4),
         "max_shadow_h4": round(max_sh_4, 4),

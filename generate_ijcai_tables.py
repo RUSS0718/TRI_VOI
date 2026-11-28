@@ -37,6 +37,7 @@ def main() -> None:
     hard = _load("reviewer_hardening_suite.json")
     hold = _load("zero_touch_holdout.json")
     blind = _load("preregistered_blind_eval.json")
+    attr = _load("attribution_and_dedup_audit.json")
 
     md = [
         "# IJCAI 2027 Canonical Tables (Audit-Verified Single Source of Truth)",
@@ -363,11 +364,14 @@ def main() -> None:
             cells.append(f"{s_u} / {d['raw_answer_acc_pct']:.1f}% / {d['scope_escalation_recall_pct']:.1f}%")
         md.append(f"| {r_lbl} | " + " | ".join(cells) + " |")
 
-    # Section 8: Pre-Registered Zero-Touch Blind Evaluation (tag: prereg-blind-v3)
+    # Section 8: Pre-Registered Generalization & Strictly Disjoint MediQ-Holdout (tag: prereg-blind-v3)
     snap = blind["budget"]
+    ov = attr["part_d_v3_overlap_audit"]
     md.extend([
         "",
-        f"## Section 8: Pre-Registered Zero-Touch Blind Evaluation (Git Tag `prereg-blind-v3`, `PY_DIFF_LEN=0`, Spend `¥{snap['estimated_rmb']:.2f}`)",
+        f"## Section 8: Pre-Registered Unseen-Domain & Strictly Disjoint Holdout Evaluation (`prereg-blind-v3`, `PY_DIFF_LEN=0`, Spend `¥{snap['estimated_rmb']:.2f}`)",
+        "",
+        f"> **Transparency Note on `Benchmark v3` Content Overlap**: Because each unseen domain in `v3` spans `2×2×2=8` discrete attribute templates, de-numbered audit shows `{ov['test_prose_in_cal']}/{ov['n_test']}` (`{100*ov['test_prose_in_cal']/ov['n_test']:.1f}%`) test items share normalized prose with `cal` and `{ov['exact_triple_in_cal']}/{ov['n_test']}` (`{100*ov['exact_triple_in_cal']/ov['n_test']:.1f}%`) share exact `(prose, missing_val, gold)` triples (`uniq_test_prose={ov['uniq_test_prose']}`). Consequently, `v3` measures **pre-registered unseen-domain template generalization** (with strictly zero-overlap slices reported in Section 9D), while disjoint **`MediQ-Holdout`** (`176` distinct real clinical cases) is our primary sample-level disjoint generalization benchmark.",
         "",
         "### Suite A: `Benchmark v3` (4 Unseen Length-Matched Domains, Zero Protocol Code IDs, `N_cal=48, N_test=144`)",
         "| Model & Regime | `Direct-ACT` | `KL-PBD+ (Warm)` | `ACL+FD+N` | `JG+Naor` | `CC+Naor` | `Tri-VoI-L2D` | `Tri-VoI-MDP` | Realized Tok (`L2D` -> `MDP`) |",
@@ -377,11 +381,11 @@ def main() -> None:
         "\\begin{table*}[t]",
         "\\centering",
         "\\small",
-        "\\caption{Pre-registered zero-touch blind evaluation (tag \\texttt{prereg-blind-v3}) on \\textit{Benchmark v3} (4 unseen domains, 0 protocol codes, $N_{\\text{test}}=144$) and disjoint \\textit{MediQ-Holdout} ($N_{\\text{test}}=128$). Bold marks row-wise best non-Oracle utility.}",
+        "\\caption{Pre-registered unseen-domain template generalization (\\textit{Benchmark v3}, $N_{\\text{test}}=144$; zero-overlap slices in Section 9) and sample-disjoint \\textit{MediQ-Holdout} ($N_{\\text{test}}=128$, tag \\texttt{prereg-blind-v3}). Bold marks row-wise best non-Oracle utility.}",
         "\\label{tab:blind_v3}",
         "\\begin{tabular}{lcccccccc}",
         "\\toprule",
-        "Blind Suite & Direct & KL-PBD+(W) & ACL+FD+N & JG+Naor & CC+Naor & L2D & MDP & Tok (L2D$\\to$MDP) \\\\",
+        "Suite / Regime & Direct & KL-PBD+(W) & ACL+FD+N & JG+Naor & CC+Naor & L2D & MDP & Tok (L2D$\\to$MDP) \\\\",
         "\\midrule",
     ])
     v3_keys = ["Direct-ACT", "KL-PBD+ (Warm)", "ACL-2026-VoI (Live)+Full-Defer+Naor", "Joint-Greedy+Naor", "Calibrated-Cascade+Naor", "Tri-VoI-L2D", "Tri-VoI-MDP"]
@@ -449,6 +453,63 @@ def main() -> None:
         vals = [r[k]["mean_utility"] for k in keys]
         f_md = [_fmt_max_row_md(vals, i, True) for i in range(len(keys))]
         md.append(f"| v2-UnseenIDs / `Qwen3.5` ({reg}) | {ud['missing_f1']:.3f} / {ud['override_f1']:.3f} | " + " | ".join(f_md) + " |")
+
+    (RESULTS_DIR / "ijcai2027_canonical_tables.md").write_text("\n".join(md), encoding="utf-8")
+
+    # Section 9: Offline Attribution, Fair Baseline+MDP, Deployable Signal & v3 Zero-Overlap Slices
+    md.extend([
+        "",
+        "## Section 9: Controlled Attribution (`±EVOI` under Equal `MDP` Shadow Pricing), Deployable `post_missing` Signal & `Benchmark v3` Zero-Overlap Slices (`live=0`, `¥0.00`)",
+        "",
+        "### 9A. Step-by-Step Controlled Ablation (`L2D` -> `+2-Call` -> `+2C+NoInfo` -> `MDP (5-Call)` -> `Tri-VoI-MDP` -> `Deploy-Self`)",
+        "| Suite | Regime | `L2D (5C)` | `+2-Call` | `+2C+NoInfo` | `MDP (5C)` | `Tri-VoI-MDP` | `Deploy-Self` |",
+        "|:---|:---|---:|---:|---:|---:|---:|---:|",
+    ])
+    a_keys = ["Tri-VoI-L2D", "Tri-VoI-L2D (2-Call)", "Tri-VoI-L2D (2-Call+NoInfo)", "Tri-VoI-MDP (5-Call)", "Tri-VoI-MDP", "Tri-VoI-MDP (Deploy-Self)"]
+    for r in attr["part_a_stepwise_ablation"]:
+        v = r["vals"]
+        nums = [v[k] for k in a_keys]
+        f_md = [_fmt_max_row_md(nums, i, True) for i in range(len(a_keys))]
+        md.append(f"| {r['suite']} | {r['regime']} | " + " | ".join(f_md) + " |")
+
+    md.extend([
+        "",
+        "### 9B. Fair `Baseline+MDP` vs. `Tri-VoI-MDP` (Isolating Independent EVOI Gain under Equal Bellman Shadow Pricing)",
+        "| Suite | Regime | `CC+N` | `CC+MDP` | `JG+N` | `JG+MDP` | `ACL+FD+N` | `ACL+FD+MDP` | `Tri-VoI-MDP` | `Deploy-Self` | EVOI Net (Self vs Best Base+MDP) |",
+        "|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+    ])
+    for r in attr["part_b_fair_baseline_mdp"]:
+        v = r["vals"]
+        an, am = r["acl_naor_key"], r["acl_mdp_key"]
+        keys_b = ["Calibrated-Cascade+Naor", "Calibrated-Cascade+MDP", "Joint-Greedy+Naor", "Joint-Greedy+MDP", an, am, "Tri-VoI-MDP", "Tri-VoI-MDP (Deploy-Self)"]
+        nums = [v[k] for k in keys_b]
+        f_md = [_fmt_max_row_md(nums, i, True) for i in range(len(keys_b))]
+        md.append(f"| {r['suite']} | {r['regime']} | " + " | ".join(f_md) + f" | {r['deploy_self_net_vs_best_base_mdp']:+.3f} |")
+
+    md.extend([
+        "",
+        "### 9C. Deployable LLM `post_missing` vs. Simulator `not oracle_revealed` (`obs_missing=True` Test Items)",
+        "| Suite | `obs_missing` N | True NoInfo | Pred `post_missing` | Agreement% | Precision | Recall | F1 |",
+        "|:---|---:|---:|---:|---:|---:|---:|---:|",
+    ])
+    for s_lbl, st in attr["part_c_post_missing_signal_audit"].items():
+        md.append(
+            f"| {s_lbl} | {st['n_obs_missing']} | {st['true_no_info']} | {st['pred_post_missing']} | "
+            f"{st['agreement_pct']:.2f}% | {st['precision']:.3f} | {st['recall']:.3f} | {st['f1']:.3f} |"
+        )
+
+    md.extend([
+        "",
+        "### 9D. `Benchmark v3` Strict Zero-Overlap Slices (`Zero-Cal-Prose-Overlap (72)` & `Unique-Prose (40)`)",
+        "| Model | Slice | Regime | `ACL+FD+MDP` | `JG+MDP` | `CC+Naor` | `CC+MDP` | `L2D` | `Tri-VoI-MDP` | `Deploy-Self` | p (Self vs Best Base+MDP) |",
+        "|:---|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|",
+    ])
+    for r in attr["part_d_v3_zero_overlap_slices"]:
+        v = r["vals"]
+        keys_d = ["ACL-2026-VoI (Live)+Full-Defer+MDP", "Joint-Greedy+MDP", "Calibrated-Cascade+Naor", "Calibrated-Cascade+MDP", "Tri-VoI-L2D", "Tri-VoI-MDP", "Tri-VoI-MDP (Deploy-Self)"]
+        nums = [v[k] for k in keys_d]
+        f_md = [_fmt_max_row_md(nums, i, True) for i in range(len(keys_d))]
+        md.append(f"| {r['model']} | {r['slice']} | {r['regime']} | " + " | ".join(f_md) + f" | {r['boot_p_deploy_vs_best_base_mdp']:.4f} |")
 
     (RESULTS_DIR / "ijcai2027_canonical_tables.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     (RESULTS_DIR / "ijcai2027_canonical_tables.tex").write_text("\n".join(tex) + "\n", encoding="utf-8")

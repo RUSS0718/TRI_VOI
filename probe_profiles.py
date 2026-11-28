@@ -234,6 +234,7 @@ def assemble_probed_record(
         post_obj = parse_json_obj(r_post["content"])
         post_ans = extract_answer(r_post["content"], choices)
         post_ovr_conf = bool(post_obj.get("override_confirmed", obs_conf_ovr))
+        post_missing = bool(post_obj.get("missing_user_info", not oracle_revealed))
         r_ps1 = responses_by_tag["post_ask_s1"]
         post_s1 = extract_answer(r_ps1["content"], choices)
         t_post = int(r_post.get("prompt_tokens", 0)) + int(r_post.get("completion_tokens", 0))
@@ -245,6 +246,7 @@ def assemble_probed_record(
         post_ans = greedy_ans
         post_s1 = samples[0]
         post_ovr_conf = obs_conf_ovr
+        post_missing = obs_missing
 
     acl_belief_raw = ""
     if clarify_q and "acl_voi_belief" in responses_by_tag:
@@ -269,6 +271,7 @@ def assemble_probed_record(
         "post_ans": post_ans,
         "post_s1": post_s1,
         "post_ovr_conf": post_ovr_conf,
+        "post_missing": post_missing,
         "acl_belief_raw": acl_belief_raw,
         "tokens": tokens,
         "tag_tokens": tag_tokens,

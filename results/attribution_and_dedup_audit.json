@@ -1,0 +1,1064 @@
+{
+  "budget": {
+    "max_budget_rmb": 0.01,
+    "estimated_rmb": 0.0,
+    "live_calls": 0,
+    "cached_hits": 21910,
+    "dry_calls": 0,
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "elapsed_min": 3.33,
+    "by_model": {}
+  },
+  "part_a_stepwise_ablation": [
+    {
+      "suite": "v1-Clean / Qwen3.5",
+      "regime": "Cap=2, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 5.22,
+        "Tri-VoI-L2D (2-Call)": 5.416,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 5.401,
+        "Tri-VoI-MDP (5-Call)": 5.199,
+        "Tri-VoI-MDP": 5.341,
+        "Tri-VoI-MDP (Deploy-Self)": 5.343
+      }
+    },
+    {
+      "suite": "v1-Clean / Qwen3.5",
+      "regime": "Cap=1/3, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 3.792,
+        "Tri-VoI-L2D (2-Call)": 3.681,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 3.681,
+        "Tri-VoI-MDP (5-Call)": 4.024,
+        "Tri-VoI-MDP": 4.048,
+        "Tri-VoI-MDP (Deploy-Self)": 4.048
+      }
+    },
+    {
+      "suite": "v1-Noisy / Qwen3.5",
+      "regime": "Cap=2, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 3.503,
+        "Tri-VoI-L2D (2-Call)": 3.538,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 3.753,
+        "Tri-VoI-MDP (5-Call)": 3.857,
+        "Tri-VoI-MDP": 3.811,
+        "Tri-VoI-MDP (Deploy-Self)": 3.696
+      }
+    },
+    {
+      "suite": "v1-Noisy / Qwen3.5",
+      "regime": "Cap=1/3, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 1.525,
+        "Tri-VoI-L2D (2-Call)": 1.616,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 1.552,
+        "Tri-VoI-MDP (5-Call)": 2.303,
+        "Tri-VoI-MDP": 2.398,
+        "Tri-VoI-MDP (Deploy-Self)": 2.319
+      }
+    },
+    {
+      "suite": "v2 / Qwen3.5",
+      "regime": "Cap=2, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 4.657,
+        "Tri-VoI-L2D (2-Call)": 4.75,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 4.728,
+        "Tri-VoI-MDP (5-Call)": 4.703,
+        "Tri-VoI-MDP": 4.69,
+        "Tri-VoI-MDP (Deploy-Self)": 4.699
+      }
+    },
+    {
+      "suite": "v2 / Qwen3.5",
+      "regime": "Cap=1/3, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 3.847,
+        "Tri-VoI-L2D (2-Call)": 3.81,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 3.81,
+        "Tri-VoI-MDP (5-Call)": 4.016,
+        "Tri-VoI-MDP": 4.041,
+        "Tri-VoI-MDP (Deploy-Self)": 4.041
+      }
+    },
+    {
+      "suite": "v2 / DeepSeek-V3.2",
+      "regime": "Cap=2, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 5.031,
+        "Tri-VoI-L2D (2-Call)": 5.031,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 5.035,
+        "Tri-VoI-MDP (5-Call)": 5.135,
+        "Tri-VoI-MDP": 5.135,
+        "Tri-VoI-MDP (Deploy-Self)": 5.138
+      }
+    },
+    {
+      "suite": "v2 / DeepSeek-V3.2",
+      "regime": "Cap=1/3, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 4.334,
+        "Tri-VoI-L2D (2-Call)": 4.284,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 4.284,
+        "Tri-VoI-MDP (5-Call)": 4.572,
+        "Tri-VoI-MDP": 4.406,
+        "Tri-VoI-MDP (Deploy-Self)": 4.492
+      }
+    },
+    {
+      "suite": "v2 / Hy4-preview",
+      "regime": "Cap=2, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 6.053,
+        "Tri-VoI-L2D (2-Call)": 6.053,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 6.053,
+        "Tri-VoI-MDP (5-Call)": 6.085,
+        "Tri-VoI-MDP": 6.085,
+        "Tri-VoI-MDP (Deploy-Self)": 6.085
+      }
+    },
+    {
+      "suite": "v2 / Hy4-preview",
+      "regime": "Cap=1/3, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 5.313,
+        "Tri-VoI-L2D (2-Call)": 5.095,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 5.095,
+        "Tri-VoI-MDP (5-Call)": 5.762,
+        "Tri-VoI-MDP": 5.551,
+        "Tri-VoI-MDP (Deploy-Self)": 5.551
+      }
+    },
+    {
+      "suite": "Public-Tri / Qwen3.5 (strat=False)",
+      "regime": "Cap=2, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 3.404,
+        "Tri-VoI-L2D (2-Call)": 3.448,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 3.474,
+        "Tri-VoI-MDP (5-Call)": 3.407,
+        "Tri-VoI-MDP": 3.445,
+        "Tri-VoI-MDP (Deploy-Self)": 3.446
+      }
+    },
+    {
+      "suite": "Public-Tri / Qwen3.5 (strat=False)",
+      "regime": "Cap=1/3, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 1.203,
+        "Tri-VoI-L2D (2-Call)": 1.125,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 1.357,
+        "Tri-VoI-MDP (5-Call)": 1.638,
+        "Tri-VoI-MDP": 1.72,
+        "Tri-VoI-MDP (Deploy-Self)": 1.718
+      }
+    },
+    {
+      "suite": "Public-Tri / Qwen3.5 (strat=True)",
+      "regime": "Cap=2, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 3.612,
+        "Tri-VoI-L2D (2-Call)": 3.579,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 3.452,
+        "Tri-VoI-MDP (5-Call)": 3.501,
+        "Tri-VoI-MDP": 3.521,
+        "Tri-VoI-MDP (Deploy-Self)": 3.544
+      }
+    },
+    {
+      "suite": "Public-Tri / Qwen3.5 (strat=True)",
+      "regime": "Cap=1/3, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 1.259,
+        "Tri-VoI-L2D (2-Call)": 1.092,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 1.294,
+        "Tri-VoI-MDP (5-Call)": 1.583,
+        "Tri-VoI-MDP": 1.636,
+        "Tri-VoI-MDP (Deploy-Self)": 1.711
+      }
+    },
+    {
+      "suite": "Public-Tri / DS (RealSpec, strat=False)",
+      "regime": "Cap=2, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 3.136,
+        "Tri-VoI-L2D (2-Call)": 3.303,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 3.088,
+        "Tri-VoI-MDP (5-Call)": 2.806,
+        "Tri-VoI-MDP": 2.957,
+        "Tri-VoI-MDP (Deploy-Self)": 2.961
+      }
+    },
+    {
+      "suite": "Public-Tri / DS (RealSpec, strat=False)",
+      "regime": "Cap=1/3, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 1.236,
+        "Tri-VoI-L2D (2-Call)": 1.17,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 1.183,
+        "Tri-VoI-MDP (5-Call)": 1.505,
+        "Tri-VoI-MDP": 1.651,
+        "Tri-VoI-MDP (Deploy-Self)": 1.671
+      }
+    },
+    {
+      "suite": "v3 / Qwen3.5",
+      "regime": "Cap=2, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 4.364,
+        "Tri-VoI-L2D (2-Call)": 4.422,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 4.422,
+        "Tri-VoI-MDP (5-Call)": 4.501,
+        "Tri-VoI-MDP": 4.47,
+        "Tri-VoI-MDP (Deploy-Self)": 4.47
+      }
+    },
+    {
+      "suite": "v3 / Qwen3.5",
+      "regime": "Cap=1/3, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 3.458,
+        "Tri-VoI-L2D (2-Call)": 2.97,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 2.97,
+        "Tri-VoI-MDP (5-Call)": 3.891,
+        "Tri-VoI-MDP": 3.334,
+        "Tri-VoI-MDP (Deploy-Self)": 3.334
+      }
+    },
+    {
+      "suite": "v3 / DeepSeek-V3.2",
+      "regime": "Cap=2, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 4.558,
+        "Tri-VoI-L2D (2-Call)": 4.525,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 4.525,
+        "Tri-VoI-MDP (5-Call)": 4.567,
+        "Tri-VoI-MDP": 4.582,
+        "Tri-VoI-MDP (Deploy-Self)": 4.582
+      }
+    },
+    {
+      "suite": "v3 / DeepSeek-V3.2",
+      "regime": "Cap=1/3, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 2.695,
+        "Tri-VoI-L2D (2-Call)": 2.846,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 2.846,
+        "Tri-VoI-MDP (5-Call)": 3.499,
+        "Tri-VoI-MDP": 3.484,
+        "Tri-VoI-MDP (Deploy-Self)": 3.484
+      }
+    },
+    {
+      "suite": "MediQ-Holdout / Q3.5->RealDS",
+      "regime": "Cap=2, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 1.676,
+        "Tri-VoI-L2D (2-Call)": 2.216,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 1.55,
+        "Tri-VoI-MDP (5-Call)": 1.133,
+        "Tri-VoI-MDP": 1.538,
+        "Tri-VoI-MDP (Deploy-Self)": 2.072
+      }
+    },
+    {
+      "suite": "MediQ-Holdout / Q3.5->RealDS",
+      "regime": "Cap=1/3, c=1.5",
+      "vals": {
+        "Tri-VoI-L2D": 0.434,
+        "Tri-VoI-L2D (2-Call)": 1.031,
+        "Tri-VoI-L2D (2-Call+NoInfo)": 0.892,
+        "Tri-VoI-MDP (5-Call)": 0.494,
+        "Tri-VoI-MDP": 1.003,
+        "Tri-VoI-MDP (Deploy-Self)": 1.348
+      }
+    }
+  ],
+  "part_b_fair_baseline_mdp": [
+    {
+      "suite": "v1-Clean / Qwen3.5",
+      "regime": "Cap=2, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 4.867,
+        "Calibrated-Cascade+MDP": 4.878,
+        "Joint-Greedy+Naor": 5.19,
+        "Joint-Greedy+MDP": 5.166,
+        "ACL-2026-VoI+Full-Defer+Naor": 4.867,
+        "ACL-2026-VoI+Full-Defer+MDP": 4.878,
+        "Tri-VoI-MDP": 5.341,
+        "Tri-VoI-MDP (Deploy-Self)": 5.343
+      },
+      "mdp_gain_cc": 0.011,
+      "mdp_gain_jg": -0.024,
+      "mdp_gain_acl": 0.011,
+      "evoi_net_vs_best_base_mdp": 0.175,
+      "deploy_self_net_vs_best_base_mdp": 0.177
+    },
+    {
+      "suite": "v1-Clean / Qwen3.5",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 3.798,
+        "Calibrated-Cascade+MDP": 4.064,
+        "Joint-Greedy+Naor": 3.188,
+        "Joint-Greedy+MDP": 3.616,
+        "ACL-2026-VoI+Full-Defer+Naor": 3.798,
+        "ACL-2026-VoI+Full-Defer+MDP": 4.064,
+        "Tri-VoI-MDP": 4.048,
+        "Tri-VoI-MDP (Deploy-Self)": 4.048
+      },
+      "mdp_gain_cc": 0.266,
+      "mdp_gain_jg": 0.428,
+      "mdp_gain_acl": 0.266,
+      "evoi_net_vs_best_base_mdp": -0.016,
+      "deploy_self_net_vs_best_base_mdp": -0.016
+    },
+    {
+      "suite": "v1-Noisy / Qwen3.5",
+      "regime": "Cap=2, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 3.413,
+        "Calibrated-Cascade+MDP": 3.388,
+        "Joint-Greedy+Naor": 3.887,
+        "Joint-Greedy+MDP": 3.708,
+        "ACL-2026-VoI+Full-Defer+Naor": 3.413,
+        "ACL-2026-VoI+Full-Defer+MDP": 3.388,
+        "Tri-VoI-MDP": 3.811,
+        "Tri-VoI-MDP (Deploy-Self)": 3.696
+      },
+      "mdp_gain_cc": -0.025,
+      "mdp_gain_jg": -0.179,
+      "mdp_gain_acl": -0.025,
+      "evoi_net_vs_best_base_mdp": 0.103,
+      "deploy_self_net_vs_best_base_mdp": -0.012
+    },
+    {
+      "suite": "v1-Noisy / Qwen3.5",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 1.614,
+        "Calibrated-Cascade+MDP": 2.309,
+        "Joint-Greedy+Naor": 1.295,
+        "Joint-Greedy+MDP": 2.074,
+        "ACL-2026-VoI+Full-Defer+Naor": 1.614,
+        "ACL-2026-VoI+Full-Defer+MDP": 2.309,
+        "Tri-VoI-MDP": 2.398,
+        "Tri-VoI-MDP (Deploy-Self)": 2.319
+      },
+      "mdp_gain_cc": 0.695,
+      "mdp_gain_jg": 0.779,
+      "mdp_gain_acl": 0.695,
+      "evoi_net_vs_best_base_mdp": 0.089,
+      "deploy_self_net_vs_best_base_mdp": 0.01
+    },
+    {
+      "suite": "v2 / Qwen3.5",
+      "regime": "Cap=2, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 4.996,
+        "Calibrated-Cascade+MDP": 4.977,
+        "Joint-Greedy+Naor": 4.421,
+        "Joint-Greedy+MDP": 4.341,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 4.993,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 4.974,
+        "Tri-VoI-MDP": 4.69,
+        "Tri-VoI-MDP (Deploy-Self)": 4.699
+      },
+      "mdp_gain_cc": -0.019,
+      "mdp_gain_jg": -0.08,
+      "mdp_gain_acl": -0.019,
+      "evoi_net_vs_best_base_mdp": -0.287,
+      "deploy_self_net_vs_best_base_mdp": -0.278
+    },
+    {
+      "suite": "v2 / Qwen3.5",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 3.808,
+        "Calibrated-Cascade+MDP": 4.056,
+        "Joint-Greedy+Naor": 3.169,
+        "Joint-Greedy+MDP": 3.487,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 3.805,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 4.043,
+        "Tri-VoI-MDP": 4.041,
+        "Tri-VoI-MDP (Deploy-Self)": 4.041
+      },
+      "mdp_gain_cc": 0.248,
+      "mdp_gain_jg": 0.318,
+      "mdp_gain_acl": 0.238,
+      "evoi_net_vs_best_base_mdp": -0.015,
+      "deploy_self_net_vs_best_base_mdp": -0.015
+    },
+    {
+      "suite": "v2 / DeepSeek-V3.2",
+      "regime": "Cap=2, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 4.754,
+        "Calibrated-Cascade+MDP": 4.754,
+        "Joint-Greedy+Naor": 4.85,
+        "Joint-Greedy+MDP": 4.808,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 4.754,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 4.754,
+        "Tri-VoI-MDP": 5.135,
+        "Tri-VoI-MDP (Deploy-Self)": 5.138
+      },
+      "mdp_gain_cc": 0.0,
+      "mdp_gain_jg": -0.042,
+      "mdp_gain_acl": 0.0,
+      "evoi_net_vs_best_base_mdp": 0.327,
+      "deploy_self_net_vs_best_base_mdp": 0.33
+    },
+    {
+      "suite": "v2 / DeepSeek-V3.2",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 4.509,
+        "Calibrated-Cascade+MDP": 4.572,
+        "Joint-Greedy+Naor": 4.014,
+        "Joint-Greedy+MDP": 4.246,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 4.509,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 4.572,
+        "Tri-VoI-MDP": 4.406,
+        "Tri-VoI-MDP (Deploy-Self)": 4.492
+      },
+      "mdp_gain_cc": 0.063,
+      "mdp_gain_jg": 0.232,
+      "mdp_gain_acl": 0.063,
+      "evoi_net_vs_best_base_mdp": -0.166,
+      "deploy_self_net_vs_best_base_mdp": -0.08
+    },
+    {
+      "suite": "v2 / Hy4-preview",
+      "regime": "Cap=2, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 6.271,
+        "Calibrated-Cascade+MDP": 6.271,
+        "Joint-Greedy+Naor": 5.408,
+        "Joint-Greedy+MDP": 5.412,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 5.986,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 6.007,
+        "Tri-VoI-MDP": 6.085,
+        "Tri-VoI-MDP (Deploy-Self)": 6.085
+      },
+      "mdp_gain_cc": 0.0,
+      "mdp_gain_jg": 0.004,
+      "mdp_gain_acl": 0.021,
+      "evoi_net_vs_best_base_mdp": -0.186,
+      "deploy_self_net_vs_best_base_mdp": -0.186
+    },
+    {
+      "suite": "v2 / Hy4-preview",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 5.512,
+        "Calibrated-Cascade+MDP": 5.804,
+        "Joint-Greedy+Naor": 4.711,
+        "Joint-Greedy+MDP": 5.081,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 5.021,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 5.468,
+        "Tri-VoI-MDP": 5.551,
+        "Tri-VoI-MDP (Deploy-Self)": 5.551
+      },
+      "mdp_gain_cc": 0.292,
+      "mdp_gain_jg": 0.37,
+      "mdp_gain_acl": 0.447,
+      "evoi_net_vs_best_base_mdp": -0.253,
+      "deploy_self_net_vs_best_base_mdp": -0.253
+    },
+    {
+      "suite": "Public-Tri / Qwen3.5 (strat=False)",
+      "regime": "Cap=2, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 3.094,
+        "Calibrated-Cascade+MDP": 3.124,
+        "Joint-Greedy+Naor": 3.536,
+        "Joint-Greedy+MDP": 3.483,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 3.186,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 3.184,
+        "Tri-VoI-MDP": 3.445,
+        "Tri-VoI-MDP (Deploy-Self)": 3.446
+      },
+      "mdp_gain_cc": 0.03,
+      "mdp_gain_jg": -0.053,
+      "mdp_gain_acl": -0.002,
+      "evoi_net_vs_best_base_mdp": -0.038,
+      "deploy_self_net_vs_best_base_mdp": -0.037
+    },
+    {
+      "suite": "Public-Tri / Qwen3.5 (strat=False)",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 1.371,
+        "Calibrated-Cascade+MDP": 1.649,
+        "Joint-Greedy+Naor": 1.648,
+        "Joint-Greedy+MDP": 2.012,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 1.128,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 1.594,
+        "Tri-VoI-MDP": 1.72,
+        "Tri-VoI-MDP (Deploy-Self)": 1.718
+      },
+      "mdp_gain_cc": 0.278,
+      "mdp_gain_jg": 0.364,
+      "mdp_gain_acl": 0.466,
+      "evoi_net_vs_best_base_mdp": -0.292,
+      "deploy_self_net_vs_best_base_mdp": -0.294
+    },
+    {
+      "suite": "Public-Tri / Qwen3.5 (strat=True)",
+      "regime": "Cap=2, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 3.067,
+        "Calibrated-Cascade+MDP": 3.054,
+        "Joint-Greedy+Naor": 3.723,
+        "Joint-Greedy+MDP": 3.662,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 3.105,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 3.065,
+        "Tri-VoI-MDP": 3.521,
+        "Tri-VoI-MDP (Deploy-Self)": 3.544
+      },
+      "mdp_gain_cc": -0.013,
+      "mdp_gain_jg": -0.061,
+      "mdp_gain_acl": -0.04,
+      "evoi_net_vs_best_base_mdp": -0.141,
+      "deploy_self_net_vs_best_base_mdp": -0.118
+    },
+    {
+      "suite": "Public-Tri / Qwen3.5 (strat=True)",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 1.347,
+        "Calibrated-Cascade+MDP": 1.708,
+        "Joint-Greedy+Naor": 1.45,
+        "Joint-Greedy+MDP": 1.826,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 1.251,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 1.611,
+        "Tri-VoI-MDP": 1.636,
+        "Tri-VoI-MDP (Deploy-Self)": 1.711
+      },
+      "mdp_gain_cc": 0.361,
+      "mdp_gain_jg": 0.376,
+      "mdp_gain_acl": 0.36,
+      "evoi_net_vs_best_base_mdp": -0.19,
+      "deploy_self_net_vs_best_base_mdp": -0.115
+    },
+    {
+      "suite": "Public-Tri / DS (RealSpec, strat=False)",
+      "regime": "Cap=2, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 2.398,
+        "Calibrated-Cascade+MDP": 2.436,
+        "Joint-Greedy+Naor": 3.129,
+        "Joint-Greedy+MDP": 2.917,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 2.579,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 2.55,
+        "Tri-VoI-MDP": 2.957,
+        "Tri-VoI-MDP (Deploy-Self)": 2.961
+      },
+      "mdp_gain_cc": 0.038,
+      "mdp_gain_jg": -0.212,
+      "mdp_gain_acl": -0.029,
+      "evoi_net_vs_best_base_mdp": 0.04,
+      "deploy_self_net_vs_best_base_mdp": 0.044
+    },
+    {
+      "suite": "Public-Tri / DS (RealSpec, strat=False)",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 1.298,
+        "Calibrated-Cascade+MDP": 1.422,
+        "Joint-Greedy+Naor": 1.043,
+        "Joint-Greedy+MDP": 1.867,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 1.028,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 1.545,
+        "Tri-VoI-MDP": 1.651,
+        "Tri-VoI-MDP (Deploy-Self)": 1.671
+      },
+      "mdp_gain_cc": 0.124,
+      "mdp_gain_jg": 0.824,
+      "mdp_gain_acl": 0.517,
+      "evoi_net_vs_best_base_mdp": -0.216,
+      "deploy_self_net_vs_best_base_mdp": -0.196
+    },
+    {
+      "suite": "v3 / Qwen3.5",
+      "regime": "Cap=2, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 4.599,
+        "Calibrated-Cascade+MDP": 4.619,
+        "Joint-Greedy+Naor": 4.416,
+        "Joint-Greedy+MDP": 4.478,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 4.599,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 4.619,
+        "Tri-VoI-MDP": 4.47,
+        "Tri-VoI-MDP (Deploy-Self)": 4.47
+      },
+      "mdp_gain_cc": 0.02,
+      "mdp_gain_jg": 0.062,
+      "mdp_gain_acl": 0.02,
+      "evoi_net_vs_best_base_mdp": -0.149,
+      "deploy_self_net_vs_best_base_mdp": -0.149
+    },
+    {
+      "suite": "v3 / Qwen3.5",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 3.458,
+        "Calibrated-Cascade+MDP": 3.907,
+        "Joint-Greedy+Naor": 3.417,
+        "Joint-Greedy+MDP": 4.117,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 3.458,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 3.907,
+        "Tri-VoI-MDP": 3.334,
+        "Tri-VoI-MDP (Deploy-Self)": 3.334
+      },
+      "mdp_gain_cc": 0.449,
+      "mdp_gain_jg": 0.7,
+      "mdp_gain_acl": 0.449,
+      "evoi_net_vs_best_base_mdp": -0.783,
+      "deploy_self_net_vs_best_base_mdp": -0.783
+    },
+    {
+      "suite": "v3 / DeepSeek-V3.2",
+      "regime": "Cap=2, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 4.528,
+        "Calibrated-Cascade+MDP": 4.626,
+        "Joint-Greedy+Naor": 4.204,
+        "Joint-Greedy+MDP": 4.178,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 4.411,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 4.487,
+        "Tri-VoI-MDP": 4.582,
+        "Tri-VoI-MDP (Deploy-Self)": 4.582
+      },
+      "mdp_gain_cc": 0.098,
+      "mdp_gain_jg": -0.026,
+      "mdp_gain_acl": 0.076,
+      "evoi_net_vs_best_base_mdp": -0.044,
+      "deploy_self_net_vs_best_base_mdp": -0.044
+    },
+    {
+      "suite": "v3 / DeepSeek-V3.2",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 2.695,
+        "Calibrated-Cascade+MDP": 3.499,
+        "Joint-Greedy+Naor": 3.469,
+        "Joint-Greedy+MDP": 3.682,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 2.612,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 3.385,
+        "Tri-VoI-MDP": 3.484,
+        "Tri-VoI-MDP (Deploy-Self)": 3.484
+      },
+      "mdp_gain_cc": 0.804,
+      "mdp_gain_jg": 0.213,
+      "mdp_gain_acl": 0.773,
+      "evoi_net_vs_best_base_mdp": -0.198,
+      "deploy_self_net_vs_best_base_mdp": -0.198
+    },
+    {
+      "suite": "MediQ-Holdout / Q3.5->RealDS",
+      "regime": "Cap=2, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 1.718,
+        "Calibrated-Cascade+MDP": 1.718,
+        "Joint-Greedy+Naor": 1.244,
+        "Joint-Greedy+MDP": 1.096,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 1.53,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 1.352,
+        "Tri-VoI-MDP": 1.538,
+        "Tri-VoI-MDP (Deploy-Self)": 2.072
+      },
+      "mdp_gain_cc": 0.0,
+      "mdp_gain_jg": -0.148,
+      "mdp_gain_acl": -0.178,
+      "evoi_net_vs_best_base_mdp": -0.18,
+      "deploy_self_net_vs_best_base_mdp": 0.354
+    },
+    {
+      "suite": "MediQ-Holdout / Q3.5->RealDS",
+      "regime": "Cap=1/3, c=1.5",
+      "acl_naor_key": "ACL-2026-VoI (Live)+Full-Defer+Naor",
+      "acl_mdp_key": "ACL-2026-VoI (Live)+Full-Defer+MDP",
+      "vals": {
+        "Calibrated-Cascade+Naor": 0.882,
+        "Calibrated-Cascade+MDP": 1.072,
+        "Joint-Greedy+Naor": 0.191,
+        "Joint-Greedy+MDP": 0.162,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 0.222,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 0.42,
+        "Tri-VoI-MDP": 1.003,
+        "Tri-VoI-MDP (Deploy-Self)": 1.348
+      },
+      "mdp_gain_cc": 0.19,
+      "mdp_gain_jg": -0.029,
+      "mdp_gain_acl": 0.198,
+      "evoi_net_vs_best_base_mdp": -0.069,
+      "deploy_self_net_vs_best_base_mdp": 0.276
+    }
+  ],
+  "part_c_post_missing_signal_audit": {
+    "v1-Clean / Qwen3.5": {
+      "n_obs_missing": 143,
+      "true_no_info": 6,
+      "pred_post_missing": 0,
+      "agreement_pct": 95.8,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "v1-Noisy / Qwen3.5": {
+      "n_obs_missing": 166,
+      "true_no_info": 32,
+      "pred_post_missing": 24,
+      "agreement_pct": 95.18,
+      "precision": 1.0,
+      "recall": 0.75,
+      "f1": 0.857
+    },
+    "v2 / Qwen3.5": {
+      "n_obs_missing": 71,
+      "true_no_info": 1,
+      "pred_post_missing": 0,
+      "agreement_pct": 98.59,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "v2 / DeepSeek-V3.2": {
+      "n_obs_missing": 94,
+      "true_no_info": 8,
+      "pred_post_missing": 0,
+      "agreement_pct": 91.49,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "v2 / Hy4-preview": {
+      "n_obs_missing": 90,
+      "true_no_info": 0,
+      "pred_post_missing": 0,
+      "agreement_pct": 100.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "Public-Tri / Qwen3.5 (strat=False)": {
+      "n_obs_missing": 116,
+      "true_no_info": 10,
+      "pred_post_missing": 15,
+      "agreement_pct": 85.34,
+      "precision": 0.267,
+      "recall": 0.4,
+      "f1": 0.32
+    },
+    "v3 / Qwen3.5": {
+      "n_obs_missing": 63,
+      "true_no_info": 1,
+      "pred_post_missing": 0,
+      "agreement_pct": 98.41,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "v3 / DeepSeek-V3.2": {
+      "n_obs_missing": 72,
+      "true_no_info": 0,
+      "pred_post_missing": 0,
+      "agreement_pct": 100.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "MediQ-Holdout / Q3.5->RealDS": {
+      "n_obs_missing": 64,
+      "true_no_info": 16,
+      "pred_post_missing": 14,
+      "agreement_pct": 65.62,
+      "precision": 0.286,
+      "recall": 0.25,
+      "f1": 0.267
+    }
+  },
+  "part_d_v3_overlap_audit": {
+    "n_cal": 48,
+    "n_test": 144,
+    "uniq_cal_prose": 37,
+    "uniq_test_prose": 73,
+    "test_prose_in_cal": 72,
+    "exact_triple_in_cal": 51
+  },
+  "part_d_v3_zero_overlap_slices": [
+    {
+      "model": "Qwen3.5-35B-A3B",
+      "slice": "Full (144)",
+      "regime": "Cap=2, c=1.5",
+      "vals": {
+        "KL-PBD+ (Warm)": 3.401,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 4.599,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 4.619,
+        "Joint-Greedy+Naor": 4.416,
+        "Joint-Greedy+MDP": 4.478,
+        "Calibrated-Cascade+Naor": 4.599,
+        "Calibrated-Cascade+MDP": 4.619,
+        "Tri-VoI-L2D": 4.364,
+        "Tri-VoI-MDP": 4.47,
+        "Tri-VoI-MDP (Deploy-Self)": 4.47
+      },
+      "best_base_mdp_name": "Calibrated-Cascade+MDP",
+      "boot_p_deploy_vs_best_base_mdp": 0.7061
+    },
+    {
+      "model": "Qwen3.5-35B-A3B",
+      "slice": "Full (144)",
+      "regime": "Cap=1/3, c=1.5",
+      "vals": {
+        "KL-PBD+ (Warm)": 2.657,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 3.458,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 3.907,
+        "Joint-Greedy+Naor": 3.417,
+        "Joint-Greedy+MDP": 4.117,
+        "Calibrated-Cascade+Naor": 3.458,
+        "Calibrated-Cascade+MDP": 3.907,
+        "Tri-VoI-L2D": 3.458,
+        "Tri-VoI-MDP": 3.334,
+        "Tri-VoI-MDP (Deploy-Self)": 3.334
+      },
+      "best_base_mdp_name": "Joint-Greedy+MDP",
+      "boot_p_deploy_vs_best_base_mdp": 0.005998
+    },
+    {
+      "model": "Qwen3.5-35B-A3B",
+      "slice": "Zero-Cal-Prose-Overlap (72)",
+      "regime": "Cap=2, c=1.5",
+      "vals": {
+        "KL-PBD+ (Warm)": 4.159,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 5.404,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 5.404,
+        "Joint-Greedy+Naor": 5.302,
+        "Joint-Greedy+MDP": 5.119,
+        "Calibrated-Cascade+Naor": 5.404,
+        "Calibrated-Cascade+MDP": 5.404,
+        "Tri-VoI-L2D": 5.519,
+        "Tri-VoI-MDP": 5.552,
+        "Tri-VoI-MDP (Deploy-Self)": 5.559
+      },
+      "best_base_mdp_name": "Calibrated-Cascade+MDP",
+      "boot_p_deploy_vs_best_base_mdp": 0.58014
+    },
+    {
+      "model": "Qwen3.5-35B-A3B",
+      "slice": "Zero-Cal-Prose-Overlap (72)",
+      "regime": "Cap=1/3, c=1.5",
+      "vals": {
+        "KL-PBD+ (Warm)": 3.189,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 4.318,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 4.023,
+        "Joint-Greedy+Naor": 4.218,
+        "Joint-Greedy+MDP": 4.167,
+        "Calibrated-Cascade+Naor": 4.318,
+        "Calibrated-Cascade+MDP": 4.023,
+        "Tri-VoI-L2D": 4.318,
+        "Tri-VoI-MDP": 3.937,
+        "Tri-VoI-MDP (Deploy-Self)": 3.937
+      },
+      "best_base_mdp_name": "Joint-Greedy+MDP",
+      "boot_p_deploy_vs_best_base_mdp": 0.64045
+    },
+    {
+      "model": "Qwen3.5-35B-A3B",
+      "slice": "Zero-Overlap-Unique-Prose (40)",
+      "regime": "Cap=2, c=1.5",
+      "vals": {
+        "KL-PBD+ (Warm)": 4.055,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 4.839,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 4.949,
+        "Joint-Greedy+Naor": 4.778,
+        "Joint-Greedy+MDP": 4.659,
+        "Calibrated-Cascade+Naor": 4.839,
+        "Calibrated-Cascade+MDP": 4.949,
+        "Tri-VoI-L2D": 4.786,
+        "Tri-VoI-MDP": 4.897,
+        "Tri-VoI-MDP (Deploy-Self)": 4.897
+      },
+      "best_base_mdp_name": "Calibrated-Cascade+MDP",
+      "boot_p_deploy_vs_best_base_mdp": 0.79873
+    },
+    {
+      "model": "Qwen3.5-35B-A3B",
+      "slice": "Zero-Overlap-Unique-Prose (40)",
+      "regime": "Cap=1/3, c=1.5",
+      "vals": {
+        "KL-PBD+ (Warm)": 2.022,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 2.488,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 3.023,
+        "Joint-Greedy+Naor": 2.814,
+        "Joint-Greedy+MDP": 3.192,
+        "Calibrated-Cascade+Naor": 2.488,
+        "Calibrated-Cascade+MDP": 3.023,
+        "Tri-VoI-L2D": 2.488,
+        "Tri-VoI-MDP": 2.751,
+        "Tri-VoI-MDP (Deploy-Self)": 2.751
+      },
+      "best_base_mdp_name": "Joint-Greedy+MDP",
+      "boot_p_deploy_vs_best_base_mdp": 0.52982
+    },
+    {
+      "model": "DeepSeek-V3.2",
+      "slice": "Full (144)",
+      "regime": "Cap=2, c=1.5",
+      "vals": {
+        "KL-PBD+ (Warm)": 3.216,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 4.411,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 4.487,
+        "Joint-Greedy+Naor": 4.204,
+        "Joint-Greedy+MDP": 4.178,
+        "Calibrated-Cascade+Naor": 4.528,
+        "Calibrated-Cascade+MDP": 4.626,
+        "Tri-VoI-L2D": 4.558,
+        "Tri-VoI-MDP": 4.582,
+        "Tri-VoI-MDP (Deploy-Self)": 4.582
+      },
+      "best_base_mdp_name": "Calibrated-Cascade+MDP",
+      "boot_p_deploy_vs_best_base_mdp": 0.88737
+    },
+    {
+      "model": "DeepSeek-V3.2",
+      "slice": "Full (144)",
+      "regime": "Cap=1/3, c=1.5",
+      "vals": {
+        "KL-PBD+ (Warm)": 1.413,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 2.612,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 3.385,
+        "Joint-Greedy+Naor": 3.469,
+        "Joint-Greedy+MDP": 3.682,
+        "Calibrated-Cascade+Naor": 2.695,
+        "Calibrated-Cascade+MDP": 3.499,
+        "Tri-VoI-L2D": 2.695,
+        "Tri-VoI-MDP": 3.484,
+        "Tri-VoI-MDP (Deploy-Self)": 3.484
+      },
+      "best_base_mdp_name": "Joint-Greedy+MDP",
+      "boot_p_deploy_vs_best_base_mdp": 0.65178
+    },
+    {
+      "model": "DeepSeek-V3.2",
+      "slice": "Zero-Cal-Prose-Overlap (72)",
+      "regime": "Cap=2, c=1.5",
+      "vals": {
+        "KL-PBD+ (Warm)": 3.961,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 5.024,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 5.014,
+        "Joint-Greedy+Naor": 5.028,
+        "Joint-Greedy+MDP": 4.95,
+        "Calibrated-Cascade+Naor": 5.327,
+        "Calibrated-Cascade+MDP": 5.327,
+        "Tri-VoI-L2D": 5.398,
+        "Tri-VoI-MDP": 5.222,
+        "Tri-VoI-MDP (Deploy-Self)": 5.222
+      },
+      "best_base_mdp_name": "Calibrated-Cascade+MDP",
+      "boot_p_deploy_vs_best_base_mdp": 0.75775
+    },
+    {
+      "model": "DeepSeek-V3.2",
+      "slice": "Zero-Cal-Prose-Overlap (72)",
+      "regime": "Cap=1/3, c=1.5",
+      "vals": {
+        "KL-PBD+ (Warm)": 2.577,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 2.944,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 2.651,
+        "Joint-Greedy+Naor": 3.903,
+        "Joint-Greedy+MDP": 2.48,
+        "Calibrated-Cascade+Naor": 3.115,
+        "Calibrated-Cascade+MDP": 2.711,
+        "Tri-VoI-L2D": 3.115,
+        "Tri-VoI-MDP": 3.261,
+        "Tri-VoI-MDP (Deploy-Self)": 3.261
+      },
+      "best_base_mdp_name": "Calibrated-Cascade+MDP",
+      "boot_p_deploy_vs_best_base_mdp": 0.16794
+    },
+    {
+      "model": "DeepSeek-V3.2",
+      "slice": "Zero-Overlap-Unique-Prose (40)",
+      "regime": "Cap=2, c=1.5",
+      "vals": {
+        "KL-PBD+ (Warm)": 3.994,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 4.491,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 4.483,
+        "Joint-Greedy+Naor": 4.689,
+        "Joint-Greedy+MDP": 4.467,
+        "Calibrated-Cascade+Naor": 4.845,
+        "Calibrated-Cascade+MDP": 4.841,
+        "Tri-VoI-L2D": 4.765,
+        "Tri-VoI-MDP": 4.793,
+        "Tri-VoI-MDP (Deploy-Self)": 4.793
+      },
+      "best_base_mdp_name": "Calibrated-Cascade+MDP",
+      "boot_p_deploy_vs_best_base_mdp": 0.88237
+    },
+    {
+      "model": "DeepSeek-V3.2",
+      "slice": "Zero-Overlap-Unique-Prose (40)",
+      "regime": "Cap=1/3, c=1.5",
+      "vals": {
+        "KL-PBD+ (Warm)": 0.137,
+        "ACL-2026-VoI (Live)+Full-Defer+Naor": 1.061,
+        "ACL-2026-VoI (Live)+Full-Defer+MDP": 1.349,
+        "Joint-Greedy+Naor": 2.064,
+        "Joint-Greedy+MDP": 2.849,
+        "Calibrated-Cascade+Naor": 1.113,
+        "Calibrated-Cascade+MDP": 1.664,
+        "Tri-VoI-L2D": 1.113,
+        "Tri-VoI-MDP": 2.197,
+        "Tri-VoI-MDP (Deploy-Self)": 2.197
+      },
+      "best_base_mdp_name": "Joint-Greedy+MDP",
+      "boot_p_deploy_vs_best_base_mdp": 0.21659
+    }
+  ]
+}
