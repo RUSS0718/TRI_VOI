@@ -1064,7 +1064,9 @@ def simulate_stream(
                 if u_def_true > (u_self_base * r_ok + (1.0 - u_self_base) * r_err):
                     did_defer = True
                     chosen_spec = m_best
-        elif method in ("Tri-VoI-MDP", "Tri-VoI-MDP (5-Call)", "Tri-VoI-MDP (Deploy-Self)"):
+        elif method in ("Tri-VoI-MDP", "Tri-VoI-MDP (5-Call)", "Tri-VoI-MDP (Deploy-Self)", "Tri-VoI-MDP (Oracle-NoInfo Diag)"):
+            # Note: `Tri-VoI-MDP (Deploy-Self)` is the sole zero-Oracle primary method reported in IJCAI 2027 main tables;
+            # `"Tri-VoI-MDP"` / `"Tri-VoI-MDP (Oracle-NoInfo Diag)"` is retained strictly for backward-compatible diagnostic ablation.
             use_self_mdp = (method == "Tri-VoI-MDP (Deploy-Self)")
             use_coarse_mdp = (method != "Tri-VoI-MDP (5-Call)")
 
@@ -1296,7 +1298,7 @@ def simulate_stream(
                     tok_i = tt.get("greedy_act", 0)
                 elif "ACL-2026-VoI (Live)" in method:
                     tok_i = t1_gd + tt.get("acl_voi_belief", 0) + t_post
-                elif method in ("Tri-VoI-L2D (2-Call)", "Tri-VoI-L2D (2-Call+NoInfo)", "Tri-VoI-MDP", "Tri-VoI-MDP (Deploy-Self)") or ("(2C-Self)" in method):
+                elif method in ("Tri-VoI-L2D (2-Call)", "Tri-VoI-L2D (2-Call+NoInfo)", "Tri-VoI-MDP", "Tri-VoI-MDP (Deploy-Self)", "Tri-VoI-MDP (Oracle-NoInfo Diag)") or ("(2C-Self)" in method):
                     tok_i = t1_gd + t_post
                 elif method == "KL-PBD+ (SC-Only)":
                     tok_i = t1_probes + tt.get("greedy_act", 0)
@@ -1371,6 +1373,7 @@ def simulate_stream(
                 "Tri-VoI-MDP",
                 "Tri-VoI-MDP (5-Call)",
                 "Tri-VoI-MDP (Deploy-Self)",
+                "Tri-VoI-MDP (Oracle-NoInfo Diag)",
                 "Tri-VoI-L2D",
                 "Tri-VoI-L2D (2-Call)",
                 "Tri-VoI-L2D (2-Call+NoInfo)",
@@ -1410,7 +1413,7 @@ def simulate_stream(
                     p_ni_l = calibrator.p_post_no_info_self if use_self_l else calibrator.p_post_no_info
                 else:
                     p_cl, p_ov, p_ni_l = 0.88, 0.40, 0.65
-                if method in ("Tri-VoI-MDP", "Tri-VoI-MDP (5-Call)", "Tri-VoI-L2D (2-Call+NoInfo)"):
+                if method in ("Tri-VoI-MDP", "Tri-VoI-MDP (5-Call)", "Tri-VoI-MDP (Oracle-NoInfo Diag)", "Tri-VoI-L2D (2-Call+NoInfo)"):
                     pp = p_ni_l if (not rec["oracle_revealed"]) else (p_ov if rec["post_ovr_conf"] else p_cl)
                 elif use_self_l:
                     still_m_l = bool(rec["post_missing"]) if "post_missing" in rec else bool(obs_m)

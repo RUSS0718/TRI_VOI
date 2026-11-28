@@ -1,75 +1,84 @@
-# TRI-VOI: Three-Way Human-AI Cooperative Decision-Making
+# Tri-VoI-MDP: Two-Stage Value-of-Information Control and Bellman Congestion Pricing for Three-Party Collaborative Decision Making
 
-**Ask the User or Defer to the Expert? Information-Source Disentanglement and Queue-Relief Deferral for Three-Way Human-AI Cooperative Decision-Making**
+**Unified Primary Method (IJCAI 2027)**: **`Tri-VoI-MDP` (`Deploy-Self`, 100% Zero-Oracle)** — a deployable two-stage sequential control and queueing framework coordinating a **User**, a fast LLM **Generalist**, and a capacity-constrained **Specialist** (`LLM Specialist` or simulated override model).
 
----
-
-## Unified Research Thesis
-
-> Effective human-AI cooperation requires not only calibrated uncertainty estimation, but also identifying **who holds the information needed to resolve that uncertainty** (the frontline requester vs. an internal domain specialist) and **coupling the Value of Information (EVOI) of asking the user with dynamic specialist queue congestion and reliability drift**.
-
-### Three Linked Motivations
-1. **Binary Routing Fallacy**: Existing frameworks split into `{ACT, ASK}` (clarifying uncertainty without specialist escalation) vs. `{ACT, DEFER}` (deferring to experts while assuming complete user inputs). Real-world triage/dispatch flows face orthogonal **Specification Uncertainty** (only the requester knows) and **Policy/Override Uncertainty** (only internal specialists know).
-2. **High-Consensus Entropy Collapse**: On natural-language underspecified tickets without explicit placeholder spoilers, modern instruction-tuned LLMs deterministically guess a default assumption ($H=0$, **77.8%–96.1%** across 5 LLMs from 4 families). Even at $K=10$ samples and temperature $T=1.0$, **37.5%–76.7%** of underspecified cases still collapse to $H=0$, disabling entropy/consensus proxy triggers (`Entropy-ASK (Proxy)`, `Consensus-DEFER (Proxy)`).
-3. **Three-Regime Piecewise Queue-Relief VoI Theorem**: Under Conditional Escalation (where user clarification resolves routine cases with probability $\hat{p}_{\text{resolve}}$ and confirms confidential escalation with $1-\hat{p}_{\text{resolve}}$), two-stage Bellman optimization exhibits three analytical queue regimes with closed-form boundaries $Q_1^*$ (`ACT`/`DEFER`) and $Q_2^*$ (`OVR`/`DEFER`):
-   - **Regime I ($Q < Q_1^*$, `DEFER`-dominant)**: $\partial\,\text{EVOI}(\text{ASK}; Q, \hat{p}_e)/\partial Q = \hat{p}_{\text{resolve}}\gamma > 0$ and $\partial\,\text{EVOI}/\partial \hat{p}_e = -\hat{p}_{\text{resolve}}(R_+ - R_-) < 0$ (asking acts as a **queue-relief valve**).
-   - **Regime II ($Q_1^* \le Q < Q_2^*$, turnover)**: once $U_{\text{defer}} < U_{\text{act}}$, the baseline switches to `ACT` and the slope flips negative to $-(1-\hat{p}_{\text{resolve}})\gamma < 0$.
-   - **Regime III ($Q \ge Q_2^*$, saturation)**: both baseline and post-ASK revert to `ACT` ($\partial\,\text{EVOI}/\partial Q = 0$).
-   Combined with congestion-gated Naor queuing-externality shadow pricing ($Q_t \ge C_m \lor \hat{\rho}_t \ge 0.6$) and conjugate Discounted Beta-Bernoulli tracking, the controller smoothly balances user burden and specialist queue backlog.
+Compared with its pre-registered 5-call static predecessor (`Tri-VoI-L2D`, preserved intact for lineage comparison), `Tri-VoI-MDP`:
+1. Replaces 5-call self-consistency probing with a **2-Call coarse sufficient statistic**, cutting realized LLM token usage by **53.7%–57.8%** across `Benchmark v1-Clean` and `Benchmark v2`.
+2. Replaces simulator `oracle_revealed` post-clarification feedback with a strictly local deployable **`post_missing` self-signal** (falling back exclusively to `obs_missing`, never reading simulator ground truth).
+3. Replaces myopic Naor static queue cutoffs with **finite-horizon periodic-drain Bellman dynamic programming shadow prices** ($\Delta V(q)$) under server congestion (**Theorem 4 & Proposition 5**).
 
 ---
 
-## Method Architecture (`Tri-VoI-L2D`)
-1. **Disentangled Source Diagnosis + Hierarchical Empirical Bayes Held-Out Calibration** (`HeldOutCalibrator`): extracts $(missing\_user\_info, potential\_override, H(x))$ in a single audit pass and calibrates a 3-outcome post-ASK partition $(p_{\text{resolve}}, p_{\text{ovr\_after}}, p_{\text{no\_info}})$ strictly on genuinely clarified held-out splits (zero test or fallback leakage).
-2. **Resource-Coupled Two-Stage Bellman EVOI Controller + Queue Externality** (`controller.py`): jointly evaluates `ACT`, `ASK` (with Stage-2 `DEFER` lookahead), and `DEFER` priced with congestion-gated Naor externality $\gamma (Q_t + \hat{\rho}_t (Q_t + 1))$.
-3. **Discounted Beta-Bernoulli Specialist Tracker** (`DiscountedBetaTracker`, $\lambda = 0.92$): conjugate closed-form adaptation to sudden, gradual, and shift-based specialist fatigue drift.
+## Method Lineage & Theoretical Guarantees
+
+Full formal statements and machine-checked numerical companions are maintained in [ijcai2027_three_theorem_proofs.md](file:///d:/research/cscwd_tri_voi/docs/theory/ijcai2027_three_theorem_proofs.md) and [GLOSSARY.md](file:///d:/research/cscwd_tri_voi/GLOSSARY.md).
+
+| Component | Role in Paper | Scope & Guarantees |
+|:---|:---|:---|
+| **`Tri-VoI-L2D`** (`Theorems 1–3`) | Foundational 5-call + Naor predecessor | Two-stage $\mathcal{O}(\log N)$ monotone clarification/deferral policies & submodular value-of-information bounds; frozen unmodified (`[5.220, 5.142, 3.792]` on `v1-Clean / Qwen3.5`). |
+| **`Tri-VoI-MDP`** (`Theorem 4 & Proposition 5`) | **Sole Primary Method (`Deploy-Self`, Zero-Oracle)** | Finite-horizon Bellman DP optimal abandonment monotone threshold in queue length $q$ when $\gamma > 0$ (`Theorem 4`) + bounded minimax worst-case regret over 2-call coarse partition & congestion/cost regimes (`Proposition 5`). |
+| **`MDP (Oracle-NoInfo Diag)`** | **Diagnostic Ablation Only** | Legacy variant reading `not oracle_revealed` after `ASK`; isolated strictly to explicit diagnostic columns (`Sections 9A, 9B, 10`) and excluded from primary claims. |
 
 ---
 
-## Key Experimental Findings (26,039 Cached Live API Calls Across 5 LLMs / 4 Model Families)
+## Key Empirical Findings (100% Zero-Oracle Single Source of Truth)
 
-### 1. Five-Model Generalization (`N=360` Test Tickets × 5 Seeds per Model, 4 Families)
-| Backbone | Missing-Info F1 | Entropy Collapse % | `Naive-Cascade` (`c=1.5`) | `Joint-Greedy` (`c=1.5`) | `Calib-Cascade` (`c=1.5`) | **`Tri-VoI-L2D` (`c=1.5`)** | `Calib-Cascade` (`c=2.5`) | **`Tri-VoI-L2D` (`c=2.5`)** | Severe `Cap=1/3` (`Tri` / `Calib+Naor` / `w/oExt`) |
-| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :---: |
-| `Qwen/Qwen3.5-35B-A3B` | 0.8483 | 77.78 | 3.165 | 5.142 | 4.877 | **5.220** | 4.479 | **5.142** | 3.792 / 3.798 / 2.732 |
-| `deepseek-ai/DeepSeek-V3.2` | 0.8946 | 96.11 | 3.305 | 5.391 | 5.550 | **5.523** | 5.075 | **5.259** | 4.062 / 4.080 / 3.470 |
-| `zai-org/GLM-4.5-Air` | 0.8883 | 94.44 | 2.597 | 3.750 | 4.054 | **4.317** | 3.459 | **3.910** | 2.348 / 3.284 / 1.966 |
-| `Qwen/Qwen3-8B` | 0.2157 | 87.22 | 2.682 | 3.589 | 3.711 | **3.731** | 3.644 | **3.731** | 1.714 / 1.836 / 0.245 |
-| `tencent/Hy4-preview` | 0.9831 | 95.00 | 3.441 | 5.390 | 5.833 | **5.842** | 5.350 | **5.468** | 4.477 / 4.548 / 3.846 |
+All headline figures are automatically compiled into [ijcai2027_canonical_tables.md](file:///d:/research/cscwd_tri_voi/results/ijcai2027_canonical_tables.md) and [ijcai2027_canonical_tables.tex](file:///d:/research/cscwd_tri_voi/results/ijcai2027_canonical_tables.tex):
 
-- **Statistical Significance & Fair Naor-Matched Comparison (`Qwen3.5-35B-A3B`, `N=360`, Holm-Bonferroni corrected)**:
-  - Under `c_ask=1.5` (`Cap=2`), `Tri-VoI-L2D` achieves **5.220** (83.67% Acc), beating `Direct-ACT`, `Entropy-ASK (Proxy)`, `Consensus-DEFER (Proxy)`, and `Naive-Cascade` (`Boot p_Holm = 0.0018`, **6/6** disjoint episodes), and edging out `Joint-Greedy` (`5.142`), `Joint-Greedy+Naor` (`5.190`), `Calibrated-Cascade` (`4.877`), and `Calibrated-Cascade+Naor` (`4.867`).
-  - Under moderate user burden (`c_ask=2.5`), `Tri-VoI-L2D` reaches **5.142**, beating `Calibrated-Cascade` (**4.479**, `Boot p_Holm = 0.0080`) and `Calibrated-Cascade+Naor` (**4.470**, `Boot p_Holm = 0.0080`; **5/6** episodes, `Strat Boot p_Holm = 0.0050`).
-  - **Mechanism Disentanglement at `Cap=1/3`**: Adding Naor externality to `Calibrated-Cascade` (`Calibrated-Cascade+Naor`: **3.798**) closes the severe-congestion gap at low `c_ask=1.5`, proving that Naor shadow pricing drives queue-wait compression (`w/o Queue-Externality` drops to **2.732**), while `Tri-VoI-L2D` retains the EVOI edge over `Joint-Greedy+Naor` (**3.792 vs 3.188**) and dominates when both congestion and ask cost are elevated (`c_ask >= 3.0`, $\mu \le 0.33$).
-
-### 2. Multi-Paragraph Noisy Workplace Benchmark + Imperfect LLM User (`N=360`)
-- **`Qwen/Qwen3.5-35B-A3B`**: `Tri-VoI-L2D` reaches **3.503** (`c_ask=1.5`, `Boot p_Holm = 0.0096` vs `Naive-Cascade` 2.285) and **3.511** (`c_ask=2.5` vs `Calibrated-Cascade` 2.948); under `Cap=1/3`, `Tri-VoI-L2D` (**1.525**) beats `Joint-Greedy+Naor` (**1.295**) and `Calibrated-Cascade` (**0.396**), while `Calibrated-Cascade+Naor` reaches **1.614**.
-- **`tencent/Hy4-preview`**: `Tri-VoI-L2D` reaches **4.380** (`c_ask=1.5`, `Boot p_Holm = 0.0018` vs `Naive-Cascade` 2.666) and **4.082** (`c_ask=2.5` vs `Calibrated-Cascade` 3.803).
-
-### 3. Three-Regime Theory, Monte Carlo Rollout, $K \times T$ Stress & Structural Robustness
-- **Three-Regime Theory & Genuine Monte Carlo Verification (`Q=0..10`, `N_MC=200`)**: At `p_e = 0.75` ($Q_1^* = 5.32$), analytical EVOI rises from `+0.779` ($Q=0$) to `+2.912` ($Q=6$) then turns over to `+1.316` ($Q=10$), mirrored by Monte Carlo realized-utility rollout (`-1.176 -> +1.000 -> +0.327`); across `p_e ∈ {0.75, 0.85, 0.92}`, Monte Carlo Defer-regime slopes (`0.4568±0.0137`, `0.4411±0.0065`, `0.4426±0.0036`) match theoretical $\hat{p}_{\text{resolve}}\gamma = 0.4512$ without circular formula fitting.
-- **56-Point 2D Operating Phase Map (`7 service rates × 8 ask costs`, 8 methods)**: `Tri-VoI-L2D` is strict overall winner on **27/56** cells (vs runner-up `Calibrated-Cascade+Naor` 13/56, `Joint-Greedy` 8/56) and matches or beats `Calibrated-Cascade` (**53/56**), `Calibrated-Cascade+Naor` (**43/56**), `Joint-Greedy` (**46/56**), `Joint-Greedy+Naor` (**44/56**), and `w/o Queue-Externality` (**49/56**).
-- **Decision-Relevant Subset (`328/360` test items excluding invariant Q2) & Realistic Specialist Stress (Stage 5e/5f)**: Excluding 34.3% decision-invariant Q2 tickets preserves `Tri-VoI-L2D`'s performance (`5.253` at `Cap=2, c=1.5`; `5.141` at `c=2.5`); under queuing-delayed feedback and unclarified-ticket rework (`Cap=1/3`), `Tri-VoI-L2D` (`3.561`) strongly outperforms `Joint-Greedy+Naor` (`2.823`) and `Calibrated-Cascade` (`2.765`).
-- **Known Boundaries**: (1) `GLM-4.5-Air` underperforms `Calibrated-Cascade` at `Cap=1/3` (`2.348 vs 3.284`) due to small-sample `Q2` calibration variance (`n_cal=60`); (2) `Qwen3-8B` (`Missing F1=0.2157`) reflects small-model diagnostic failure (`Naive-Cascade` 2.434 > `Tri-VoI` 1.714 at `Cap=1/3`); (3) `build_cscw_benchmark_v2` (100% decision-relevant Q2 + zero explicit `"confidential"`/`"override"` strings) and public-dataset transfer remain queued for live API evaluation.
+1. **Universal Severe-Congestion `+MDP` Mechanism Gains (`Section 0A`, `Cap=1/3, c=1.5`, 13 Suites)**:
+   Upgrading static Naor thresholds to Bellman DP shadow pricing yields strictly positive gains across **13/13** suites for `CC+Naor -> CC+MDP` (`mean +0.355`) and `ACL+FD+Naor -> ACL+FD+MDP` (`mean +0.443`), and **12/13** suites for `Tri-VoI-L2D -> Tri-VoI-MDP` (`mean +0.429`) and `JG+Naor -> JG+MDP` (`mean +0.429`).
+2. **Lowest Cross-Regime Minimax Regret (`Proposition 5`, `Section 0B`)**:
+   - Across **26 matched `2C-Self` cells** (`13 suites × {Cap=2, Cap=1/3}`, `c=1.5`, zero Oracle, equal DP pricing): `Tri-VoI-MDP` achieves the highest mean utility (**3.617**), most wins (**10/26**), lowest mean regret (**0.099**), and lowest worst-case regret (**0.464**, vs. `CC+MDP` `0.625`, `ACL+FD+MDP` `0.764`, `JG+MDP` `0.820`).
+   - Across **40 `c_ask` cells** (`c_ask ∈ {0.5, 1.5, 3.0, 4.5}`): `Tri-VoI-MDP` achieves the highest mean utility (**3.380**) and lowest worst-case regret (**0.526**, vs. `ACL+FD+MDP` `0.830`, `JG+MDP` `0.927`, `CC+MDP` `1.330`).
+   - Across **56-cell 2D sensitivity envelopes (`Table 3`)**: `Tri-VoI-MDP` ranks `#1` in **5/7** suites (`v1-Clean Qwen3.5` **4.623** / worst regret **0.404**, `v2 DeepSeek-V3.2` **4.494** / **0.195**, and all three `Public-Tri` suites).
+3. **Token Efficiency (`Section 6`)**:
+   Realized LLM token usage drops **53.7%–57.8%** from 5-call `Tri-VoI` (`4952 -> 2111` `-57.4%` on `v1-Clean Qwen3.5`; `4441 -> 2056` `-53.7%` on `v1-Clean DeepSeek-V3.2`; `4967 -> 2097` `-57.8%` on `v2 Qwen3.5`) while preserving or improving net utility.
+4. **Pre-Registered Organ-System-Disjoint Blind Clinical Evaluation (`MediQ-Test-Disjoint`, `Section 10`)**:
+   Pre-registered at Git tag `prereg-mediq-test-disjoint` (`N_cal=60`, `N_test=180`, `PY_DIFF_LEN=0`, `0` unparsed fallbacks, live API spend `¥3.55`). In cross-group real-LLM Specialist delegation (`Qwen3.5-35B-A3B -> DeepSeek-V3.2`), `Tri-VoI-MDP` achieves **4.266** (`Cap=2, c=1.5`, `81.7%` medical acc / `85.1%` scope-escalation recall, `1823` tokens) and **3.588** (`Cap=1/3, c=1.5`, beating `Tri-VoI-L2D` by `+0.679`, `p=0.0137`; `+0.785` at `c=3.0`, `p=0.0057`), while all four `+MDP` upgrades outperform static Naor under severe congestion (`p < 0.05`).
+5. **Honest Empirical Boundaries (`Sections 8, 9D, 9E, 10B`)**:
+   - Under matched `2C-Self` equal-budget DP pricing (`Section 9E`), `Tri-VoI-MDP` does **not** achieve single-cell statistical superiority over individual strong `Base+MDP (2C-S)` policies (`p=0.2036–0.9810`), and on `v2 (Qwen3.5)` / `v2 (Hy4-preview)` / `MediQ-Test-Disjoint Setup B`, `CC+MDP (2C-S)`, `ACL+FD+MDP (2C-S)`, or `JG+Naor` lead specific cells.
+   - `Benchmark v3` (`Section 8`, `prereg-blind-v3`) has disclosed attribute-template overlap (`50.0%` normalized prose, `35.4%` exact triple overlap across 8 templates/domain); strict zero-overlap slices (`72` and `40` items in `Section 9D`) show parity vs. matched `2C-S` baselines (`p=0.1546–1.0000`).
 
 ---
 
 ## Repository Structure
-- `PAPER_STORY_AND_STATUS.md` — Full paper narrative, motivations, method, and experimental audit
-- `benchmark.py` — 4-domain Cooperative Decision-Making benchmark (`Q1`–`Q4` Conditional Escalation, `N=60 cal + 360 test`)
-- `controller.py` — `HeldOutCalibrator`, `DiscountedBetaTracker`, two-stage Bellman EVOI controller, Naor queuing externality, and fixed-state sweeps
-- `llm_client.py` — SiliconFlow OpenAI-compatible client with SQLite incremental caching & backoff
-- `run_all.py` — Phase 2 `N=360` + 6-episode benchmark runner, statistical tests (`Block Bootstrap`, `McNemar`, `Holm-Bonferroni`), and Figures 1–4
-- `overnight/` — 5-stage extended evaluation suite (`run_overnight.py`, `overnight_lib.py`: 5-model `N=360`, noisy long-form benchmark + imperfect LLM user, $K \times T$ stress test, 2D phase map, 5-fold CV, LODO, bursty/3-expert stress, and Figures 5–9)
-- `results/` — Formal metrics JSON/Markdown/LaTeX tables and PDF/PNG figures (`results/report.md`, `results/overnight/OVERNIGHT_MASTER_REPORT.md`, `results/figs/`, `results/overnight/figs/`)
 
-## Quick Reproduction
-```bash
-# Offline structural & statistical dry-run verification (no API key required)
-python run_all.py --dry-run
-python overnight/run_overnight.py --dry-run --stages 1,2,3,4,5
-
-# Live evaluation (reads SiliconFlow key from API_KEY environment variable)
-python run_all.py --workers 4
-python overnight/run_overnight.py --stages 1,2,3,4,5 --workers 2 --pace-sec 0.25
+```text
+.
+├── controller.py                        # Core Tri-VoI-MDP (Deploy-Self), Tri-VoI-L2D, and baseline policies
+├── external_baselines.py                # Matched 2C-Self & 5C external baselines (KL-PBD+, ACL-2026-VoI, JG, CC)
+├── probe_profiles.py                    # Cached/live LLM Generalized Probing & post_missing self-signal extractor
+├── llm_client.py                        # SiliconFlow OpenAI-compatible client, cost tracker & SQLite cache
+├── benchmark.py / public_tri.py         # Benchmark v1-Clean/v1-Noisy, v2, and Public-Tri (MediQ Scope Triage)
+├── benchmark_v3.py                      # Unseen template domains (Benchmark v3) & MediQ-Holdout splits
+├── mediq_test_disjoint.py               # Organ-system-disjoint, length-matched MediQ-Test-Disjoint builder
+├── generate_ijcai_tables.py             # Generates verified results/ijcai2027_canonical_tables.{md,tex}
+├── verify_theory_package.py             # Zero-API verification of Theorems 1–4 & Proposition 5
+├── run_deploy_self_canonical_upgrade.py # Offline zero-Oracle upgrade across Sections 0–8
+├── run_attribution_and_dedup_audit.py   # Offline Section 9 (matched 2C-S attribution, post_missing audit, v3 slices)
+├── run_mediq_test_disjoint_eval.py      # Section 10 runner (MediQ-Test-Disjoint)
+├── docs/theory/                         # Proofs & theoretical validation JSON/MD packages
+└── results/
+    ├── README.md                        # Guide to active vs. archived artifacts
+    ├── ijcai2027_canonical_tables.md    # Primary Markdown tables (Sections 0–10)
+    ├── ijcai2027_canonical_tables.tex   # LaTeX tables matching Sections 1–8
+    ├── attribution_and_dedup_audit.md   # Detailed Section 9 offline attribution & signal audit
+    ├── mediq_test_disjoint_eval.md      # Pre-registered MediQ-Test-Disjoint clinical report
+    ├── deploy_self_canonical_upgrade.json
+    └── archive/                         # Superseded pre-MDP & Oracle-diagnostic stage reports
 ```
+
+---
+
+## Reproducing Offline Verification & Canonical Tables (`live=0`, `¥0.00`)
+
+All code/table/theory consistency checks run completely offline against the cached SQLite responses and verified JSON outputs:
+
+```bash
+python verify_theory_package.py
+python run_deploy_self_canonical_upgrade.py
+python run_attribution_and_dedup_audit.py --offline-only
+python generate_ijcai_tables.py
+```
+
+For environment setup and API execution details (when re-running `MediQ-Test-Disjoint` live against SiliconFlow), see [mediq_test_disjoint_eval.md](file:///d:/research/cscwd_tri_voi/results/mediq_test_disjoint_eval.md).

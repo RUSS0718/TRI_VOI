@@ -1,7 +1,7 @@
-# Mathematical Specification and Full Proofs: IJCAI 2027 Three-Theorem Package
+# Mathematical Specification and Full Proofs: IJCAI 2027 `Tri-VoI-MDP` Theoretical Package (Theorems 1–4 & Proposition 5)
 
 > **Tracking:** [`RUSS0718/TRI_VOI#8`](https://github.com/RUSS0718/TRI_VOI/issues/8) & [`RUSS0718/TRI_VOI#15`](https://github.com/RUSS0718/TRI_VOI/issues/15)  
-> **Scope:** Complete statements and line-by-line proofs for Appendix A of the IJCAI 2027 manuscript (*Tri-VoI-L2D*), paired with `¥0` offline numerical verification in [`verify_theory_package.py`](../../verify_theory_package.py).
+> **Scope:** Complete mathematical statements and proofs for the Appendix of the IJCAI 2027 **`Tri-VoI-MDP`** manuscript, paired with `¥0` offline numerical verification in [`verify_theory_package.py`](../../verify_theory_package.py). Theorems 1–3 characterize the myopic threshold predecessor (`Tri-VoI-L2D`) and Foster-Lyapunov stability; **Theorem 4** derives the finite-horizon periodic-drain Bellman shadow-pricing framework of primary method **`Tri-VoI-MDP`**; **Proposition 5** characterizes the exact one-step EVOI regret decomposition and non-dominance conditions against matched-pricing `Cascade` and `Joint-Greedy` baselines.
 
 ---
 
