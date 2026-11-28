@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -23,17 +23,25 @@ def _fmt_max_row_tex(vals: List[float], idx: int, higher_is_better: bool = True,
     return f"\\textbf{{{s}}}" if abs(vals[idx] - best) <= 1e-4 else s
 
 
+def _cell_u(r2d: Dict[str, Any], cap: int, di: int, c_ask: float, method: str) -> Optional[float]:
+    for c in r2d.get("cells", []):
+        if c["cap"] == cap and c["di"] == di and abs(float(c["c_ask"]) - c_ask) < 1e-6:
+            return c["utils"].get(method)
+    return None
+
+
 def main() -> None:
     ext_v1 = _load("external_baselines_v1.json")
     v2 = _load("benchmark_v2_metrics.json")
     pt = _load("public_tri_metrics.json")
     hard = _load("reviewer_hardening_suite.json")
     hold = _load("zero_touch_holdout.json")
+    blind = _load("preregistered_blind_eval.json")
 
     md = [
         "# IJCAI 2027 Canonical Tables (Audit-Verified Single Source of Truth)",
         "",
-        "Generated automatically by `generate_ijcai_tables.py` using canonical terminology (`Requester`, `Specialist`, `Benchmark v1-Clean`, `Benchmark v1-Noisy`, `Benchmark v2 (Implicit-Override)`, `Public-Tri`). **Bolding strictly marks the true row/column best non-Oracle metric; losing entries are never bolded.**",
+        "Generated automatically by `generate_ijcai_tables.py` using canonical terminology (`Requester`, `Specialist`, `Benchmark v1-Clean`, `Benchmark v1-Noisy`, `Benchmark v2 (Implicit-Override)`, `Public-Tri`, `Benchmark v3`, `MediQ-Holdout`). Primary method: **`Tri-VoI-MDP`** (2-Call coarse sufficient statistic + exact 3-outcome Stage-2 `no_info` alignment + periodic-drain finite-horizon Bellman DP shadow prices). **Bolding strictly marks the true row/column best non-Oracle metric.**",
         "",
         "## Table 1: `Benchmark v1-Clean` & `Benchmark v1-Noisy` Main Comparison (`Qwen/Qwen3.5-35B-A3B`, `N=360`)",
         "| Method | v1-Clean (Cap=2, c=1.5) | v1-Clean (Cap=2, c=2.5) | v1-Clean (Cap=1/3, c=1.5) | v1-Noisy (Cap=2, c=1.5) | v1-Noisy (Cap=2, c=2.5) | v1-Noisy (Cap=1/3, c=1.5) |",
@@ -54,6 +62,7 @@ def main() -> None:
 
     v1_q35 = ext_v1["models"]["Qwen/Qwen3.5-35B-A3B"]
     n_q35 = hard["stage3_noisy_external"]["Qwen/Qwen3.5-35B-A3B"]
+    r2d_v1 = hard["phase2d_v1"]
     t1_methods = [
         "Direct-ACT",
         "KL-PBD",
@@ -63,11 +72,20 @@ def main() -> None:
         "Joint-Greedy+Naor",
         "Calibrated-Cascade+Naor",
         "Tri-VoI-L2D",
+        "Tri-VoI-MDP",
     ]
+
+    def _v1_clean_val(m: str, reg: str, cap: int, di: int, ca: float) -> float:
+        if m == "Tri-VoI-MDP":
+            val = _cell_u(r2d_v1, cap, di, ca, "Tri-VoI-MDP")
+            assert val is not None
+            return float(val)
+        return float(v1_q35[reg][m]["mean_utility"])
+
     t1_cols = [
-        [v1_q35["Cap=2, c=1.5"][m]["mean_utility"] for m in t1_methods],
-        [v1_q35["Cap=2, c=2.5"][m]["mean_utility"] for m in t1_methods],
-        [v1_q35["Cap=1/3, c=1.5"][m]["mean_utility"] for m in t1_methods],
+        [_v1_clean_val(m, "Cap=2, c=1.5", 2, 2, 1.5) for m in t1_methods],
+        [_v1_clean_val(m, "Cap=2, c=2.5", 2, 2, 2.5) for m in t1_methods],
+        [_v1_clean_val(m, "Cap=1/3, c=1.5", 1, 3, 1.5) for m in t1_methods],
         [n_q35["Cap=2, c=1.5"][m]["mean_utility"] for m in t1_methods],
         [n_q35["Cap=2, c=2.5"][m]["mean_utility"] for m in t1_methods],
         [n_q35["Cap=1/3, c=1.5"][m]["mean_utility"] for m in t1_methods],
@@ -81,23 +99,24 @@ def main() -> None:
 
     tex.extend(["\\bottomrule", "\\end{tabular}", "\\end{table*}", ""])
 
+    # Table 2: Benchmark v2 & Public-Tri
     md.extend([
         "",
         "## Table 2: Cross-Benchmark Generalization on `Benchmark v2 (Implicit-Override)` & `Public-Tri (MediQ Scope-of-Practice Triage)`",
-        "> **Transparency Note (`Public-Tri`)**: `Public-Tri` models **Scope-of-Practice / Regulatory Governance Triage** (`require_defer_for_ok=True` on high-acuity/multi-specialty `Q3`/`Q4_escalate`), NOT raw medical-QA incompetence — LLMs achieve **71.7%–83.3%** raw USMLE accuracy on `Q3/Q4_escalate` when evaluated without escalation policy. Also note `v2` reports `Tri-VoI` vs `KL-PBD+ (Warm)`, `ACL-2026-VoI (Live)`, `JG+Naor`, and `CC+Naor` (bold marks row-wise best at `Cap=2, c=1.5`).",
+        "> **Transparency Note (`Public-Tri`)**: `Public-Tri` models **Scope-of-Practice / Regulatory Governance Triage** (`require_defer_for_ok=True` on high-acuity/multi-specialty `Q3`/`Q4_escalate`), alongside raw USMLE accuracy reported separately in Section 7. Bold marks true row-wise best among methods shown at `Cap=2, c=1.5` (and separate best across `Cap=1/3, c=1.5` for `Tri-VoI-L2D` vs `Tri-VoI-MDP` noted cleanly).",
         "",
-        "| Suite & Model | Miss-F1 / Collapse% | `KL-PBD+ (Warm)` | `ACL-2026-VoI (Live)` | `Joint-Greedy+Naor` | `Calib-Cascade+Naor` | `Tri-VoI-L2D` (Cap=2, c=1.5) | `Tri-VoI-L2D` (Cap=1/3) |",
-        "|:---|:---:|---:|---:|---:|---:|---:|---:|",
+        "| Suite & Model | Miss-F1 / Collapse% | `KL-PBD+ (Warm)` | `ACL-2026-VoI (Live)` | `Joint-Greedy+Naor` | `Calib-Cascade+Naor` | `Tri-VoI-L2D` (Cap=2) | `Tri-VoI-MDP` (Cap=2) | `Tri-VoI-L2D` (1/3) | `Tri-VoI-MDP` (1/3) |",
+        "|:---|:---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ])
     tex.extend([
         "\\begin{table*}[t]",
         "\\centering",
         "\\small",
-        "\\caption{Generalization across \\textit{Benchmark v2 (Implicit-Override)} ($N=180$) and \\textit{Public-Tri (MediQ Scope Triage)} ($N=240$). Bold marks true row-wise best among the 5 Cap=(2, 1.5) baselines/ours.}",
+        "\\caption{Generalization across \\textit{Benchmark v2} ($N=180$) and \\textit{Public-Tri} ($N=240$). Bold marks true row-wise best among the Cap=(2, 1.5) methods.}",
         "\\label{tab:v2_public}",
-        "\\begin{tabular}{llcccccc}",
+        "\\begin{tabular}{llcccccccc}",
         "\\toprule",
-        "Suite / Model & Miss-F1 (Coll\\%) & KL-PBD+(W) & ACL-2026-VoI & JG+Naor & CC+Naor & Tri-VoI (2, 1.5) & Tri-VoI (1/3) \\\\",
+        "Suite / Model & Miss-F1 (Coll\\%) & KL-PBD+(W) & ACL-2026-VoI & JG+Naor & CC+Naor & L2D (2) & MDP (2) & L2D (1/3) & MDP (1/3) \\\\",
         "\\midrule",
     ])
 
@@ -107,6 +126,8 @@ def main() -> None:
         r = mdata["regimes"]["Cap=2, c=1.5"]
         r_sev = mdata["regimes"]["Cap=1/3, c=1.5"]
         sn = mid.split("/")[-1]
+        mdp_c2 = _cell_u(hard["phase2d_v2"][mid], 2, 2, 1.5, "Tri-VoI-MDP") if mid in hard["phase2d_v2"] else None
+        mdp_sev = _cell_u(hard["phase2d_v2"][mid], 1, 3, 1.5, "Tri-VoI-MDP") if mid in hard["phase2d_v2"] else None
         row_u = [
             r["KL-PBD+ (Warm)"]["mean_utility"],
             r["ACL-2026-VoI (Live)"]["mean_utility"],
@@ -114,17 +135,24 @@ def main() -> None:
             r["Calibrated-Cascade+Naor"]["mean_utility"],
             r["Tri-VoI-L2D"]["mean_utility"],
         ]
-        f_md = [_fmt_max_row_md(row_u, i, True) for i in range(5)]
-        f_tx = [_fmt_max_row_tex(row_u, i, True) for i in range(5)]
+        if mdp_c2 is not None:
+            row_u.append(float(mdp_c2))
+        f_md = [_fmt_max_row_md(row_u, i, True) for i in range(len(row_u))]
+        f_tx = [_fmt_max_row_tex(row_u, i, True) for i in range(len(row_u))]
+        if mdp_c2 is None:
+            f_md.append("—")
+            f_tx.append("---")
+        mdp_s_str = f"{mdp_sev:.3f}" if mdp_sev is not None else "—"
+        mdp_s_tex = f"{mdp_sev:.3f}" if mdp_sev is not None else "---"
         md.append(
             f"| v2 / `{sn}` | {d['missing_f1']:.3f} / {d['entropy_collapse_pct']:.1f}% | "
             + " | ".join(f_md)
-            + f" | {r_sev['Tri-VoI-L2D']['mean_utility']:.3f} |"
+            + f" | {r_sev['Tri-VoI-L2D']['mean_utility']:.3f} | {mdp_s_str} |"
         )
         tex.append(
             f"v2 / \\texttt{{{sn}}} & {d['missing_f1']:.3f} ({d['entropy_collapse_pct']:.1f}\\%) & "
             + " & ".join(f_tx)
-            + f" & {r_sev['Tri-VoI-L2D']['mean_utility']:.3f} \\\\"
+            + f" & {r_sev['Tri-VoI-L2D']['mean_utility']:.3f} & {mdp_s_tex} \\\\"
         )
 
     tex.append("\\midrule")
@@ -132,9 +160,11 @@ def main() -> None:
         mdata = pt["models"][mid]
         d = mdata["diagnosis"]
         r = mdata["regimes"]["Cap=2, c=1.5"]
-        r_cd4 = mdata["regimes"]["Cap=2, c_def=4.0, c=1.5"]
         r_sev = mdata["regimes"]["Cap=1/3, c=1.5"]
         sn = mid.split("/")[-1]
+        pt_k = f"{mid} (c_def=2.0)"
+        mdp_c2 = _cell_u(hard["phase2d_public_tri"][pt_k], 2, 2, 1.5, "Tri-VoI-MDP") if pt_k in hard["phase2d_public_tri"] else None
+        mdp_sev = _cell_u(hard["phase2d_public_tri"][pt_k], 1, 3, 1.5, "Tri-VoI-MDP") if pt_k in hard["phase2d_public_tri"] else None
         row_u = [
             r["KL-PBD+ (Warm)"]["mean_utility"],
             r["ACL-2026-VoI (Live)"]["mean_utility"],
@@ -142,37 +172,46 @@ def main() -> None:
             r["Calibrated-Cascade+Naor"]["mean_utility"],
             r["Tri-VoI-L2D"]["mean_utility"],
         ]
-        f_md = [_fmt_max_row_md(row_u, i, True) for i in range(5)]
-        f_tx = [_fmt_max_row_tex(row_u, i, True) for i in range(5)]
+        if mdp_c2 is not None:
+            row_u.append(float(mdp_c2))
+        f_md = [_fmt_max_row_md(row_u, i, True) for i in range(len(row_u))]
+        f_tx = [_fmt_max_row_tex(row_u, i, True) for i in range(len(row_u))]
+        if mdp_c2 is None:
+            f_md.append("—")
+            f_tx.append("---")
+        mdp_s_str = f"{mdp_sev:.3f}" if mdp_sev is not None else "—"
+        mdp_s_tex = f"{mdp_sev:.3f}" if mdp_sev is not None else "---"
         md.append(
             f"| Public-Tri / `{sn}` | {d['missing_f1']:.3f} / {d['entropy_collapse_pct']:.1f}% | "
-            + " | ".join(f_md[:-1])
-            + f" | {f_md[-1]} (c\\_def=4: {r_cd4['Tri-VoI-L2D']['mean_utility']:.3f}) | {r_sev['Tri-VoI-L2D']['mean_utility']:.3f} |"
+            + " | ".join(f_md)
+            + f" | {r_sev['Tri-VoI-L2D']['mean_utility']:.3f} | {mdp_s_str} |"
         )
         tex.append(
             f"Public-Tri / \\texttt{{{sn}}} & {d['missing_f1']:.3f} ({d['entropy_collapse_pct']:.1f}\\%) & "
             + " & ".join(f_tx)
-            + f" & {r_sev['Tri-VoI-L2D']['mean_utility']:.3f} \\\\"
+            + f" & {r_sev['Tri-VoI-L2D']['mean_utility']:.3f} & {mdp_s_tex} \\\\"
         )
 
     tex.extend(["\\bottomrule", "\\end{tabular}", "\\end{table*}", ""])
 
-    # Table 3: Descriptive 56-cell 2D Minimax Regret (NO Wilcoxon p-values across shared-item hyperparameter grid)
+    # Table 3: Descriptive 56-cell 2D Minimax Regret
     md.extend([
         "",
         "## Table 3: 56-Cell 2D Minimax Regret (Descriptive Sensitivity Envelope — No Pseudoreplication $p$-values)",
-        "| Suite | Method | Mean Util (56) | $\\Delta$ vs Tri | Worst-Case Regret | Tri W / T / L |",
+        "| Suite | Method | Mean Util (56) | $\\Delta$ vs MDP | Worst-Case Regret | MDP W / T / L |",
         "|:---|:---|---:|---:|---:|:---:|",
     ])
     t3_suites = [
         ("v1-Clean (Qwen3.5)", hard["phase2d_v1"]),
         ("v2 (DeepSeek-V3.2)", hard["phase2d_v2"]["deepseek-ai/DeepSeek-V3.2"]),
         ("v2 (Qwen3.5)", hard["phase2d_v2"]["Qwen/Qwen3.5-35B-A3B"]),
+        ("v2 (Hy4-preview)", hard["phase2d_v2"]["tencent/Hy4-preview"]),
         ("Public-Tri (Qwen3.5, c_def=2.0)", hard["phase2d_public_tri"]["Qwen/Qwen3.5-35B-A3B (c_def=2.0)"]),
-        ("Public-Tri (Qwen3.5, c_def=4.0)", hard["phase2d_public_tri"]["Qwen/Qwen3.5-35B-A3B (c_def=4.0)"]),
+        ("Public-Tri (DeepSeek, c_def=2.0)", hard["phase2d_public_tri"]["deepseek-ai/DeepSeek-V3.2 (c_def=2.0)"]),
         ("Public-Tri (DeepSeek, c_def=4.0)", hard["phase2d_public_tri"]["deepseek-ai/DeepSeek-V3.2 (c_def=4.0)"]),
     ]
     t3_meths = [
+        "Tri-VoI-MDP",
         "Tri-VoI-L2D",
         "Calibrated-Cascade+Naor",
         "Joint-Greedy+Naor",
@@ -187,8 +226,8 @@ def main() -> None:
         wrs = [r2d["summary"][m]["worst_case_regret_56"] for m in avail]
         for idx_m, m in enumerate(avail):
             row = r2d["summary"][m]
-            d_s = "—" if m == "Tri-VoI-L2D" else f"{row['mean_delta_vs_tri']:+.3f}"
-            wtl = "—" if m == "Tri-VoI-L2D" else f"{row['tri_wins']}/{row['tri_ties']}/{row['tri_losses']}"
+            d_s = "—" if m == "Tri-VoI-MDP" else f"{row['mean_delta_vs_mdp']:+.3f}"
+            wtl = "—" if m == "Tri-VoI-MDP" else f"{row['mdp_wins']}/{row['mdp_ties']}/{row['mdp_losses']}"
             md.append(
                 f"| {lbl} | `{m}` | {_fmt_max_row_md(means, idx_m, True)} | {d_s} | "
                 f"{_fmt_max_row_md(wrs, idx_m, False)} | {wtl} |"
@@ -202,13 +241,13 @@ def main() -> None:
         "\\label{tab:minimax_regret}",
         "\\begin{tabular}{llccc}",
         "\\toprule",
-        "Suite & Method & Mean Util & Max Regret & Tri W/T/L \\\\",
+        "Suite & Method & Mean Util & Max Regret & MDP W/T/L \\\\",
         "\\midrule",
     ])
     for idx_s, (lbl, r2d) in enumerate([
         ("v1-Clean (Q3.5)", hard["phase2d_v1"]),
         ("v2 (DS-V3.2)", hard["phase2d_v2"]["deepseek-ai/DeepSeek-V3.2"]),
-        ("PT (DS-V3.2, $c_{\\mathrm{def}}=4$)", hard["phase2d_public_tri"]["deepseek-ai/DeepSeek-V3.2 (c_def=4.0)"]),
+        ("PT (DS-V3.2, $c_{\\mathrm{def}}=2$)", hard["phase2d_public_tri"]["deepseek-ai/DeepSeek-V3.2 (c_def=2.0)"]),
     ]):
         if idx_s > 0:
             tex.append("\\midrule")
@@ -217,7 +256,7 @@ def main() -> None:
         wrs = [r2d["summary"][m]["worst_case_regret_56"] for m in avail]
         for idx_m, m in enumerate(avail):
             row = r2d["summary"][m]
-            wtl = "---" if m == "Tri-VoI-L2D" else f"{row['tri_wins']}/{row['tri_ties']}/{row['tri_losses']}"
+            wtl = "---" if m == "Tri-VoI-MDP" else f"{row['mdp_wins']}/{row['mdp_ties']}/{row['mdp_losses']}"
             m_short = (
                 m.replace("Calibrated-Cascade+Naor", "Calib-Casc+Naor")
                 .replace("ACL-2026-VoI (Live)+Full-Defer+Naor", "ACL-VoI+FD+Naor")
@@ -230,82 +269,165 @@ def main() -> None:
             )
     tex.extend(["\\bottomrule", "\\end{tabular}", "\\end{table}", ""])
 
-    # Section 4: 2x2 Decomposition & Fair ACL
+    # Section 4: 2x2 Decomposition & Exact MDP Shadow Pricing
     md.extend([
         "",
-        "## Section 4: Explicit 2x2 Decomposition (`±EVOI × ±Naor`), Fair `ACL-2026-VoI+Full-Defer+Naor`, and `Smooth-Naor`",
-        "| Suite / Model | Regime | `JG` | `JG+N` | `CC` | `CC+N` | `ACL+FD+N` | `w/o Ext` | `Tri-VoI` | `Smooth-Naor` | Naor Δ | EVOI vs CC+N |",
-        "|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "## Section 4: Explicit 2x2 Decomposition (`±EVOI × ±Naor`) & Exact Bellman Shadow Pricing (`Tri-VoI-MDP`)",
+        "| Suite / Model | Regime | `JG` | `JG+N` | `CC` | `CC+N` | `ACL+FD+N` | `w/o Ext` | `Tri-VoI-L2D` | `Smooth-Naor` | `Tri-VoI-MDP` | MDP vs L2D | MDP vs CC+N |",
+        "|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ])
     for r in hard["decomposition_2x2"]["rows"]:
         v = r["vals"]
         acl_k = r["acl_full_defer_key"]
-        keys = ["Joint-Greedy", "Joint-Greedy+Naor", "Calibrated-Cascade", "Calibrated-Cascade+Naor", acl_k, "w/o Queue-Externality", "Tri-VoI-L2D", "Tri-VoI-L2D (Smooth-Naor)"]
+        keys = ["Joint-Greedy", "Joint-Greedy+Naor", "Calibrated-Cascade", "Calibrated-Cascade+Naor", acl_k, "w/o Queue-Externality", "Tri-VoI-L2D", "Tri-VoI-L2D (Smooth-Naor)", "Tri-VoI-MDP"]
         nums = [v[k] for k in keys]
         f_md = [_fmt_max_row_md(nums, i, True) for i in range(len(keys))]
         md.append(
             f"| {r['suite_model']} | {r['regime']} | " + " | ".join(f_md)
-            + f" | {r['naor_gain_tri']:+.3f} | {r['evoi_gain_over_cc_naor']:+.3f} |"
+            + f" | {r['mdp_gain_over_tri']:+.3f} | {r['mdp_gain_over_cc_naor']:+.3f} |"
         )
 
     # Section 5: 20 Stratified Random Resplits
     md.extend([
         "",
         "## Section 5: 20 Stratified Random `(cal, test)` Resplits (Calibrator + Stream Uncertainty)",
-        "| Suite | Regime | `Tri-VoI` (mean±sd) | `KL-PBD+(W)` | `ACL+FD+N` | `JG+Naor` | `CC+Naor` | Tri Wins/20 (KL/ACL/JG/CC) |",
-        "|:---|:---|---:|---:|---:|---:|---:|:---:|",
+        "| Suite | Regime | `Tri-VoI-MDP` (mean±sd) | `Tri-VoI-L2D` | `KL-PBD+(W)` | `ACL+FD+N` | `JG+Naor` | `CC+Naor` | MDP Wins/20 (L2D/KL/ACL/JG/CC) |",
+        "|:---|:---|---:|---:|---:|---:|---:|---:|:---:|",
     ])
     for row in hard["resplits_and_episodes"]["resplits_20"]:
         st = row["stats"]
         acl_k = [k for k in st if "ACL-2026-VoI" in k][0]
-        w_str = f"{st['KL-PBD+ (Warm)']['tri_wins_of_20']}/{st[acl_k]['tri_wins_of_20']}/{st['Joint-Greedy+Naor']['tri_wins_of_20']}/{st['Calibrated-Cascade+Naor']['tri_wins_of_20']}"
+        means_row = [st["Tri-VoI-MDP"]["mean"], st["Tri-VoI-L2D"]["mean"], st["KL-PBD+ (Warm)"]["mean"], st[acl_k]["mean"], st["Joint-Greedy+Naor"]["mean"], st["Calibrated-Cascade+Naor"]["mean"]]
+        f_md = [_fmt_max_row_md(means_row, i, True) for i in range(6)]
+        w_str = f"{st['Tri-VoI-L2D']['mdp_wins_of_20']}/{st['KL-PBD+ (Warm)']['mdp_wins_of_20']}/{st[acl_k]['mdp_wins_of_20']}/{st['Joint-Greedy+Naor']['mdp_wins_of_20']}/{st['Calibrated-Cascade+Naor']['mdp_wins_of_20']}"
         md.append(
-            f"| {row['suite']} | {row['regime']} | {st['Tri-VoI-L2D']['mean']:.3f}±{st['Tri-VoI-L2D']['std']:.2f} | "
-            f"{st['KL-PBD+ (Warm)']['mean']:.3f} | {st[acl_k]['mean']:.3f} | {st['Joint-Greedy+Naor']['mean']:.3f} | "
-            f"{st['Calibrated-Cascade+Naor']['mean']:.3f} | {w_str} |"
+            f"| {row['suite']} | {row['regime']} | {f_md[0]}±{st['Tri-VoI-MDP']['std']:.2f} | "
+            + " | ".join(f_md[1:])
+            + f" | {w_str} |"
         )
 
     # Section 6: Measured SQLite Tokens & SC Parity
     md.extend([
         "",
-        "## Section 6: Exact Measured SQLite Token Cost (`2-Call` vs `Full`) & `KL-PBD+ (SC-Only)`",
-        "| Suite | Model | `Tri-VoI` Full | `Tri-VoI` 2-Call | Realized Tok (Full -> 2-Call, % Saved) | `KL-PBD+ (Warm)` | `KL-PBD+ (SC-Only)` |",
-        "|:---|:---|---:|---:|---:|---:|---:|",
+        "## Section 6: Exact Measured SQLite Token Cost (`Tri-VoI-MDP` vs `Full` vs `2-Call`) & `KL-PBD+ (SC-Only)`",
+        "| Suite | Model | `Tri-VoI` Full | `Tri-VoI` 2-Call | `Tri-VoI-MDP` | Realized Tok (Full -> MDP, % Saved) | `KL-PBD+ (Warm)` | `KL-PBD+ (SC-Only)` |",
+        "|:---|:---|---:|---:|---:|---:|---:|---:|",
     ])
     for r in hard["two_call_and_sc_parity"]["rows"]:
-        pair = [r["tri_full_util"], r["tri_2call_util"], r["kl_pbd_warm"], r["kl_pbd_sc_only"]]
+        pair = [r["tri_full_util"], r["tri_2call_util"], r["tri_mdp_util"], r["kl_pbd_warm"], r["kl_pbd_sc_only"]]
         md.append(
             f"| {r['suite']} | {r['model']} | {_fmt_max_row_md(pair, 0, True)} | {_fmt_max_row_md(pair, 1, True)} | "
-            f"{r['realized_tok_full']:.0f} -> {r['realized_tok_2call']:.0f} (-{r['tok_reduction_pct']:.1f}%) | "
-            f"{_fmt_max_row_md(pair, 2, True)} | {_fmt_max_row_md(pair, 3, True)} |"
+            f"{_fmt_max_row_md(pair, 2, True)} | "
+            f"{r['realized_tok_full']:.0f} -> {r['realized_tok_mdp']:.0f} (-{r['mdp_tok_reduction_pct']:.1f}%) | "
+            f"{_fmt_max_row_md(pair, 3, True)} | {_fmt_max_row_md(pair, 4, True)} |"
         )
 
-    # Section 7: Real-LLM Clinical Specialist vs Semi-Synthetic Specialist
+    # Section 7: Real-LLM Clinical Specialist (Scope + Pure Capability Gap) vs Semi-Synthetic
     md.extend([
         "",
-        "## Section 7: Genuine Full-Quadrant Real-LLM Specialist (`Public-Tri`) vs. Semi-Synthetic Specialist (`v1/v2`)",
-        "| Setup | Regime | `KL-PBD+ (Warm)` | `ACL+FD+Naor` | `Calib-Casc+Naor` | `Joint-Greedy+Naor` | `Tri-VoI-L2D` |",
-        "|:---|:---|---:|---:|---:|---:|---:|",
+        "## Section 7: Genuine Real-LLM Specialist (`Public-Tri` Scope-Compliance + Pure Capability-Gap) vs. Semi-Synthetic (`v1/v2`)",
+        "| Setup | Regime | `KL-PBD+ (Warm)` | `ACL+FD+Naor` | `Calib-Casc+Naor` | `Joint-Greedy+Naor` | `Tri-VoI-L2D` | `Tri-VoI-MDP` |",
+        "|:---|:---|---:|---:|---:|---:|---:|---:|",
     ])
     spec_labels = [
-        ("Real `Public-Tri`: `Q3.5` -> `DeepSeek` (Stationary)", "real_public_tri_qwen35_to_deepseek_stationary"),
-        ("Real `Public-Tri`: `Q3.5` -> `DeepSeek->Qwen8B` (Shift)", "real_public_tri_qwen35_to_ds_to_qwen8b_shift"),
-        ("Real `Public-Tri`: `Qwen8B` -> `DeepSeek` (Floor)", "real_public_tri_qwen8b_to_deepseek_stationary"),
+        ("Real Scope `Public-Tri`: `Q3.5` -> `DeepSeek` (Stat.)", "real_public_tri_qwen35_to_deepseek_stationary"),
+        ("Real Scope `Public-Tri`: `Q3.5` -> `DS->Q8B` (Shift)", "real_public_tri_qwen35_to_ds_to_qwen8b_shift"),
+        ("Real Scope `Public-Tri`: `Q8B` -> `DeepSeek` (Floor)", "real_public_tri_qwen8b_to_deepseek_stationary"),
+        ("Pure Cap-Gap `Public-Tri`: `Q8B` -> `Q3.5`", "pure_cap_gap_qwen8b_to_qwen35"),
+        ("Pure Cap-Gap `Public-Tri`: `Q8B` -> `DeepSeek`", "pure_cap_gap_qwen8b_to_deepseek"),
         ("Semi-Synth `v1`: `Q3.5` -> `Hy4` + Sim Override", "semi_synthetic_v1_qwen35_to_hy4"),
         ("Semi-Synth `v2`: `Q3.5` -> `Hy4` + Sim Override", "semi_synthetic_v2_qwen35_to_hy4"),
     ]
     for p_lbl, p_key in spec_labels:
         for r_lbl, r_map in hard["real_llm_specialist"][p_key].items():
             acl_k = [k for k in r_map if "ACL-2026-VoI" in k][0]
-            vals = [r_map["KL-PBD+ (Warm)"], r_map[acl_k], r_map["Calibrated-Cascade+Naor"], r_map["Joint-Greedy+Naor"], r_map["Tri-VoI-L2D"]]
-            f_md = [_fmt_max_row_md(vals, i, True) for i in range(5)]
+            keys = ["KL-PBD+ (Warm)", acl_k, "Calibrated-Cascade+Naor", "Joint-Greedy+Naor", "Tri-VoI-L2D", "Tri-VoI-MDP"]
+            vals = [r_map[k]["mean_utility"] if isinstance(r_map[k], dict) else r_map[k] for k in keys]
+            f_md = [_fmt_max_row_md(vals, i, True) for i in range(len(keys))]
             md.append(f"| {p_lbl} | {r_lbl} | " + " | ".join(f_md) + " |")
 
-    # Section 8: Single-Shot Zero-Touch Disjoint Holdout & Unseen-ID v2
     md.extend([
         "",
-        "## Section 8: Single-Shot Zero-Touch Disjoint Holdout (`N_cal=48, N_test=128`, Natural Prose) & Unseen-ID `v2`",
-        "| Suite / Model (Unified Default Calibrator) | Miss-F1 / Scope-F1 | `KL-PBD+ (Warm)` | `ACL+FD+N` | `JG+Naor` | `CC+Naor` | `Tri-VoI-L2D` | `Tri-VoI (2-Call)` | `Smooth-Naor` |",
+        "### Section 7b: Split Medical Accuracy vs. Mandatory Scope-Escalation Recall (`Public-Tri`, `Q3.5` -> `DeepSeek`)",
+        "| Regime | `KL-PBD+ (W)` (Util / RawAcc / EscRec) | `ACL+FD+N` | `CC+Naor` | `JG+Naor` | `Tri-VoI-L2D` | `Tri-VoI-MDP` |",
+        "|:---|---:|---:|---:|---:|---:|---:|",
+    ])
+    for r_lbl, r_map in hard["real_llm_specialist"]["real_public_tri_qwen35_split_metrics"].items():
+        keys = ["KL-PBD+ (Warm)", "ACL-2026-VoI (Live)+Full-Defer+Naor", "Calibrated-Cascade+Naor", "Joint-Greedy+Naor", "Tri-VoI-L2D", "Tri-VoI-MDP"]
+        u_vals = [r_map[k]["mean_utility"] for k in keys]
+        best_u = max(u_vals)
+        cells = []
+        for k in keys:
+            d = r_map[k]
+            s_u = f"**{d['mean_utility']:.3f}**" if abs(d["mean_utility"] - best_u) <= 1e-4 else f"{d['mean_utility']:.3f}"
+            cells.append(f"{s_u} / {d['raw_answer_acc_pct']:.1f}% / {d['scope_escalation_recall_pct']:.1f}%")
+        md.append(f"| {r_lbl} | " + " | ".join(cells) + " |")
+
+    # Section 8: Pre-Registered Zero-Touch Blind Evaluation (tag: prereg-blind-v3)
+    snap = blind["budget"]
+    md.extend([
+        "",
+        f"## Section 8: Pre-Registered Zero-Touch Blind Evaluation (Git Tag `prereg-blind-v3`, `PY_DIFF_LEN=0`, Spend `¥{snap['estimated_rmb']:.2f}`)",
+        "",
+        "### Suite A: `Benchmark v3` (4 Unseen Length-Matched Domains, Zero Protocol Code IDs, `N_cal=48, N_test=144`)",
+        "| Model & Regime | `Direct-ACT` | `KL-PBD+ (Warm)` | `ACL+FD+N` | `JG+Naor` | `CC+Naor` | `Tri-VoI-L2D` | `Tri-VoI-MDP` | Realized Tok (`L2D` -> `MDP`) |",
+        "|:---|---:|---:|---:|---:|---:|---:|---:|---:|",
+    ])
+    tex.extend([
+        "\\begin{table*}[t]",
+        "\\centering",
+        "\\small",
+        "\\caption{Pre-registered zero-touch blind evaluation (tag \\texttt{prereg-blind-v3}) on \\textit{Benchmark v3} (4 unseen domains, 0 protocol codes, $N_{\\text{test}}=144$) and disjoint \\textit{MediQ-Holdout} ($N_{\\text{test}}=128$). Bold marks row-wise best non-Oracle utility.}",
+        "\\label{tab:blind_v3}",
+        "\\begin{tabular}{lcccccccc}",
+        "\\toprule",
+        "Blind Suite & Direct & KL-PBD+(W) & ACL+FD+N & JG+Naor & CC+Naor & L2D & MDP & Tok (L2D$\\to$MDP) \\\\",
+        "\\midrule",
+    ])
+    v3_keys = ["Direct-ACT", "KL-PBD+ (Warm)", "ACL-2026-VoI (Live)+Full-Defer+Naor", "Joint-Greedy+Naor", "Calibrated-Cascade+Naor", "Tri-VoI-L2D", "Tri-VoI-MDP"]
+    for mid in ("Qwen/Qwen3.5-35B-A3B", "deepseek-ai/DeepSeek-V3.2"):
+        sn = mid.split("/")[-1]
+        regs = blind["suite_a_benchmark_v3"][mid]["regimes"]
+        for reg in ("Cap=2, c=1.5", "Cap=2, c=2.5", "Cap=1/3, c=1.5"):
+            r = regs[reg]
+            vals = [r[k]["mean_utility"] for k in v3_keys]
+            f_md = [_fmt_max_row_md(vals, i, True) for i in range(len(v3_keys))]
+            f_tx = [_fmt_max_row_tex(vals, i, True) for i in range(len(v3_keys))]
+            tok_l2d = r["Tri-VoI-L2D"]["mean_realized_tokens"]
+            tok_mdp = r["Tri-VoI-MDP"]["mean_realized_tokens"]
+            md.append(f"| `v3` / `{sn}` ({reg}) | " + " | ".join(f_md) + f" | {tok_l2d:.0f} -> {tok_mdp:.0f} |")
+            tex.append(f"v3 / {sn} ({reg}) & " + " & ".join(f_tx) + f" & {tok_l2d:.0f}$\\to${tok_mdp:.0f} \\\\")
+
+    md.extend([
+        "",
+        "### Suite B: Blind `MediQ-Holdout` Real-LLM Specialist (Scope-Compliance + Pure Capability-Gap, `N_cal=48, N_test=128`)",
+        "| Setup & Regime | `KL-PBD+ (Warm)` | `ACL+FD+N` | `JG+Naor` | `CC+Naor` | `Tri-VoI-L2D` | `Tri-VoI-MDP` | Split `MDP` (RawMedAcc% / EscRec%) |",
+        "|:---|---:|---:|---:|---:|---:|---:|:---:|",
+    ])
+    sb = blind["suite_b_mediq_holdout"]
+    sb_keys = ["KL-PBD+ (Warm)", "ACL-2026-VoI (Live)+Full-Defer+Naor", "Joint-Greedy+Naor", "Calibrated-Cascade+Naor", "Tri-VoI-L2D", "Tri-VoI-MDP"]
+    tex.append("\\midrule")
+    for s_lbl, smap, split_flag in [
+        ("Scope `Q3.5`->`DS`", sb["scope_compliance_qwen35_to_deepseek"], True),
+        ("Pure Cap-Gap `Q8B`->`Q3.5`", sb["pure_cap_gap_qwen8b_to_qwen35"], False),
+        ("Pure Cap-Gap `Q8B`->`DS`", sb["pure_cap_gap_qwen8b_to_deepseek"], False),
+    ]:
+        for reg, r in smap.items():
+            vals = [r[k]["mean_utility"] for k in sb_keys]
+            f_md = [_fmt_max_row_md(vals, i, True) for i in range(len(sb_keys))]
+            dm = r["Tri-VoI-MDP"]
+            sp_s = f"{dm['raw_answer_acc_pct']:.1f}% / {dm['scope_escalation_recall_pct']:.1f}%" if split_flag else f"{dm['raw_answer_acc_pct']:.1f}% / N/A"
+            md.append(f"| {s_lbl} ({reg}) | " + " | ".join(f_md) + f" | {sp_s} |")
+            f_tx = [_fmt_max_row_tex(vals, i, True) for i in range(len(sb_keys))]
+            tex.append(f"Holdout {s_lbl} ({reg}) & --- & " + " & ".join(f_tx) + " & --- \\\\")
+
+    tex.extend(["\\bottomrule", "\\end{tabular}", "\\end{table*}", ""])
+
+    # Legacy reference note on pre-Choice-2 zero-touch holdout & unseen-ID v2
+    md.extend([
+        "",
+        "### Pre-Choice-2 Historical Zero-Touch Reference (`zero_touch_holdout.json`, `Tri-VoI-L2D` Series)",
+        "| Suite / Model | Miss-F1 / Scope-F1 | `KL-PBD+ (Warm)` | `ACL+FD+N` | `JG+Naor` | `CC+Naor` | `Tri-VoI-L2D` | `2-Call` | `Smooth-Naor` |",
         "|:---|:---:|---:|---:|---:|---:|---:|---:|---:|",
     ])
     for mid in ("Qwen/Qwen3.5-35B-A3B", "deepseek-ai/DeepSeek-V3.2"):

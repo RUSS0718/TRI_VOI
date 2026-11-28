@@ -12,10 +12,11 @@ Direct-ACT & 2.000 & 2.000 & 2.000 & 0.556 & 0.556 & 0.556 \\
 KL-PBD & 4.061 & 4.061 & 2.621 & 3.389 & 3.389 & 1.268 \\
 KL-PBD+ (Warm) & 4.450 & 4.450 & 3.106 & 3.665 & \textbf{3.665} & 1.517 \\
 ACL-2026-VoI (Calib) & 2.182 & 2.333 & 2.182 & 1.142 & 0.715 & 1.142 \\
-ACL-2026-VoI+Post-Defer & 3.633 & 2.800 & 3.609 & 2.081 & 1.071 & \textbf{2.031} \\
+ACL-2026-VoI+Post-Defer & 3.633 & 2.800 & 3.609 & 2.081 & 1.071 & 2.031 \\
 Joint-Greedy+Naor & 5.190 & 5.015 & 3.188 & \textbf{3.887} & 3.618 & 1.295 \\
-Calibrated-Cascade+Naor & 4.867 & 4.470 & \textbf{3.798} & 3.413 & 2.952 & 1.614 \\
-Tri-VoI-L2D & \textbf{5.220} & \textbf{5.142} & 3.792 & 3.503 & 3.511 & 1.525 \\
+Calibrated-Cascade+Naor & 4.867 & 4.470 & 3.798 & 3.413 & 2.952 & 1.614 \\
+Tri-VoI-L2D & 5.220 & 5.142 & 3.792 & 3.503 & 3.511 & 1.525 \\
+Tri-VoI-MDP & \textbf{5.341} & \textbf{5.168} & \textbf{4.048} & 3.811 & 3.500 & \textbf{2.398} \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -23,20 +24,20 @@ Tri-VoI-L2D & \textbf{5.220} & \textbf{5.142} & 3.792 & 3.503 & 3.511 & 1.525 \\
 \begin{table*}[t]
 \centering
 \small
-\caption{Generalization across \textit{Benchmark v2 (Implicit-Override)} ($N=180$) and \textit{Public-Tri (MediQ Scope Triage)} ($N=240$). Bold marks true row-wise best among the 5 Cap=(2, 1.5) baselines/ours.}
+\caption{Generalization across \textit{Benchmark v2} ($N=180$) and \textit{Public-Tri} ($N=240$). Bold marks true row-wise best among the Cap=(2, 1.5) methods.}
 \label{tab:v2_public}
-\begin{tabular}{llcccccc}
+\begin{tabular}{llcccccccc}
 \toprule
-Suite / Model & Miss-F1 (Coll\%) & KL-PBD+(W) & ACL-2026-VoI & JG+Naor & CC+Naor & Tri-VoI (2, 1.5) & Tri-VoI (1/3) \\
+Suite / Model & Miss-F1 (Coll\%) & KL-PBD+(W) & ACL-2026-VoI & JG+Naor & CC+Naor & L2D (2) & MDP (2) & L2D (1/3) & MDP (1/3) \\
 \midrule
-v2 / \texttt{Qwen3.5-35B-A3B} & 0.870 (78.9\%) & 3.366 & 2.203 & 4.421 & \textbf{4.996} & 4.657 & 3.847 \\
-v2 / \texttt{DeepSeek-V3.2} & 0.935 (86.7\%) & 3.620 & 2.550 & 4.850 & 4.754 & \textbf{5.031} & 4.334 \\
-v2 / \texttt{Hy4-preview} & 1.000 (91.1\%) & 3.426 & 3.006 & 5.408 & \textbf{6.271} & 6.053 & 5.313 \\
-v2 / \texttt{Qwen3-8B} & 0.178 (87.8\%) & \textbf{3.600} & 0.131 & 3.551 & 3.508 & 3.571 & 1.163 \\
+v2 / \texttt{Qwen3.5-35B-A3B} & 0.870 (78.9\%) & 3.366 & 2.203 & 4.421 & \textbf{4.996} & 4.657 & 4.690 & 3.847 & 4.041 \\
+v2 / \texttt{DeepSeek-V3.2} & 0.935 (86.7\%) & 3.620 & 2.550 & 4.850 & 4.754 & 5.031 & \textbf{5.135} & 4.334 & 4.406 \\
+v2 / \texttt{Hy4-preview} & 1.000 (91.1\%) & 3.426 & 3.006 & 5.408 & \textbf{6.271} & 6.053 & 6.085 & 5.313 & 5.551 \\
+v2 / \texttt{Qwen3-8B} & 0.178 (87.8\%) & \textbf{3.600} & 0.131 & 3.551 & 3.508 & 3.571 & --- & 1.163 & --- \\
 \midrule
-Public-Tri / \texttt{Qwen3.5-35B-A3B} & 0.932 (81.7\%) & 3.533 & -0.400 & \textbf{3.723} & 3.067 & 3.612 & 1.259 \\
-Public-Tri / \texttt{DeepSeek-V3.2} & 0.831 (72.5\%) & \textbf{3.443} & -0.792 & 3.331 & 2.769 & 3.327 & 0.417 \\
-Public-Tri / \texttt{Qwen3-8B} & 0.802 (91.7\%) & \textbf{3.133} & -3.402 & 2.809 & 2.013 & 2.809 & -1.611 \\
+Public-Tri / \texttt{Qwen3.5-35B-A3B} & 0.932 (81.7\%) & 3.533 & -0.400 & \textbf{3.723} & 3.067 & 3.612 & 3.446 & 1.259 & 1.720 \\
+Public-Tri / \texttt{DeepSeek-V3.2} & 0.831 (72.5\%) & \textbf{3.443} & -0.792 & 3.331 & 2.769 & 3.327 & 3.382 & 0.417 & 1.428 \\
+Public-Tri / \texttt{Qwen3-8B} & 0.802 (91.7\%) & \textbf{3.133} & -3.402 & 2.809 & 2.013 & 2.809 & --- & -1.611 & --- \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -48,29 +49,59 @@ Public-Tri / \texttt{Qwen3-8B} & 0.802 (91.7\%) & \textbf{3.133} & -3.402 & 2.80
 \label{tab:minimax_regret}
 \begin{tabular}{llccc}
 \toprule
-Suite & Method & Mean Util & Max Regret & Tri W/T/L \\
+Suite & Method & Mean Util & Max Regret & MDP W/T/L \\
 \midrule
-v1-Clean (Q3.5) & Tri-VoI-L2D & \textbf{4.470} & \textbf{0.572} & --- \\
-v1-Clean (Q3.5) & Calib-Casc+Naor & 4.095 & 1.443 & 39/3/14 \\
-v1-Clean (Q3.5) & Joint-Greedy+Naor & 4.332 & 0.983 & 44/0/12 \\
-v1-Clean (Q3.5) & KL-PBD+ (Warm) & 4.049 & 1.179 & 47/1/8 \\
-v1-Clean (Q3.5) & ACL-VoI+FD+Naor & 4.277 & 0.741 & 33/3/20 \\
-v1-Clean (Q3.5) & w/o Externality & 4.119 & 1.727 & 33/16/7 \\
+v1-Clean (Q3.5) & Tri-VoI-MDP & \textbf{4.616} & \textbf{0.404} & --- \\
+v1-Clean (Q3.5) & Tri-VoI-L2D & 4.470 & 0.596 & 49/0/7 \\
+v1-Clean (Q3.5) & Calib-Casc+Naor & 4.095 & 1.529 & 56/0/0 \\
+v1-Clean (Q3.5) & Joint-Greedy+Naor & 4.332 & 0.987 & 56/0/0 \\
+v1-Clean (Q3.5) & KL-PBD+ (Warm) & 4.049 & 1.388 & 52/0/4 \\
+v1-Clean (Q3.5) & ACL-VoI+FD+Naor & 4.277 & 0.827 & 56/0/0 \\
+v1-Clean (Q3.5) & w/o Externality & 4.119 & 1.786 & 48/0/8 \\
 \midrule
-v2 (DS-V3.2) & Tri-VoI-L2D & \textbf{4.258} & 1.021 & --- \\
-v2 (DS-V3.2) & Calib-Casc+Naor & 4.117 & 0.983 & 39/3/14 \\
-v2 (DS-V3.2) & Joint-Greedy+Naor & 4.174 & 0.826 & 37/0/19 \\
-v2 (DS-V3.2) & KL-PBD+ (Warm) & 3.301 & 2.368 & 48/0/8 \\
-v2 (DS-V3.2) & ACL-VoI+FD+Naor & 4.193 & \textbf{0.568} & 37/3/16 \\
-v2 (DS-V3.2) & w/o Externality & 4.001 & 2.024 & 32/18/6 \\
+v2 (DS-V3.2) & Tri-VoI-MDP & \textbf{4.428} & \textbf{0.178} & --- \\
+v2 (DS-V3.2) & Tri-VoI-L2D & 4.258 & 1.529 & 32/2/22 \\
+v2 (DS-V3.2) & Calib-Casc+Naor & 4.117 & 1.042 & 44/0/12 \\
+v2 (DS-V3.2) & Joint-Greedy+Naor & 4.174 & 1.271 & 51/0/5 \\
+v2 (DS-V3.2) & KL-PBD+ (Warm) & 3.301 & 2.368 & 54/0/2 \\
+v2 (DS-V3.2) & ACL-VoI+FD+Naor & 4.193 & 0.848 & 49/0/7 \\
+v2 (DS-V3.2) & w/o Externality & 4.001 & 2.366 & 39/2/15 \\
 \midrule
-PT (DS-V3.2, $c_{\mathrm{def}}=4$) & Tri-VoI-L2D & 0.946 & \textbf{0.559} & --- \\
-PT (DS-V3.2, $c_{\mathrm{def}}=4$) & Calib-Casc+Naor & 0.610 & 2.179 & 35/0/21 \\
-PT (DS-V3.2, $c_{\mathrm{def}}=4$) & Joint-Greedy+Naor & 0.934 & 0.582 & 33/2/21 \\
-PT (DS-V3.2, $c_{\mathrm{def}}=4$) & KL-PBD+ (Warm) & \textbf{0.985} & 1.111 & 20/0/36 \\
-PT (DS-V3.2, $c_{\mathrm{def}}=4$) & ACL-VoI+FD+Naor & 0.776 & 1.217 & 33/0/23 \\
-PT (DS-V3.2, $c_{\mathrm{def}}=4$) & w/o Externality & 0.467 & 1.765 & 36/16/4 \\
+PT (DS-V3.2, $c_{\mathrm{def}}=2$) & Tri-VoI-MDP & \textbf{2.284} & \textbf{0.682} & --- \\
+PT (DS-V3.2, $c_{\mathrm{def}}=2$) & Tri-VoI-L2D & 2.084 & 1.011 & 35/0/21 \\
+PT (DS-V3.2, $c_{\mathrm{def}}=2$) & Calib-Casc+Naor & 1.546 & 2.507 & 54/0/2 \\
+PT (DS-V3.2, $c_{\mathrm{def}}=2$) & Joint-Greedy+Naor & 2.070 & 0.984 & 35/0/21 \\
+PT (DS-V3.2, $c_{\mathrm{def}}=2$) & KL-PBD+ (Warm) & 2.184 & 1.309 & 23/0/33 \\
+PT (DS-V3.2, $c_{\mathrm{def}}=2$) & ACL-VoI+FD+Naor & 1.748 & 1.385 & 54/0/2 \\
+PT (DS-V3.2, $c_{\mathrm{def}}=2$) & w/o Externality & 1.533 & 2.267 & 37/0/19 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Pre-registered zero-touch blind evaluation (tag \texttt{prereg-blind-v3}) on \textit{Benchmark v3} (4 unseen domains, 0 protocol codes, $N_{\text{test}}=144$) and disjoint \textit{MediQ-Holdout} ($N_{\text{test}}=128$). Bold marks row-wise best non-Oracle utility.}
+\label{tab:blind_v3}
+\begin{tabular}{lcccccccc}
+\toprule
+Blind Suite & Direct & KL-PBD+(W) & ACL+FD+N & JG+Naor & CC+Naor & L2D & MDP & Tok (L2D$\to$MDP) \\
+\midrule
+v3 / Qwen3.5-35B-A3B (Cap=2, c=1.5) & -0.556 & 3.401 & \textbf{4.599} & 4.416 & \textbf{4.599} & 4.364 & 4.470 & 4734$\to$2091 \\
+v3 / Qwen3.5-35B-A3B (Cap=2, c=2.5) & -0.556 & 3.401 & 4.149 & \textbf{4.176} & 4.162 & 4.139 & 4.059 & 4640$\to$2004 \\
+v3 / Qwen3.5-35B-A3B (Cap=1/3, c=1.5) & -0.556 & 2.657 & \textbf{3.458} & 3.417 & \textbf{3.458} & \textbf{3.458} & 3.334 & 4815$\to$2187 \\
+v3 / DeepSeek-V3.2 (Cap=2, c=1.5) & 0.000 & 3.216 & 4.411 & 4.204 & 4.528 & 4.558 & \textbf{4.582} & 4466$\to$2036 \\
+v3 / DeepSeek-V3.2 (Cap=2, c=2.5) & 0.000 & 3.216 & 3.939 & 4.007 & 4.028 & 4.058 & \textbf{4.170} & 4350$\to$1928 \\
+v3 / DeepSeek-V3.2 (Cap=1/3, c=1.5) & 0.000 & 1.413 & 2.612 & 3.469 & 2.695 & 2.695 & \textbf{3.484} & 4545$\to$2139 \\
+\midrule
+Holdout Scope `Q3.5`->`DS` (Cap=2, c_def=2.0, c=1.5) & --- & 1.694 & 1.530 & 1.244 & \textbf{1.718} & 1.676 & 1.538 & --- \\
+Holdout Scope `Q3.5`->`DS` (Cap=2, c_def=4.0, c=1.5) & --- & -1.006 & 0.229 & -0.321 & \textbf{0.950} & 0.817 & 0.407 & --- \\
+Holdout Scope `Q3.5`->`DS` (Cap=1/3, c_def=2.0, c=1.5) & --- & \textbf{1.035} & 0.222 & 0.191 & 0.882 & 0.434 & 1.003 & --- \\
+Holdout Pure Cap-Gap `Q8B`->`Q3.5` (Cap=2, c_def=2.0, c=1.5) & --- & \textbf{2.247} & 0.637 & 0.895 & 0.266 & 0.827 & 0.496 & --- \\
+Holdout Pure Cap-Gap `Q8B`->`Q3.5` (Cap=1/3, c_def=2.0, c=1.5) & --- & \textbf{0.892} & 0.476 & 0.419 & 0.455 & 0.148 & 0.551 & --- \\
+Holdout Pure Cap-Gap `Q8B`->`DS` (Cap=2, c_def=2.0, c=1.5) & --- & \textbf{2.068} & 0.340 & 0.546 & 0.266 & 0.414 & 0.496 & --- \\
+Holdout Pure Cap-Gap `Q8B`->`DS` (Cap=1/3, c_def=2.0, c=1.5) & --- & \textbf{1.388} & 0.217 & 0.344 & 0.330 & 0.148 & 0.258 & --- \\
+\bottomrule
+\end{tabular}
+\end{table*}
 
