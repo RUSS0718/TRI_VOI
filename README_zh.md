@@ -4,7 +4,7 @@
 
 **统一主方法（IJCAI 2027）**：**`Tri-VoI-MDP`（`Deploy-Self`，100% 零 Oracle）**——面向 **用户（User）**、快速大语言模型**全科助手（Generalist）**与受队列容量约束的**领域专家（Specialist，`LLM Specialist` 或仿真接管模型）**的可部署两阶段序贯控制与排队决策框架。
 
-相比于此前预注册的 5-Call 静态前代方法（`Tri-VoI-L2D`，在仓库中完整保留以作谱系对比），`Tri-VoI-MDP` 实现了三项核心升级：
+相比于此前预注册的 5-Call 静态前代方法（`Tri-VoI-L2D`，完整历史归档于 `archive/v1-tri-voi-l2d` 分支并在主表中作为前代基线对比），`Tri-VoI-MDP` 实现了三项核心升级：
 1. 将 5-Call 自洽性探测精简为 **2-Call 粗充分统计量（coarse sufficient statistic）**，在 `Benchmark v1-Clean` 与 `Benchmark v2` 上将实测 LLM Token 开销降低 **53.7%–57.8%**。
 2. 将依赖模拟器真实反馈 `oracle_revealed` 的澄清后信号替换为严格本地可部署的 **`post_missing` 自监督信号**（解析失败时仅回退至 `obs_missing`，全程零访问模拟器真值）。
 3. 将近视的静态 Naor 队列阈值替换为服务器拥塞条件下的**有限时域周期排空 Bellman 动态规划影子价格**（$\Delta V(q)$，见 **Theorem 4 & Proposition 5**）。
@@ -43,6 +43,32 @@
 
 ---
 
+## IJCAI 2027 论文图表与对应关系
+
+| 图表资产（`results/`） | 内容与论文对应定位 |
+|:---|:---|
+| [`figs/fig1_mdp_mechanism_and_regret.pdf`](./results/figs/fig1_mdp_mechanism_and_regret.pdf) | **Fig. 1**：跨 13 套件高拥塞 `+MDP` 普适增益（`13/13` 与 `12/13`）+ Proposition 5 配对 `2C-Self` 极小化极大后悔前沿（`26` 格与 `40` 格）。 |
+| [`figs/fig2_theory_verification.pdf`](./results/figs/fig2_theory_verification.pdf) | **Fig. 2**：四联图离线数值验证（Theorem 1/Cor. 1、Theorem 3 容量扩展、Theorem 4 周期排空 Bellman 影子价格、Proposition 5 单步后悔分解）。 |
+| [`figs/fig3_efficiency_and_c_ask_phase.pdf`](./results/figs/fig3_efficiency_and_c_ask_phase.pdf) | **Fig. 3**：实测 SQLite `-53.7%` 至 `-57.8%` Token 节省（`Section 6`）+ 配对 `2C-Self` 的 `c_ask` 相变曲线（`Section 9F`）。 |
+| [`figs/fig4_mediq_disjoint_clinical_blind.pdf`](./results/figs/fig4_mediq_disjoint_clinical_blind.pdf) | **Fig. 4**：`MediQ-Test-Disjoint` Setup A 跨器官盲测收益（`4.266` / `3.588`）、医学准确率/越界召回率拆分与 Setup B 诚实持平展示（`Section 10`）。 |
+| [`ijcai2027_canonical_tables.md`](./results/ijcai2027_canonical_tables.md) | **主结果总表（`Sections 0–10`）**：单一事实源（对应 LaTeX 表格见 [`ijcai2027_canonical_tables.tex`](./results/ijcai2027_canonical_tables.tex)）。 |
+
+---
+
+## 分支与历史归档策略（主分支与旧版彻底切割）
+
+为保持 `main` 分支轻量、干净并始终对应最新 IJCAI 2027 论文状态，各历史实验阶段已通过只读分支与 Git Tag 完整固化：
+
+| 分支 / 标签 | 收录内容与用途 |
+|:---|:---|
+| **`main`**（当前活跃主分支） | 最新 100% Zero-Oracle `Tri-VoI-MDP`（`Deploy-Self`）代码、4 张论文核心配图、Canonical 主表 0–10 与活跃核验脚本。 |
+| `archive/v1-tri-voi-l2d` | 旧版 `Tri-VoI-L2D` 完整快照（`76bd911`：v1/v2/Public-Tri、5 阶段过夜实验、旧版 `fig1..fig9` 与 `zero_touch_holdout.md`）。 |
+| `archive/v2-mdp-oracle-diag` | 中间阶段 `Tri-VoI-MDP`（含 Oracle-NoInfo 诊断）与 `Benchmark v3` / 早期归因快照（`8fcfbf8`）。 |
+| `archive/full-history-snapshot` | 清理前全量仓库快照（`9b7ea8c`，完整保留历史归档目录、过夜脚本与 Colab Worker 等全部历史文件）。 |
+| `prereg-blind-v3` / `prereg-mediq-test-disjoint` | 单次盲测运行前冻结的预注册 Git Tags。 |
+
+---
+
 ## 仓库目录结构
 
 ```text
@@ -55,32 +81,34 @@
 ├── benchmark_v3.py                      # 未见模板领域 (Benchmark v3) 与 MediQ-Holdout 划分
 ├── mediq_test_disjoint.py               # 跨器官系统、长度匹配的 MediQ-Test-Disjoint 数据构建器
 ├── generate_ijcai_tables.py             # 自动生成已校验的 results/ijcai2027_canonical_tables.{md,tex}
-├── verify_theory_package.py             # 零 API 调用验证 Theorems 1–4 与 Proposition 5
+├── generate_ijcai_figures.py            # 由已核验 JSON 生成 3 张主实证配图（PDF + 300 dpi PNG）
+├── verify_theory_package.py             # 零 API 调用验证 Theorems 1–4 与 Proposition 5（生成 Fig. 2）
 ├── run_deploy_self_canonical_upgrade.py # Sections 0–8 的离线零 Oracle 升级重算脚本
 ├── run_attribution_and_dedup_audit.py   # Section 9 离线归因（配对 2C-S 对比、post_missing 审计、v3 切片）
 ├── run_mediq_test_disjoint_eval.py      # Section 10 主运行脚本（MediQ-Test-Disjoint）
-├── docs/theory/                         # 理论证明文档与数值验证 JSON/MD 文件
+├── docs/theory/                         # 理论证明与说明文档
 └── results/
-    ├── README.md                        # 活跃结果文档与归档文件说明指南
+    ├── README.md                        # 主结果文档、核心配图与归档分支说明
     ├── ijcai2027_canonical_tables.md    # 主 Markdown 结果总表（Sections 0–10）
     ├── ijcai2027_canonical_tables.tex   # 对应 Sections 1–8 的 LaTeX 表格
     ├── attribution_and_dedup_audit.md   # Section 9 详细离线归因与信号审计报告
     ├── mediq_test_disjoint_eval.md      # 预注册 MediQ-Test-Disjoint 临床评估报告
-    ├── deploy_self_canonical_upgrade.json
-    └── archive/                         # 已替代的早期 Pre-MDP 与 Oracle 诊断阶段性历史报告
+    ├── theory/                          # 机器核验输出 theory_verification.{json,md}
+    └── figs/                            # 4 张核心论文配图（PDF + 300 dpi PNG）
 ```
 
 ---
 
-## 离线复现与主表重生成（`live=0`, `¥0.00`）
+## 离线复现与图表重生成（`live=0`, `¥0.00`）
 
-所有代码、表格与理论一致性校验均可通过仓库内缓存的 SQLite 响应与已验证 JSON 输出完全离线运行：
+所有代码、理论核验、主表与论文配图均可通过仓库内缓存的 SQLite 响应与已验证 JSON 输出完全离线运行：
 
 ```bash
 python verify_theory_package.py
 python run_deploy_self_canonical_upgrade.py
 python run_attribution_and_dedup_audit.py --offline-only
 python generate_ijcai_tables.py
+python generate_ijcai_figures.py
 ```
 
 若需配置环境或针对 SiliconFlow 在线复跑 `MediQ-Test-Disjoint` 盲测，请参阅 [mediq_test_disjoint_eval.md](./results/mediq_test_disjoint_eval.md)。

@@ -4,7 +4,7 @@
 
 **Unified Primary Method (IJCAI 2027)**: **`Tri-VoI-MDP` (`Deploy-Self`, 100% Zero-Oracle)** — a deployable two-stage sequential control and queueing framework coordinating a **User**, a fast LLM **Generalist**, and a capacity-constrained **Specialist** (`LLM Specialist` or simulated override model).
 
-Compared with its pre-registered 5-call static predecessor (`Tri-VoI-L2D`, preserved intact for lineage comparison), `Tri-VoI-MDP`:
+Compared with its pre-registered 5-call static predecessor (`Tri-VoI-L2D`, preserved intact on `archive/v1-tri-voi-l2d` and as the `L2D` baseline in canonical comparisons), `Tri-VoI-MDP`:
 1. Replaces 5-call self-consistency probing with a **2-Call coarse sufficient statistic**, cutting realized LLM token usage by **53.7%–57.8%** across `Benchmark v1-Clean` and `Benchmark v2`.
 2. Replaces simulator `oracle_revealed` post-clarification feedback with a strictly local deployable **`post_missing` self-signal** (falling back exclusively to `obs_missing`, never reading simulator ground truth).
 3. Replaces myopic Naor static queue cutoffs with **finite-horizon periodic-drain Bellman dynamic programming shadow prices** ($\Delta V(q)$) under server congestion (**Theorem 4 & Proposition 5**).
@@ -43,6 +43,32 @@ All headline figures are automatically compiled into [ijcai2027_canonical_tables
 
 ---
 
+## IJCAI 2027 Paper Figure & Table Map
+
+| Asset (`results/`) | Content & Role in Paper |
+|:---|:---|
+| [`figs/fig1_mdp_mechanism_and_regret.pdf`](./results/figs/fig1_mdp_mechanism_and_regret.pdf) | **Fig. 1**: Universal `+MDP` congestion gains (`13/13` & `12/13` suites) + Proposition 5 `2C-Self` minimax regret frontier (`26`-cell & `40`-cell). |
+| [`figs/fig2_theory_verification.pdf`](./results/figs/fig2_theory_verification.pdf) | **Fig. 2**: 4-panel offline numerical verification of Theorem 1/Cor. 1, Theorem 3, Theorem 4 shadow prices, and Proposition 5 one-step regret. |
+| [`figs/fig3_efficiency_and_c_ask_phase.pdf`](./results/figs/fig3_efficiency_and_c_ask_phase.pdf) | **Fig. 3**: Measured SQLite `-53.7%` to `-57.8%` token reduction (`Section 6`) + matched `2C-Self` `c_ask` phase curves (`Section 9F`). |
+| [`figs/fig4_mediq_disjoint_clinical_blind.pdf`](./results/figs/fig4_mediq_disjoint_clinical_blind.pdf) | **Fig. 4**: `MediQ-Test-Disjoint` Setup A (`4.266` / `3.588`), clinical accuracy/escalation breakdown, and honest Setup B parity (`Section 10`). |
+| [`ijcai2027_canonical_tables.md`](./results/ijcai2027_canonical_tables.md) | **Canonical Tables (`Sections 0–10`)**: Single source of truth (paired LaTeX in [`ijcai2027_canonical_tables.tex`](./results/ijcai2027_canonical_tables.tex)). |
+
+---
+
+## Branch & Archive Policy
+
+Historical experiment iterations are cleanly separated onto read-only archive branches so `main` stays lean and focused on the latest IJCAI 2027 submission:
+
+| Branch / Tag | Contents |
+|:---|:---|
+| **`main`** (Active) | Latest Zero-Oracle `Tri-VoI-MDP` (`Deploy-Self`) codebase, 4 core paper figures, canonical Tables 0–10, and active verification/evaluation scripts. |
+| `archive/v1-tri-voi-l2d` | Pre-MDP `Tri-VoI-L2D` release (`76bd911`: v1/v2/Public-Tri, 5-stage sweeps, legacy `fig1..fig9`, `zero_touch_holdout.md`). |
+| `archive/v2-mdp-oracle-diag` | Intermediate `Tri-VoI-MDP` Oracle-NoInfo + `Benchmark v3` + initial attribution stage (`8fcfbf8`). |
+| `archive/full-history-snapshot` | Full pre-cleanup superset snapshot (`9b7ea8c`, including archived Markdown reports, legacy figures, and Colab worker scripts). |
+| `prereg-blind-v3` / `prereg-mediq-test-disjoint` | Frozen pre-registration Git tags for single-shot blind evaluation runs. |
+
+---
+
 ## Repository Structure
 
 ```text
@@ -55,32 +81,34 @@ All headline figures are automatically compiled into [ijcai2027_canonical_tables
 ├── benchmark_v3.py                      # Unseen template domains (Benchmark v3) & MediQ-Holdout splits
 ├── mediq_test_disjoint.py               # Organ-system-disjoint, length-matched MediQ-Test-Disjoint builder
 ├── generate_ijcai_tables.py             # Generates verified results/ijcai2027_canonical_tables.{md,tex}
-├── verify_theory_package.py             # Zero-API verification of Theorems 1–4 & Proposition 5
+├── generate_ijcai_figures.py            # Generates figs 1, 3, 4 (PDF + 300 dpi PNG) from verified JSONs
+├── verify_theory_package.py             # Zero-API verification of Theorems 1–4 & Proposition 5 (generates fig 2)
 ├── run_deploy_self_canonical_upgrade.py # Offline zero-Oracle upgrade across Sections 0–8
 ├── run_attribution_and_dedup_audit.py   # Offline Section 9 (matched 2C-S attribution, post_missing audit, v3 slices)
 ├── run_mediq_test_disjoint_eval.py      # Section 10 runner (MediQ-Test-Disjoint)
-├── docs/theory/                         # Proofs & theoretical validation JSON/MD packages
+├── docs/theory/                         # Proofs & theoretical validation documentation
 └── results/
-    ├── README.md                        # Guide to active vs. archived artifacts
+    ├── README.md                        # Guide to canonical tables, figures, and branch archive policy
     ├── ijcai2027_canonical_tables.md    # Primary Markdown tables (Sections 0–10)
     ├── ijcai2027_canonical_tables.tex   # LaTeX tables matching Sections 1–8
     ├── attribution_and_dedup_audit.md   # Detailed Section 9 offline attribution & signal audit
     ├── mediq_test_disjoint_eval.md      # Pre-registered MediQ-Test-Disjoint clinical report
-    ├── deploy_self_canonical_upgrade.json
-    └── archive/                         # Superseded pre-MDP & Oracle-diagnostic stage reports
+    ├── theory/                          # Machine-verified theory_verification.{json,md}
+    └── figs/                            # 4 publication figures (PDF + 300 dpi PNG)
 ```
 
 ---
 
-## Reproducing Offline Verification & Canonical Tables (`live=0`, `¥0.00`)
+## Reproducing Offline Verification, Figures & Tables (`live=0`, `¥0.00`)
 
-All code/table/theory consistency checks run completely offline against the cached SQLite responses and verified JSON outputs:
+All code, theory checks, figures, and tables run completely offline against the cached SQLite responses and verified JSON outputs:
 
 ```bash
 python verify_theory_package.py
 python run_deploy_self_canonical_upgrade.py
 python run_attribution_and_dedup_audit.py --offline-only
 python generate_ijcai_tables.py
+python generate_ijcai_figures.py
 ```
 
 For environment setup and API execution details (when re-running `MediQ-Test-Disjoint` live against SiliconFlow), see [mediq_test_disjoint_eval.md](./results/mediq_test_disjoint_eval.md).

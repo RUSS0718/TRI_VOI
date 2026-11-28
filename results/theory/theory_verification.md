@@ -1,4 +1,4 @@
-# Offline Verification Report: IJCAI 2027 Three-Theorem Package
+# Offline Verification Report: IJCAI 2027 Tri-VoI-MDP Theoretical Package (Theorems 1–4 & Proposition 5)
 
 ## Theorem 1 & Corollary 1 (3-Outcome Three-Regime EVOI + Rework Shift)
 - Boundaries ($p_e=0.75$): $Q_1^* = 5.324$, $Q_2^* = 13.389$, Rework $Q_1^{*,rw} = -1.047$ ($\Delta_{rw} = 5.415$).
@@ -36,10 +36,10 @@
 | 8 | -2.660 | -2.640 |
 
 ### Real `simulate_stream` Empirical Queue vs. Accuracy (`v1-Clean`, `Qwen3.5-35B-A3B`)
-| Service Rate $\mu$ | `Congested-L2D-Only` $\bar{Q}$ (Acc%, Util) | `Tri-VoI-L2D` $\bar{Q}$ (Acc%, Util) | `Tri-VoI-MDP` $\bar{Q}$ (Acc%, Util) |
+| Service Rate $\mu$ | `Congested-L2D-Only` $\bar{Q}$ (Acc%, Util) | `Tri-VoI-L2D` $\bar{Q}$ (Acc%, Util) | `Tri-VoI-MDP (Zero-Oracle)` $\bar{Q}$ (Acc%, Util) |
 |---:|---:|---:|---:|
-| 2.00 | 0.00 (80.72%, 4.870) | 0.00 (83.83%, 5.367) | 0.00 (84.28%, 5.429) |
-| 1.00 | 0.32 (80.44%, 4.646) | 0.28 (83.67%, 5.220) | 0.25 (84.11%, 5.341) |
+| 2.00 | 0.00 (80.72%, 4.870) | 0.00 (83.83%, 5.367) | 0.00 (84.28%, 5.433) |
+| 1.00 | 0.32 (80.44%, 4.646) | 0.28 (83.67%, 5.220) | 0.25 (84.11%, 5.343) |
 | 0.50 | 5.21 (77.06%, 2.321) | 0.99 (81.50%, 4.610) | 0.67 (81.61%, 4.781) |
 | 0.33 | 8.19 (71.83%, 1.447) | 3.38 (79.56%, 3.792) | 2.37 (79.33%, 4.048) |
 

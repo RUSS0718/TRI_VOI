@@ -1341,7 +1341,7 @@
         "tri_util": 5.367,
         "mdp_mean_q": 0.0,
         "mdp_acc_pct": 84.28,
-        "mdp_util": 5.429
+        "mdp_util": 5.433
       },
       {
         "mu": "1.00",
@@ -1353,7 +1353,7 @@
         "tri_util": 5.22,
         "mdp_mean_q": 0.25,
         "mdp_acc_pct": 84.11,
-        "mdp_util": 5.341
+        "mdp_util": 5.343
       },
       {
         "mu": "0.50",

@@ -17,6 +17,8 @@ from controller import HeldOutCalibrator, probe_dataset, simulate_stream, solve_
 BASE_DIR = Path(__file__).resolve().parent
 THEORY_DIR = BASE_DIR / "results" / "theory"
 THEORY_DIR.mkdir(parents=True, exist_ok=True)
+FIGS_DIR = BASE_DIR / "results" / "figs"
+FIGS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def verify_theorem_1_and_corollary_1() -> Dict[str, Any]:
@@ -376,7 +378,7 @@ def verify_theorem_3() -> Dict[str, Any]:
     for mu_lbl, cap, di in [("2.00", 2, 1), ("1.00", 2, 2), ("0.50", 1, 2), ("0.33", 1, 3)]:
         r_l2d = [simulate_stream("Congested-L2D-Only", q35_test, q35_eb, capacity=cap, drain_interval=di, c_ask=1.5, seed=s) for s in range(5)]
         r_tri = [simulate_stream("Tri-VoI-L2D", q35_test, q35_eb, capacity=cap, drain_interval=di, c_ask=1.5, seed=s) for s in range(5)]
-        r_mdp = [simulate_stream("Tri-VoI-MDP", q35_test, q35_eb, capacity=cap, drain_interval=di, c_ask=1.5, seed=s) for s in range(5)]
+        r_mdp = [simulate_stream("Tri-VoI-MDP (Deploy-Self)", q35_test, q35_eb, capacity=cap, drain_interval=di, c_ask=1.5, seed=s) for s in range(5)]
         stream_mu_rows.append({
             "mu": mu_lbl,
             "l2d_mean_q": round(float(np.mean([r["mean_queue_len"] for r in r_l2d])), 2),
@@ -538,68 +540,104 @@ def verify_proposition_5() -> Dict[str, Any]:
     return {"bucket_true_true_rows": rows}
 
 
-def plot_fig2(t1: Dict[str, Any], t2: Dict[str, Any], t3: Dict[str, Any]) -> None:
+def plot_fig2(
+    t1: Dict[str, Any],
+    t2: Dict[str, Any],
+    t3: Dict[str, Any],
+    t4: Dict[str, Any],
+    p5: Dict[str, Any],
+) -> None:
     plt.rcParams.update({
         "font.size": 9,
         "axes.titlesize": 10,
         "axes.labelsize": 9,
         "legend.fontsize": 7.5,
-        "figure.dpi": 200,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "figure.dpi": 300,
     })
-    fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.0), constrained_layout=True)
+    fig, axes = plt.subplots(2, 2, figsize=(11.5, 7.6), constrained_layout=True)
 
-    # Panel A: Theorem 1 + Corollary 1
-    ax = axes[0]
+    # Panel (a): Theorem 1 + Corollary 1
+    ax = axes[0, 0]
     q_int = t1["q_int"]
-    ax.plot(q_int, t1["evoi_cal_std"], "o-", color="#1f77b4", lw=1.8, ms=4, label="Standard Analytical EVOI")
-    ax.errorbar(q_int, t1["mc_mean_int"], yerr=t1["mc_se_int"], fmt="s--", color="#2ca02c", ms=3.5, lw=1.3, capsize=2, label="200-Seed MC Rollout")
-    ax.plot(q_int, t1["evoi_cal_rework"], "^-.", color="#d62728", lw=1.6, ms=4, label="Rework-Aware $U_{defer}^{rework}$ (Cor. 1)")
-    ax.axvline(t1["q1_star"], color="#1f77b4", ls=":", lw=1.1, label=f"$Q_1^*={t1['q1_star']:.2f}$")
-    ax.axvline(t1["q1_rework_star"], color="#d62728", ls=":", lw=1.1, label=f"$Q_1^{{*,rw}}={t1['q1_rework_star']:.2f}$")
+    ax.plot(q_int, t1["evoi_cal_std"], "o-", color="#0072B2", lw=1.8, ms=4, label="Standard Analytical EVOI")
+    ax.errorbar(q_int, t1["mc_mean_int"], yerr=t1["mc_se_int"], fmt="s--", color="#009E73", ms=3.5, lw=1.3, capsize=2, label="200-Seed MC Rollout")
+    ax.plot(q_int, t1["evoi_cal_rework"], "^-.", color="#D55E00", lw=1.6, ms=4, label="Rework-Aware $U_{defer}^{rework}$ (Cor. 1)")
+    ax.axvline(t1["q1_star"], color="#0072B2", ls=":", lw=1.1, label=f"$Q_1^*={t1['q1_star']:.2f}$")
+    ax.axvline(t1["q1_rework_star"], color="#D55E00", ls=":", lw=1.1, label=f"$Q_1^{{*,rw}}={t1['q1_rework_star']:.2f}$")
     ax.axvline(t1["q2_star"], color="#555555", ls="--", lw=1.0, label=f"$Q_2^*={t1['q2_star']:.2f}$")
     ax.axhline(0.0, color="#888888", lw=0.8)
-    ax.set_title("Thm 1 & Cor 1: 3-Regime EVOI & Rework Shift")
+    ax.set_title("(a) Thm 1 & Cor 1: 3-Regime EVOI & Rework Shift")
     ax.set_xlabel("Specialist Queue Backlog $Q$")
     ax.set_ylabel("EVOI(ASK; $Q$)")
     ax.grid(alpha=0.25)
     ax.legend(loc="best", frameon=True)
 
-    # Panel B: Theorem 2 GLM-4.5-Air n_cal & k sweep
-    ax = axes[1]
-    colors = {"k=2": "#d62728", "k=5": "#ff7f0e", "k=10": "#1f77b4"}
-    for klbl, rows in t2["glm_curves"].items():
-        xs = [r["n_cal"] for r in rows]
-        ys = [r["u_sev_mean"] for r in rows]
-        es = [r["u_sev_std"] for r in rows]
-        ax.errorbar(xs, ys, yerr=es, fmt="o-", color=colors[klbl], lw=1.6, capsize=2.5, label=f"GLM-4.5-Air ({klbl}) Cap=1/3")
-    ax.axhline(t2["qwen3_8b_boundary"]["u_sev"], color="#7f7f7f", ls="--", lw=1.1, label=f"Qwen3-8B Floor ({t2['qwen3_8b_boundary']['u_sev']:.2f})")
-    ax.set_title("Thm 2 & Cor 2: GLM Shrinkage ($k, n_{cal}$)")
-    ax.set_xlabel("Calibration Set Size $n_{cal}$")
-    ax.set_ylabel("Mean Utility (Severe Cap=1/3)")
-    ax.grid(alpha=0.25)
-    ax.legend(loc="lower right", frameon=True)
-
-    # Panel C: Theorem 3 Capacity Expansion + Inset/Twin Latency
-    ax = axes[2]
+    # Panel (b): Theorem 3 Capacity Expansion
+    ax = axes[0, 1]
     lams = [r["lambda_tot"] for r in t3["stability_rows"]]
     qb = [min(r["mean_q_base_l2d"], 400.0) for r in t3["stability_rows"]]
     qt = [r["mean_q_tri_voi"] for r in t3["stability_rows"]]
-    ax.plot(lams, qb, "s--", color="#d62728", lw=1.6, ms=4, label="{ACT, DEFER} Backlog (capped 400)")
-    ax.plot(lams, qt, "o-", color="#1f77b4", lw=1.8, ms=4.5, label="Tri-VoI-L2D Backlog")
+    ax.plot(lams, qb, "s--", color="#D55E00", lw=1.6, ms=4, label="{ACT, DEFER} Backlog (capped 400)")
+    ax.plot(lams, qt, "o-", color="#0072B2", lw=1.8, ms=4.5, label="2-Stage Clarification Backlog")
     lyap_x = [r["lambda_tot"] for r in t3["stability_rows"] if r["lyapunov_bound"] is not None]
     lyap_y = [r["lyapunov_bound"] for r in t3["stability_rows"] if r["lyapunov_bound"] is not None]
-    ax.plot(lyap_x, lyap_y, "^:", color="#2ca02c", lw=1.4, label="Thm 3 Lyapunov Bound $B/\\varepsilon$")
-    ax.axvline(t3["lam_base_crit"], color="#d62728", ls=":", lw=1.0, label=f"$\\lambda_{{base}}^*={t3['lam_base_crit']:.2f}$")
-    ax.axvline(t3["lam_tri_crit"], color="#1f77b4", ls=":", lw=1.0, label=f"$\\lambda_{{Tri}}^*={t3['lam_tri_crit']:.2f}$")
+    ax.plot(lyap_x, lyap_y, "^:", color="#009E73", lw=1.4, label="Thm 3 Lyapunov Bound $B/\\varepsilon$")
+    ax.axvline(t3["lam_base_crit"], color="#D55E00", ls=":", lw=1.0, label=f"$\\lambda_{{base}}^*={t3['lam_base_crit']:.2f}$")
+    ax.axvline(t3["lam_tri_crit"], color="#0072B2", ls=":", lw=1.0, label=f"$\\lambda_{{Tri}}^*={t3['lam_tri_crit']:.2f}$ (2.0x)")
     ax.set_yscale("log")
-    ax.set_title("Thm 3: Capacity Expansion & Latency $\\tau_{ask}$")
+    ax.set_title("(b) Thm 3: Foster-Lyapunov Stability Expansion")
     ax.set_xlabel("Total Arrival Rate $\\lambda_{tot}$")
     ax.set_ylabel("Steady-State Mean Queue $\\mathbb{E}[Q]$ (log)")
     ax.grid(alpha=0.25)
     ax.legend(loc="upper left", frameon=True)
 
-    out_pdf = THEORY_DIR / "fig2_theory_verification.pdf"
-    out_png = THEORY_DIR / "fig2_theory_verification.png"
+    # Panel (c): Theorem 4 Periodic-Drain Bellman Shadow Prices
+    ax = axes[1, 0]
+    qs = list(range(len(t4["shadow_phase1_q0_to_q9"])))
+    shs = t4["shadow_phase1_q0_to_q9"]
+    ax.plot(qs, shs, "o-", color="#0072B2", lw=1.8, ms=5, label=r"Bellman Shadow Price $\Delta V_{25}(1, q)$")
+    ax.scatter([1], [t4["subcap_phase1_q1"]], color="#D55E00", s=55, zorder=5, label=f"Sub-capacity $q=1 < C$: {t4['subcap_phase1_q1']:.3f} > 0")
+    ax.axhline(0.0, color="#888888", lw=0.8)
+    ax.annotate(
+        f"$\\gamma=0 \\Rightarrow \\max|\\Delta V|={t4['gamma0_max_shadow']:.1e}$\n"
+        f"4-branch $Q_{{max}}^{{defer}}={t4['q_max_4branch_thresh']:.2f}$\n"
+        f"Horizon diff ($q\\leq 7$): {t4['horizon_25_vs_100_max_diff_q0_7']:.1e}",
+        xy=(0.97, 0.94),
+        xycoords="axes fraction",
+        ha="right",
+        va="top",
+        fontsize=7.5,
+        bbox=dict(boxstyle="round,pad=0.3", facecolor="#F8F9FA", edgecolor="#CCCCCC"),
+    )
+    ax.set_title("(c) Thm 4: Periodic-Drain Bellman Shadow Prices")
+    ax.set_xlabel("Specialist Queue Length $q$")
+    ax.set_ylabel(r"Shadow Price $\Delta V_{25}(1, q)$")
+    ax.set_xticks(qs)
+    ax.grid(alpha=0.25)
+    ax.legend(loc="lower right", frameon=True)
+
+    # Panel (d): Proposition 5 One-Step Regret Decomposition
+    ax = axes[1, 1]
+    rows_p5 = p5["bucket_true_true_rows"]
+    for q_val, marker, ls in [(0, "o", "-"), (7, "s", "--")]:
+        sub = sorted([r for r in rows_p5 if r["q"] == q_val], key=lambda x: x["c_ask"])
+        cs = [r["c_ask"] for r in sub]
+        rcc = [r["regret_cc"] for r in sub]
+        rjg = [r["regret_jg"] for r in sub]
+        ax.plot(cs, rcc, marker=marker, ls=ls, color="#D55E00", lw=1.7, ms=4.5, label=f"Regret Cascade ($Q={q_val}$)")
+        ax.plot(cs, rjg, marker=marker, ls=ls, color="#009E73", lw=1.7, ms=4.5, label=f"Regret Joint-Greedy ($Q={q_val}$)")
+    ax.axhline(0.0, color="#0072B2", lw=1.5, ls=":", label="Tri-VoI-MDP One-Step Regret (0.0)")
+    ax.set_title("(d) Prop 5: Matched-DP One-Step Regret Decomposition")
+    ax.set_xlabel("Clarification Cost $c_{\\mathrm{ask}}$")
+    ax.set_ylabel("One-Step Decision Regret vs. EVOI DP")
+    ax.set_xticks([0.5, 1.5, 3.0, 4.5])
+    ax.grid(alpha=0.25)
+    ax.legend(loc="upper left", frameon=True, ncol=2, fontsize=7.0)
+
+    out_pdf = FIGS_DIR / "fig2_theory_verification.pdf"
+    out_png = FIGS_DIR / "fig2_theory_verification.png"
     fig.savefig(out_pdf, bbox_inches="tight")
     fig.savefig(out_png, bbox_inches="tight")
     plt.close(fig)
@@ -611,13 +649,13 @@ def main() -> None:
     t3 = verify_theorem_3()
     t4 = verify_theorem_4()
     p5 = verify_proposition_5()
-    plot_fig2(t1, t2, t3)
+    plot_fig2(t1, t2, t3, t4, p5)
 
     payload = {"theorem_1": t1, "theorem_2": t2, "theorem_3": t3, "theorem_4": t4, "proposition_5": p5}
     (THEORY_DIR / "theory_verification.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     lines = [
-        "# Offline Verification Report: IJCAI 2027 Three-Theorem Package",
+        "# Offline Verification Report: IJCAI 2027 Tri-VoI-MDP Theoretical Package (Theorems 1–4 & Proposition 5)",
         "",
         "## Theorem 1 & Corollary 1 (3-Outcome Three-Regime EVOI + Rework Shift)",
         f"- Boundaries ($p_e=0.75$): $Q_1^* = {t1['q1_star']}$, $Q_2^* = {t1['q2_star']}$, Rework $Q_1^{{*,rw}} = {t1['q1_rework_star']}$ ($\\Delta_{{rw}} = {t1['delta_rework']}$).",
@@ -663,7 +701,7 @@ def main() -> None:
     lines.extend([
         "",
         "### Real `simulate_stream` Empirical Queue vs. Accuracy (`v1-Clean`, `Qwen3.5-35B-A3B`)",
-        "| Service Rate $\\mu$ | `Congested-L2D-Only` $\\bar{Q}$ (Acc%, Util) | `Tri-VoI-L2D` $\\bar{Q}$ (Acc%, Util) | `Tri-VoI-MDP` $\\bar{Q}$ (Acc%, Util) |",
+        "| Service Rate $\\mu$ | `Congested-L2D-Only` $\\bar{Q}$ (Acc%, Util) | `Tri-VoI-L2D` $\\bar{Q}$ (Acc%, Util) | `Tri-VoI-MDP (Zero-Oracle)` $\\bar{Q}$ (Acc%, Util) |",
         "|---:|---:|---:|---:|",
     ])
     for r in t3["stream_mu_rows"]:
@@ -691,7 +729,7 @@ def main() -> None:
         )
 
     (THEORY_DIR / "theory_verification.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print("Saved theory verification JSON, MD, and fig2_theory_verification.{pdf,png}")
+    print("Saved theory verification JSON, MD, and results/figs/fig2_theory_verification.{pdf,png}")
 
 
 if __name__ == "__main__":
