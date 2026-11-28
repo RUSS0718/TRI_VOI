@@ -1,0 +1,30 @@
+{
+  "max_budget_rmb": 10.0,
+  "estimated_rmb": 3.3168,
+  "live_calls": 3620,
+  "cached_hits": 0,
+  "dry_calls": 0,
+  "prompt_tokens": 2654565,
+  "completion_tokens": 254235,
+  "elapsed_min": 64.42,
+  "by_model": {
+    "Qwen/Qwen3-8B": {
+      "live_calls": 1157,
+      "prompt_tokens": 687522,
+      "completion_tokens": 89642,
+      "estimated_rmb": 0.1913
+    },
+    "Qwen/Qwen3.5-35B-A3B": {
+      "live_calls": 1215,
+      "prompt_tokens": 986323,
+      "completion_tokens": 100786,
+      "estimated_rmb": 0.9726
+    },
+    "deepseek-ai/DeepSeek-V3.2": {
+      "live_calls": 1248,
+      "prompt_tokens": 980720,
+      "completion_tokens": 63807,
+      "estimated_rmb": 2.1529
+    }
+  }
+}
